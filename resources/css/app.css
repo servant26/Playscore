@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #131916 inset !important;
+    -webkit-text-fill-color: #F5F7F5 !important;
+    caret-color: #F5F7F5;
+    transition: background-color 5000s ease-in-out 0s;
+}
