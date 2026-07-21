@@ -32,6 +32,11 @@ class Game extends Model
         ];
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function interests(): BelongsToMany
     {
         return $this->belongsToMany(Interest::class);
