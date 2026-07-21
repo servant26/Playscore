@@ -10,6 +10,8 @@ export default function AppLayout({ children }) {
         e.preventDefault();
         if (search.trim()) {
             router.get(route('search'), { q: search });
+        } else {
+            router.get(route('dashboard'));
         }
     };
 
@@ -53,11 +55,8 @@ export default function AppLayout({ children }) {
                         <div className="relative flex items-center gap-3">
                             <button
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                                className="flex items-center gap-2"
+                                className="flex items-center gap-4"
                             >
-                                <span className="text-[#F5F7F5] text-sm font-medium hidden sm:block">
-                                    {auth.user.name}
-                                </span>
                                 <div className="w-9 h-9 rounded-full bg-[#131916] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-sm font-semibold overflow-hidden">
                                     {auth.user.avatar ? (
                                         <img
@@ -69,6 +68,9 @@ export default function AppLayout({ children }) {
                                         initials
                                     )}
                                 </div>
+                                <span className="text-[#F5F7F5] text-sm font-medium hidden sm:block">
+                                    {auth.user.name}
+                                </span>
                             </button>
 
                             {showProfileMenu && (

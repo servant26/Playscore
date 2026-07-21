@@ -10,3 +10,35 @@ input:-webkit-autofill:focus {
     caret-color: #F5F7F5;
     transition: background-color 5000s ease-in-out 0s;
 }
+
+.hide-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #131916;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #2E3A32;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #22C55E;
+}
+
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #2E3A32 #131916;
+}

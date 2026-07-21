@@ -23,6 +23,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/game-list/{game}/toggle', [App\Http\Controllers\GameListController::class, 'toggle'])->name('game-list.toggle');
+    Route::get('/search', [App\Http\Controllers\SearchController::class, 'index'])->name('search');
+    Route::post('/interests', [App\Http\Controllers\InterestController::class, 'update'])->name('interests.update');
 });
 
 require __DIR__.'/auth.php';

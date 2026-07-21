@@ -18,6 +18,7 @@ export default function Edit({
     status,
     allInterests,
     userInterestIds,
+    recommendations,
     gameList,
     stats,
 }) {
@@ -35,8 +36,8 @@ export default function Edit({
                                 key={tab.key}
                                 onClick={() => setActiveTab(tab.key)}
                                 className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === tab.key
-                                        ? 'bg-[#22C55E] text-[#0B0F0D]'
-                                        : 'text-[#8B948F] hover:bg-[#131916] hover:text-[#F5F7F5]'
+                                    ? 'bg-[#22C55E] text-[#0B0F0D]'
+                                    : 'text-[#8B948F] hover:bg-[#131916] hover:text-[#F5F7F5]'
                                     }`}
                             >
                                 {tab.label}
@@ -53,6 +54,8 @@ export default function Edit({
                         <InterestTab
                             allInterests={allInterests}
                             userInterestIds={userInterestIds}
+                            recommendations={recommendations}
+                            myListIds={gameList.map((g) => g.id)}
                         />
                     )}
                     {activeTab === 'gamelist' && <GameListTab gameList={gameList} />}
