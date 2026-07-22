@@ -4,13 +4,81 @@ import RatingModal from '@/Components/RatingModal';
 import ShareButton from '@/Components/ShareButton';
 import ConfirmModal from '@/Components/ConfirmModal';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function Show({ game, userReview, moreLikeThis, isInList, reviewsCount, averageRating }) {
+export default function Show({ game, userReview, moreLikeThis, isInList, myListIds, reviewsCount, averageRating }) {
     const { auth } = usePage().props;
     const [showRatingModal, setShowRatingModal] = useState(false);
     const [inList, setInList] = useState(isInList);
     const [commentToDelete, setCommentToDelete] = useState(null);
+    const [moreListIds, setMoreListIds] = useState(myListIds || []);
+    const [pendingChanges, setPendingChanges] = useState({});
+    const [showLeaveWarning, setShowLeaveWarning] = useState(false);
+    const [pendingUrl, setPendingUrl] = useState(null);
+
+    const toggleMoreListItem = (gameId, gameSlug) => {
+        const currentlyIn = moreListIds.includes(gameId);
+
+        setMoreListIds((prev) =>
+            currentlyIn ? prev.filter((id) => id !== gameId) : [...prev, gameId]
+        );
+
+        setPendingChanges((prev) => ({
+            ...prev,
+            [gameId]: { slug: gameSlug },
+        }));
+    };
+
+    const hasPendingChanges = Object.keys(pendingChanges).length > 0;
+
+    const saveChanges = () => {
+        const changes = Object.values(pendingChanges);
+        setPendingChanges({});
+
+        changes.forEach(({ slug }) => {
+            router.post(
+                route('game-list.toggle', slug),
+                {},
+                { preserveScroll: true, preserveState: true }
+            );
+        });
+    };
+
+    const discardChanges = () => {
+        setMoreListIds(myListIds || []);
+        setPendingChanges({});
+    };
+
+    const confirmLeaveWithoutSaving = () => {
+        setShowLeaveWarning(false);
+        setPendingChanges({});
+        if (pendingUrl) {
+            window.location.href = pendingUrl;
+        }
+    };
+
+    const cancelLeave = () => {
+        setShowLeaveWarning(false);
+        setPendingUrl(null);
+    };
+
+    useEffect(() => {
+        const removeListener = router.on('before', (event) => {
+            const method = event.detail.visit.method;
+
+            if (method !== 'get') {
+                return;
+            }
+
+            if (hasPendingChanges) {
+                event.preventDefault();
+                setPendingUrl(event.detail.visit.url.href);
+                setShowLeaveWarning(true);
+            }
+        });
+
+        return () => removeListener();
+    }, [hasPendingChanges]);
 
     const { data, setData, post, processing, reset } = useForm({ body: '' });
 
@@ -22,7 +90,7 @@ export default function Show({ game, userReview, moreLikeThis, isInList, reviews
     const toggleList = () => {
         setInList(!inList);
         router.post(
-            route('game-list.toggle', game.id),
+            route('game-list.toggle', game.slug),
             {},
             { preserveScroll: true, preserveState: true }
         );
@@ -133,10 +201,35 @@ export default function Show({ game, userReview, moreLikeThis, isInList, reviews
                         <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
                             {moreLikeThis.map((g) => (
                                 <div key={g.id} className="w-48 shrink-0">
-                                    <GameCard game={g} isInList={false} onToggleList={() => { }} />
+                                    <GameCard
+                                        game={g}
+                                        isInList={moreListIds.includes(g.id)}
+                                        onToggleList={toggleMoreListItem}
+                                    />
                                 </div>
                             ))}
                         </div>
+
+                        {hasPendingChanges && (
+                            <div className="flex items-center justify-end gap-3 mt-3">
+                                <p className="text-[#8B948F] text-sm mr-2">
+                                    You have unsaved changes
+                                </p>
+                                <button
+                                    onClick={discardChanges}
+                                    className="rounded-lg border border-[#1F2923] text-[#8B948F] px-4 py-2 text-sm hover:border-[#2E3A32] transition"
+                                >
+                                    Discard
+                                </button>
+                                <button
+                                    onClick={saveChanges}
+                                    style={{ backgroundColor: '#22C55E', color: '#0B0F0D' }}
+                                    className="rounded-lg font-medium px-5 py-2 text-sm hover:opacity-90 transition"
+                                >
+                                    Save
+                                </button>
+                            </div>
+                        )}
                     </section>
                 )}
 
@@ -237,6 +330,16 @@ export default function Show({ game, userReview, moreLikeThis, isInList, reviews
                 message="Are you sure you want to delete this comment? This cannot be undone."
                 onConfirm={confirmDeleteComment}
                 onCancel={() => setCommentToDelete(null)}
+            />
+
+            <ConfirmModal
+                show={showLeaveWarning}
+                title="Unsaved Changes"
+                message="You have unsaved changes to your list. Are you sure you want to leave without saving?"
+                onConfirm={confirmLeaveWithoutSaving}
+                onCancel={cancelLeave}
+                cancelLabel="Back"
+                confirmLabel="Yes"
             />
         </AppLayout>
     );

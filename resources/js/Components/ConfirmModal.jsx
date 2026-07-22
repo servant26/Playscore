@@ -1,4 +1,12 @@
-export default function ConfirmModal({ show, title, message, onConfirm, onCancel }) {
+export default function ConfirmModal({
+    show,
+    title,
+    message,
+    onConfirm,
+    onCancel,
+    cancelLabel = 'Cancel',
+    confirmLabel = 'Remove',
+}) {
     if (!show) return null;
 
     return (
@@ -17,14 +25,14 @@ export default function ConfirmModal({ show, title, message, onConfirm, onCancel
                         onClick={onCancel}
                         className="rounded-lg border border-[#1F2923] text-[#8B948F] px-4 py-2 text-sm hover:border-[#2E3A32] transition"
                     >
-                        Cancel
+                        {cancelLabel}
                     </button>
                     <button
                         onClick={onConfirm}
                         style={{ backgroundColor: '#DC2626', color: '#FFFFFF' }}
                         className="rounded-lg font-medium px-4 py-2 text-sm hover:opacity-90 transition"
                     >
-                        Remove
+                        {confirmLabel}
                     </button>
                 </div>
             </div>

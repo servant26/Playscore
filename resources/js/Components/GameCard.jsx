@@ -16,12 +16,12 @@ export default function GameCard({ game, isInList, onToggleList }) {
         if (isInList) {
             setShowConfirm(true);
         } else {
-            onToggleList(game.id);
+            onToggleList(game.id, game.slug);
         }
     };
 
     const confirmRemove = () => {
-        onToggleList(game.id);
+        onToggleList(game.id, game.slug);
         setShowConfirm(false);
     };
 
@@ -69,8 +69,8 @@ export default function GameCard({ game, isInList, onToggleList }) {
                         <button
                             onClick={handleListClick}
                             className={`flex-1 rounded-md text-xs font-medium py-1.5 transition ${isInList
-                                    ? 'bg-[#22C55E] text-[#0B0F0D]'
-                                    : 'bg-[#1F2923] text-[#8B948F] hover:bg-[#2E3A32] hover:text-[#F5F7F5]'
+                                ? 'bg-[#22C55E] text-[#0B0F0D]'
+                                : 'bg-[#1F2923] text-[#8B948F] hover:bg-[#2E3A32] hover:text-[#F5F7F5]'
                                 }`}
                         >
                             {isInList ? '✓ In List' : '+ My List'}

@@ -6,7 +6,7 @@ import { useState } from 'react';
 export default function Dashboard({ topHits, newGames, myListIds }) {
     const [listIds, setListIds] = useState(myListIds || []);
 
-    const toggleList = (gameId) => {
+    const toggleList = (gameId, gameSlug) => {
         const isInList = listIds.includes(gameId);
 
         setListIds((prev) =>
@@ -14,7 +14,7 @@ export default function Dashboard({ topHits, newGames, myListIds }) {
         );
 
         router.post(
-            route('game-list.toggle', gameId),
+            route('game-list.toggle', gameSlug),
             {},
             { preserveScroll: true, preserveState: true }
         );

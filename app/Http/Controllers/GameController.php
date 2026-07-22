@@ -34,11 +34,17 @@ class GameController extends Controller
             ->where('game_id', $game->id)
             ->exists();
 
+        $myListIds = auth()->user()
+            ->gameList()
+            ->pluck('games.id')
+            ->toArray();
+
         return Inertia::render('Games/Show', [
             'game' => $game,
             'userReview' => $userReview,
             'moreLikeThis' => $moreLikeThis,
             'isInList' => $isInList,
+            'myListIds' => $myListIds,
             'reviewsCount' => $game->reviews()->count(),
             'averageRating' => round($game->reviews()->avg('rating') ?? 0, 1),
         ]);

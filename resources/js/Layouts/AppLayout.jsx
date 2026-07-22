@@ -2,9 +2,12 @@ import { Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function AppLayout({ children }) {
-    const { auth } = usePage().props;
+    const { auth, url } = usePage().props;
+    const currentUrl = usePage().url;
     const [search, setSearch] = useState('');
     const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+    const isHomeOrSearch = currentUrl.startsWith('/dashboard') || currentUrl.startsWith('/search');
 
     const submitSearch = (e) => {
         e.preventDefault();
@@ -35,15 +38,17 @@ export default function AppLayout({ children }) {
                         </span>
                     </Link>
 
-                    <form onSubmit={submitSearch} className="flex-1 max-w-md">
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search games..."
-                            className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
-                        />
-                    </form>
+                    {isHomeOrSearch && (
+                        <form onSubmit={submitSearch} className="flex-1 max-w-md">
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search games..."
+                                className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
+                            />
+                        </form>
+                    )}
 
                     <div className="flex items-center gap-4 ml-auto">
                         <button className="relative text-[#8B948F] hover:text-[#F5F7F5] transition">
