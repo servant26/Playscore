@@ -1,25 +1,8 @@
 import AppLayout from '@/Layouts/AppLayout';
-import GameCard from '@/Components/GameCard';
-import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import RawgGameCard from '@/Components/RawgGameCard';
+import { Head } from '@inertiajs/react';
 
-export default function Search({ query, games, myListIds }) {
-    const [listIds, setListIds] = useState(myListIds || []);
-
-    const toggleList = (gameId) => {
-        const isInList = listIds.includes(gameId);
-
-        setListIds((prev) =>
-            isInList ? prev.filter((id) => id !== gameId) : [...prev, gameId]
-        );
-
-        router.post(
-            route('game-list.toggle', gameId),
-            {},
-            { preserveScroll: true, preserveState: true }
-        );
-    };
-
+export default function Search({ query, games }) {
     return (
         <AppLayout>
             <Head title={`Search: ${query}`} />
@@ -40,12 +23,7 @@ export default function Search({ query, games, myListIds }) {
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {games.map((game) => (
-                        <GameCard
-                            key={game.id}
-                            game={game}
-                            isInList={listIds.includes(game.id)}
-                            onToggleList={toggleList}
-                        />
+                        <RawgGameCard key={game.external_id} game={game} />
                     ))}
                 </div>
             )}

@@ -2,33 +2,43 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Game;
+use App\Services\RawgService;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class HomeController extends Controller
 {
-    public function index(): Response
+    public function index(RawgService $rawg): Response
     {
-        $topHits = Game::with('interests')
-            ->orderByDesc('rawg_rating')
-            ->take(10)
-            ->get();
+        $topHitsResponse = $rawg->popular(1);
+        $newGamesResponse = $rawg->newReleases(1);
 
-        $newGames = Game::with('interests')
-            ->orderByDesc('release_date')
+        $topHits = collect($topHitsResponse['results'] ?? [])
+            ->filter(fn ($item) => !empty($item['rating']))
             ->take(10)
-            ->get();
+            ->map(fn ($item) => $this->mapGame($item))
+            ->values();
 
-        $myListIds = auth()->user()
-            ->gameList()
-            ->pluck('games.id')
-            ->toArray();
+        $newGames = collect($newGamesResponse['results'] ?? [])
+            ->filter(fn ($item) => !empty($item['rating']))
+            ->take(10)
+            ->map(fn ($item) => $this->mapGame($item))
+            ->values();
 
         return Inertia::render('Home', [
             'topHits' => $topHits,
             'newGames' => $newGames,
-            'myListIds' => $myListIds,
         ]);
+    }
+
+    private function mapGame(array $item): array
+    {
+        return [
+            'external_id' => $item['id'],
+            'title' => $item['name'],
+            'cover_url' => $item['background_image'],
+            'rawg_rating' => $item['rating'] ?? null,
+            'genres' => collect($item['genres'] ?? [])->pluck('name')->implode(', '),
+        ];
     }
 }

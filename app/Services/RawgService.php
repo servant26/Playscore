@@ -50,14 +50,14 @@ class RawgService
     public function newReleases(int $page = 1): array
     {
         $today = now()->format('Y-m-d');
-        $threeMonthsAgo = now()->subMonths(3)->format('Y-m-d');
+        $sixMonthsAgo = now()->subMonths(6)->format('Y-m-d');
 
         $response = Http::get("{$this->baseUrl}/games", [
             'key' => $this->apiKey,
-            'dates' => "{$threeMonthsAgo},{$today}",
-            'ordering' => '-released',
+            'dates' => "{$sixMonthsAgo},{$today}",
+            'ordering' => '-rating',
             'page' => $page,
-            'page_size' => 20,
+            'page_size' => 40,
         ]);
 
         return $response->json() ?? [];

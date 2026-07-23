@@ -7,7 +7,7 @@ export default function AppLayout({ children }) {
     const [search, setSearch] = useState('');
     const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-    const isHomeOrSearch = currentUrl.startsWith('/dashboard') || currentUrl.startsWith('/search');
+    const isHomeOrSearch = currentUrl.startsWith('/dashboard') || currentUrl.startsWith('/search') || currentUrl.startsWith('/all-games');
 
     const submitSearch = (e) => {
         e.preventDefault();

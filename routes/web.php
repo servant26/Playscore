@@ -18,6 +18,14 @@ Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+Route::get('/all-games', [App\Http\Controllers\AllGamesController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('all-games');
+
+Route::get('/games/rawg/{external_id}', [App\Http\Controllers\GameController::class, 'importAndShow'])
+    ->middleware(['auth', 'verified'])
+    ->name('games.import-and-show');
+
 Route::get('/games/{game}', [App\Http\Controllers\GameController::class, 'show'])
     ->middleware(['auth', 'verified'])
     ->name('games.show');
