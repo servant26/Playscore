@@ -15,7 +15,7 @@ class GameController extends Controller
     {
         $game->load([
             'interests',
-            'comments' => fn ($q) => $q->with('user')->latest(),
+            'comments' => fn ($q) => $q->whereNull('parent_id')->with('user', 'replies')->latest(),
         ]);
 
         $userReview = auth()->user()

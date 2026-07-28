@@ -3,6 +3,7 @@ import GameCard from '@/Components/GameCard';
 import RatingModal from '@/Components/RatingModal';
 import ShareButton from '@/Components/ShareButton';
 import ConfirmModal from '@/Components/ConfirmModal';
+import CommentItem from '@/Components/CommentItem';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
@@ -263,48 +264,11 @@ export default function Show({ game, userReview, moreLikeThis, isInList, myListI
                                 key={comment.id}
                                 className="bg-[#131916] border border-[#1F2923] rounded-xl p-4"
                             >
-                                <div className="flex items-start gap-3">
-                                    <div className="w-11 h-11 aspect-square rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-sm font-semibold overflow-hidden shrink-0" style={{ minWidth: '44px', minHeight: '44px' }}>
-                                        {comment.user.avatar ? (
-                                            <img
-                                                src={`/storage/${comment.user.avatar}`}
-                                                alt={comment.user.name}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            comment.user.name.slice(0, 2).toUpperCase()
-                                        )}
-                                    </div>
-
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <p className="text-[#F5F7F5] text-sm font-medium leading-tight">
-                                                    {comment.user.name}
-                                                </p>
-                                                <p className="text-[#5A625D] text-xs mt-1">
-                                                    {new Date(comment.created_at).toLocaleString('en-US', {
-                                                        day: 'numeric',
-                                                        month: 'short',
-                                                        year: 'numeric',
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                    })}
-                                                </p>
-                                            </div>
-                                            {comment.user.id === auth.user.id && (
-                                                <button
-                                                    onClick={() => setCommentToDelete(comment.id)}
-                                                    style={{ backgroundColor: '#DC2626', color: '#FFFFFF' }}
-                                                    className="rounded-md px-3 py-1 text-xs font-medium hover:opacity-90 transition"
-                                                >
-                                                    Delete
-                                                </button>
-                                            )}
-                                        </div>
-                                        <p className="text-[#8B948F] text-sm mt-2">{comment.body}</p>
-                                    </div>
-                                </div>
+                                <CommentItem
+                                    comment={comment}
+                                    gameSlug={game.slug}
+                                    onDeleteRequest={setCommentToDelete}
+                                />
                             </div>
                         ))}
 
