@@ -1,8 +1,7 @@
 import { useForm } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 export default function RatingModal({ show, onClose, gameSlug, existingReview }) {
-    const [hoverRating, setHoverRating] = useState(0);
     const { data, setData, post, processing, reset } = useForm({
         rating: existingReview?.rating || 0,
         body: existingReview?.body || '',
@@ -41,31 +40,23 @@ export default function RatingModal({ show, onClose, gameSlug, existingReview })
                 </h3>
 
                 <form onSubmit={submit}>
-                    <div className="flex justify-center gap-2 mb-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                                key={star}
-                                type="button"
-                                onMouseEnter={() => setHoverRating(star)}
-                                onMouseLeave={() => setHoverRating(0)}
-                                onClick={() => setData('rating', star)}
-                                className="text-3xl transition"
-                            >
-                                <span
-                                    className={
-                                        star <= (hoverRating || data.rating)
-                                            ? 'text-[#22C55E]'
-                                            : 'text-[#2E3A32]'
-                                    }
-                                >
-                                    ★
-                                </span>
-                            </button>
-                        ))}
+                    <div className="text-center mb-4">
+                        <span className="text-[#22C55E] text-4xl font-bold">
+                            {Number(data.rating).toFixed(1)}
+                        </span>
+                        <span className="text-[#5A625D] text-lg"> / 10</span>
+                        <span className="text-[#22C55E] text-2xl ml-1">★</span>
                     </div>
-                    <p className="text-center text-[#8B948F] text-sm mb-5">
-                        {data.rating > 0 ? `${data.rating} / 5` : 'Tap to rate'}
-                    </p>
+
+                    <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        step="0.1"
+                        value={data.rating}
+                        onChange={(e) => setData('rating', parseFloat(e.target.value))}
+                        className="w-full mb-5 accent-[#22C55E]"
+                    />
 
                     <textarea
                         value={data.body}
@@ -85,7 +76,7 @@ export default function RatingModal({ show, onClose, gameSlug, existingReview })
                         </button>
                         <button
                             type="submit"
-                            disabled={processing || data.rating === 0 || !data.body}
+                            disabled={processing || !data.body}
                             style={{ backgroundColor: '#22C55E', color: '#0B0F0D' }}
                             className="flex-1 rounded-lg font-medium py-2.5 text-sm hover:opacity-90 transition disabled:opacity-50"
                         >

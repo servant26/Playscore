@@ -161,9 +161,9 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
                             onClick={() => setShowRatingModal(true)}
                             className="rounded-lg border border-[#1F2923] text-[#8B948F] px-6 py-2.5 text-sm font-medium hover:border-[#2E3A32] hover:text-[#F5F7F5] transition flex items-center gap-2"
                         >
-                            <span>Your Rating :</span>
+                            <span>Your Rating:</span>
                             <span className="text-[#22C55E] font-semibold">
-                                {userReview.rating} ★
+                                {Number(userReview.rating).toFixed(1)}
                             </span>
                         </button>
                     ) : (
@@ -187,7 +187,7 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
                 <div className="flex items-center gap-6 mb-10 bg-[#131916] border border-[#1F2923] rounded-xl p-5">
                     <div className="text-center">
                         <p className="text-[#22C55E] text-3xl font-bold">{averageRating}</p>
-                        <p className="text-[#5A625D] text-xs">out of 5</p>
+                        <p className="text-[#5A625D] text-xs">out of 10</p>
                     </div>
                     <div className="text-[#8B948F] text-sm">
                         Based on {reviewsCount} {reviewsCount === 1 ? 'review' : 'reviews'}
@@ -274,7 +274,7 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
                                                     {review.user.name}
                                                 </p>
                                                 <span className="text-[#22C55E] text-sm font-semibold">
-                                                    ★ {review.rating} / 5
+                                                    {Number(review.rating).toFixed(1)} / 10
                                                 </span>
                                             </div>
 

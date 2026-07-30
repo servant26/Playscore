@@ -11,8 +11,8 @@ class ReviewController extends Controller
 {
     public function store(Request $request, Game $game): RedirectResponse
     {
-        $request->validate([
-            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+$request->validate([
+            'rating' => ['required', 'numeric', 'min:0', 'max:10'],
             'body' => ['required', 'string', 'max:2000'],
         ]);
 
