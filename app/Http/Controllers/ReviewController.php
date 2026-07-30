@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Game;
+use App\Models\Review;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -22,6 +23,15 @@ class ReviewController extends Controller
                 'body' => $request->body,
             ]
         );
+
+        return back();
+    }
+
+    public function destroy(Review $review): RedirectResponse
+    {
+        abort_unless($review->user_id === auth()->id(), 403);
+
+        $review->delete();
 
         return back();
     }

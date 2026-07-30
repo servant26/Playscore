@@ -47,11 +47,6 @@ class Game extends Model
         return $this->hasMany(Review::class);
     }
 
-    public function comments(): HasMany
-    {
-        return $this->hasMany(Comment::class);
-    }
-
     public function listedByUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'user_game_lists');

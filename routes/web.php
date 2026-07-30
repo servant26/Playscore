@@ -38,8 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/search', [App\Http\Controllers\SearchController::class, 'index'])->name('search');
     Route::post('/interests', [App\Http\Controllers\InterestController::class, 'update'])->name('interests.update');
     Route::post('/games/{game}/reviews', [App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
-    Route::post('/games/{game}/comments', [App\Http\Controllers\CommentController::class, 'store'])->name('comments.store');
-    Route::delete('/comments/{comment}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy');
+    Route::delete('/reviews/{review}', [App\Http\Controllers\ReviewController::class, 'destroy'])->name('reviews.destroy');
 });
 
 require __DIR__.'/auth.php';

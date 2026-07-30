@@ -3,15 +3,14 @@ import GameCard from '@/Components/GameCard';
 import RatingModal from '@/Components/RatingModal';
 import ShareButton from '@/Components/ShareButton';
 import ConfirmModal from '@/Components/ConfirmModal';
-import CommentItem from '@/Components/CommentItem';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
-export default function Show({ game, userReview, moreLikeThis, isInList, myListIds, reviewsCount, averageRating }) {
+export default function Show({ game, userReview, reviews, moreLikeThis, isInList, myListIds, reviewsCount, averageRating }) {
     const { auth } = usePage().props;
     const [showRatingModal, setShowRatingModal] = useState(false);
+    const [reviewToDelete, setReviewToDelete] = useState(null);
     const [inList, setInList] = useState(isInList);
-    const [commentToDelete, setCommentToDelete] = useState(null);
     const [moreListIds, setMoreListIds] = useState(myListIds || []);
     const [pendingChanges, setPendingChanges] = useState({});
     const [showLeaveWarning, setShowLeaveWarning] = useState(false);
@@ -81,8 +80,6 @@ export default function Show({ game, userReview, moreLikeThis, isInList, myListI
         return () => removeListener();
     }, [hasPendingChanges]);
 
-    const { data, setData, post, processing, reset } = useForm({ body: '' });
-
     const openTrailer = () => {
         const query = encodeURIComponent(`${game.title} trailer`);
         window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank');
@@ -97,18 +94,10 @@ export default function Show({ game, userReview, moreLikeThis, isInList, myListI
         );
     };
 
-    const submitComment = (e) => {
-        e.preventDefault();
-        post(route('comments.store', game.slug), {
+    const confirmDeleteReview = () => {
+        router.delete(route('reviews.destroy', reviewToDelete), {
             preserveScroll: true,
-            onSuccess: () => reset(),
-        });
-    };
-
-    const confirmDeleteComment = () => {
-        router.delete(route('comments.destroy', commentToDelete), {
-            preserveScroll: true,
-            onSuccess: () => setCommentToDelete(null),
+            onSuccess: () => setReviewToDelete(null),
         });
     };
 
@@ -151,7 +140,7 @@ export default function Show({ game, userReview, moreLikeThis, isInList, myListI
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-3 mb-6">
+                <div className="flex items-center gap-3 mb-6">
                     <button
                         onClick={openTrailer}
                         className="rounded-lg bg-[#1F2923] text-[#F5F7F5] px-6 py-2.5 text-sm font-medium hover:bg-[#2E3A32] transition"
@@ -167,12 +156,24 @@ export default function Show({ game, userReview, moreLikeThis, isInList, myListI
                     >
                         {inList ? '✓ In List' : '+ My List'}
                     </button>
-                    <button
-                        onClick={() => setShowRatingModal(true)}
-                        className="rounded-lg border border-[#1F2923] text-[#8B948F] px-6 py-2.5 text-sm font-medium hover:border-[#2E3A32] hover:text-[#F5F7F5] transition"
-                    >
-                        {userReview ? 'Edit Rating' : 'Give Rating'}
-                    </button>
+                    {userReview ? (
+                        <button
+                            onClick={() => setShowRatingModal(true)}
+                            className="rounded-lg border border-[#1F2923] text-[#8B948F] px-6 py-2.5 text-sm font-medium hover:border-[#2E3A32] hover:text-[#F5F7F5] transition flex items-center gap-2"
+                        >
+                            <span>Your Rating :</span>
+                            <span className="text-[#22C55E] font-semibold">
+                                {userReview.rating} ★
+                            </span>
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => setShowRatingModal(true)}
+                            className="rounded-lg border border-[#1F2923] text-[#8B948F] px-6 py-2.5 text-sm font-medium hover:border-[#2E3A32] hover:text-[#F5F7F5] transition"
+                        >
+                            Give Rating
+                        </button>
+                    )}
                 </div>
 
                 {/* Description */}
@@ -234,50 +235,85 @@ export default function Show({ game, userReview, moreLikeThis, isInList, myListI
                     </section>
                 )}
 
-                {/* Comments */}
+                {/* Reviews */}
                 <section>
                     <h2 className="text-[#F5F7F5] text-lg font-semibold mb-4">
-                        Comments ({game.comments?.length || 0})
+                        Reviews ({reviews.length})
                     </h2>
 
-                    <form onSubmit={submitComment} className="mb-6">
-                        <textarea
-                            value={data.body}
-                            onChange={(e) => setData('body', e.target.value)}
-                            rows={2}
-                            placeholder="Add a comment..."
-                            className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent resize-none mb-2"
-                        />
-                        <button
-                            type="submit"
-                            disabled={processing || !data.body}
-                            style={{ backgroundColor: '#22C55E', color: '#0B0F0D' }}
-                            className="rounded-lg font-medium px-6 py-2 text-sm hover:opacity-90 transition disabled:opacity-50"
-                        >
-                            Post Comment
-                        </button>
-                    </form>
+                    {reviews.length === 0 ? (
+                        <p className="text-[#5A625D] text-sm text-center py-8">
+                            No reviews yet. Be the first to review this game!
+                        </p>
+                    ) : (
+                        <div className="space-y-4">
+                            {reviews.map((review) => (
+                                <div
+                                    key={review.id}
+                                    className="relative bg-[#131916] border border-[#1F2923] rounded-xl p-4"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <div
+                                            className="w-11 h-11 aspect-square rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-sm font-semibold overflow-hidden shrink-0"
+                                            style={{ minWidth: '44px', minHeight: '44px' }}
+                                        >
+                                            {review.user.avatar ? (
+                                                <img
+                                                    src={`/storage/${review.user.avatar}`}
+                                                    alt={review.user.name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                review.user.name.slice(0, 2).toUpperCase()
+                                            )}
+                                        </div>
 
-                    <div className="space-y-4">
-                        {game.comments?.map((comment) => (
-                            <div
-                                key={comment.id}
-                                className="bg-[#131916] border border-[#1F2923] rounded-xl p-4"
-                            >
-                                <CommentItem
-                                    comment={comment}
-                                    gameSlug={game.slug}
-                                    onDeleteRequest={setCommentToDelete}
-                                />
-                            </div>
-                        ))}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-[#F5F7F5] text-sm font-medium">
+                                                    {review.user.name}
+                                                </p>
+                                                <span className="text-[#22C55E] text-sm font-semibold">
+                                                    ★ {review.rating} / 5
+                                                </span>
+                                            </div>
 
-                        {(!game.comments || game.comments.length === 0) && (
-                            <p className="text-[#5A625D] text-sm text-center py-8">
-                                No comments yet. Be the first to comment!
-                            </p>
-                        )}
-                    </div>
+                                            {review.user.id === auth.user.id && (
+                                                <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => setShowRatingModal(true)}
+                                                        className="text-[#8B948F] hover:text-[#22C55E] transition"
+                                                        title="Edit review"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setReviewToDelete(review.id)}
+                                                        className="text-[#8B948F] hover:text-red-400 transition"
+                                                        title="Delete review"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            )}
+                                            <p className="text-[#5A625D] text-xs mt-1">
+                                                {new Date(review.created_at).toLocaleString('en-US', {
+                                                    day: 'numeric',
+                                                    month: 'short',
+                                                    year: 'numeric',
+                                                })}
+                                            </p>
+                                            <p className="text-[#8B948F] text-sm mt-2">{review.body}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </section>
             </div>
 
@@ -289,14 +325,6 @@ export default function Show({ game, userReview, moreLikeThis, isInList, myListI
             />
 
             <ConfirmModal
-                show={commentToDelete !== null}
-                title="Delete Comment?"
-                message="Are you sure you want to delete this comment? This cannot be undone."
-                onConfirm={confirmDeleteComment}
-                onCancel={() => setCommentToDelete(null)}
-            />
-
-            <ConfirmModal
                 show={showLeaveWarning}
                 title="Unsaved Changes"
                 message="You have unsaved changes to your list. Are you sure you want to leave without saving?"
@@ -304,6 +332,14 @@ export default function Show({ game, userReview, moreLikeThis, isInList, myListI
                 onCancel={cancelLeave}
                 cancelLabel="Back"
                 confirmLabel="Yes"
+            />
+
+            <ConfirmModal
+                show={reviewToDelete !== null}
+                title="Delete Review?"
+                message="Are you sure you want to delete your review? This cannot be undone."
+                onConfirm={confirmDeleteReview}
+                onCancel={() => setReviewToDelete(null)}
             />
         </AppLayout>
     );

@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function RatingModal({ show, onClose, gameSlug, existingReview }) {
     const [hoverRating, setHoverRating] = useState(0);
@@ -7,6 +7,15 @@ export default function RatingModal({ show, onClose, gameSlug, existingReview })
         rating: existingReview?.rating || 0,
         body: existingReview?.body || '',
     });
+
+    useEffect(() => {
+        if (show) {
+            setData({
+                rating: existingReview?.rating || 0,
+                body: existingReview?.body || '',
+            });
+        }
+    }, [show, existingReview]);
 
     if (!show) return null;
 

@@ -13,10 +13,7 @@ class GameController extends Controller
 {
     public function show(Game $game): Response
     {
-        $game->load([
-            'interests',
-            'comments' => fn ($q) => $q->whereNull('parent_id')->with('user', 'replies')->latest(),
-        ]);
+$game->load(['interests']);
 
         $userReview = auth()->user()
             ->reviews()
@@ -42,9 +39,15 @@ class GameController extends Controller
             ->pluck('games.id')
             ->toArray();
 
+        $reviews = $game->reviews()
+            ->with('user')
+            ->latest()
+            ->get();
+
         return Inertia::render('Games/Show', [
             'game' => $game,
             'userReview' => $userReview,
+            'reviews' => $reviews,
             'moreLikeThis' => $moreLikeThis,
             'isInList' => $isInList,
             'myListIds' => $myListIds,
