@@ -5,12 +5,14 @@ import { useState, useEffect } from 'react';
 import ProfileTab from './Partials/ProfileTab';
 import InterestTab from './Partials/InterestTab';
 import GameListTab from './Partials/GameListTab';
+import MyReviewTab from './Partials/MyReviewTab';
 import StatsTab from './Partials/StatsTab';
 
 const TABS = [
     { key: 'profile', label: 'Profile' },
     { key: 'interest', label: 'Interest' },
     { key: 'gamelist', label: 'Gamelist' },
+    { key: 'myreview', label: 'My Review' },
     { key: 'stats', label: 'Stats' },
 ];
 
@@ -21,6 +23,7 @@ export default function Edit({
     userInterestIds,
     recommendations,
     gameList,
+    myReviews,
     stats,
 }) {
     const [activeTab, setActiveTab] = useState('profile');
@@ -148,6 +151,7 @@ export default function Edit({
                         />
                     )}
                     {activeTab === 'gamelist' && <GameListTab gameList={gameList} />}
+                    {activeTab === 'myreview' && <MyReviewTab myReviews={myReviews} />}
                     {activeTab === 'stats' && <StatsTab stats={stats} />}
                 </div>
             </div>

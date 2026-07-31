@@ -32,14 +32,20 @@ class ProfileController extends Controller
             ->limit(10)
             ->get();
 
-        return Inertia::render('Profile/Edit', [
-            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
-            'status' => session('status'),
-            'allInterests' => \App\Models\Interest::orderBy('name')->get(['id', 'name', 'slug']),
-            'userInterestIds' => $userInterestIds,
-            'recommendations' => $recommendations,
-            'gameList' => $user->gameList()->with('interests')->get(),
-            'stats' => [
+        $myReviews = $user->reviews()
+                    ->with('game')
+                    ->latest()
+                    ->get();
+
+            return Inertia::render('Profile/Edit', [
+                'mustVerifyEmail' => $user instanceof MustVerifyEmail,
+                'status' => session('status'),
+                'allInterests' => \App\Models\Interest::orderBy('name')->get(['id', 'name', 'slug']),
+                'userInterestIds' => $userInterestIds,
+                'recommendations' => $recommendations,
+                'gameList' => $user->gameList()->with('interests')->get(),
+                'myReviews' => $myReviews,
+                'stats' => [
                 'totalReviews' => $user->reviews()->count(),
                 'totalGamesInList' => $user->gameList()->count(),
                 'reviewsByRating' => $user->reviews()
