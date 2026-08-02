@@ -6,6 +6,8 @@ export default function Register({ interests }) {
     const [step, setStep] = useState(1);
     const [avatarPreview, setAvatarPreview] = useState(null);
     const fileInputRef = useRef(null);
+    const [emailTaken, setEmailTaken] = useState(false);
+    const [checkingEmail, setCheckingEmail] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
@@ -15,6 +17,21 @@ export default function Register({ interests }) {
         interests: [],
         avatar: null,
     });
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isEmailValid = data.email === '' || emailPattern.test(data.email);
+    const passwordsMatch =
+        data.password_confirmation === '' || data.password === data.password_confirmation;
+    const isPasswordLongEnough = data.password === '' || data.password.length >= 8;
+
+    const canContinueStep1 =
+        data.name.trim() !== '' &&
+        data.email.trim() !== '' &&
+        emailPattern.test(data.email) &&
+        data.password !== '' &&
+        data.password.length >= 8 &&
+        data.password_confirmation !== '' &&
+        data.password === data.password_confirmation;
 
     const toggleInterest = (id) => {
         setData(
@@ -33,12 +50,37 @@ export default function Register({ interests }) {
         }
     };
 
-    const goToStep2 = (e) => {
+    const goToStep2 = async (e) => {
         e.preventDefault();
-        if (!data.name || !data.email || !data.password || !data.password_confirmation) {
+        if (!canContinueStep1) {
             return;
         }
-        setStep(2);
+
+        setCheckingEmail(true);
+        setEmailTaken(false);
+
+        try {
+            const response = await fetch('/check-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                },
+                body: JSON.stringify({ email: data.email }),
+            });
+            const result = await response.json();
+
+            if (result.exists) {
+                setEmailTaken(true);
+                setCheckingEmail(false);
+                return;
+            }
+
+            setCheckingEmail(false);
+            setStep(2);
+        } catch (error) {
+            setCheckingEmail(false);
+        }
     };
 
     const goToStep3 = () => setStep(3);
@@ -117,10 +159,23 @@ export default function Register({ interests }) {
                             id="email"
                             type="email"
                             value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
+                            onChange={(e) => {
+                                setData('email', e.target.value);
+                                setEmailTaken(false);
+                            }}
                             className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
                             placeholder="you@example.com"
                         />
+                        {!isEmailValid && (
+                            <p className="mt-1.5 text-sm text-red-400">
+                                Please enter a valid email address.
+                            </p>
+                        )}
+                        {emailTaken && (
+                            <p className="mt-1.5 text-sm text-red-400">
+                                This email is already registered.
+                            </p>
+                        )}
                         {errors.email && (
                             <p className="mt-1.5 text-sm text-red-400">{errors.email}</p>
                         )}
@@ -138,6 +193,11 @@ export default function Register({ interests }) {
                             className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
                             placeholder="••••••••"
                         />
+                        {!isPasswordLongEnough && (
+                            <p className="mt-1.5 text-sm text-red-400">
+                                Password must be at least 8 characters.
+                            </p>
+                        )}
                         {errors.password && (
                             <p className="mt-1.5 text-sm text-red-400">{errors.password}</p>
                         )}
@@ -158,6 +218,11 @@ export default function Register({ interests }) {
                             className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
                             placeholder="••••••••"
                         />
+                        {!passwordsMatch && (
+                            <p className="mt-1.5 text-sm text-red-400">
+                                Passwords do not match.
+                            </p>
+                        )}
                         {errors.password_confirmation && (
                             <p className="mt-1.5 text-sm text-red-400">
                                 {errors.password_confirmation}
@@ -167,9 +232,10 @@ export default function Register({ interests }) {
 
                     <button
                         type="submit"
-                        className="w-full rounded-lg bg-[#22C55E] text-[#0B0F0D] font-medium py-2.5 text-sm hover:bg-[#4ADE80] transition"
+                        disabled={!canContinueStep1 || checkingEmail}
+                        className="w-full rounded-lg bg-[#22C55E] text-[#0B0F0D] font-medium py-2.5 text-sm hover:bg-[#4ADE80] transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#22C55E]"
                     >
-                        Continue
+                        {checkingEmail ? 'Checking...' : 'Continue'}
                     </button>
 
                     <p className="text-center text-sm text-[#8B948F]">
@@ -192,8 +258,8 @@ export default function Register({ interests }) {
                                     type="button"
                                     onClick={() => toggleInterest(interest.id)}
                                     className={`px-4 py-2 rounded-full text-sm border transition ${active
-                                            ? 'bg-[#22C55E] border-[#22C55E] text-[#0B0F0D] font-medium'
-                                            : 'bg-[#131916] border-[#1F2923] text-[#8B948F] hover:border-[#2E3A32]'
+                                        ? 'bg-[#22C55E] border-[#22C55E] text-[#0B0F0D] font-medium'
+                                        : 'bg-[#131916] border-[#1F2923] text-[#8B948F] hover:border-[#2E3A32]'
                                         }`}
                                 >
                                     {interest.name}

@@ -30,6 +30,11 @@ Route::get('/games/{game}', [App\Http\Controllers\GameController::class, 'show']
     ->middleware(['auth', 'verified'])
     ->name('games.show');
 
+Route::post('/check-email', function (\Illuminate\Http\Request $request) {
+    $exists = \App\Models\User::where('email', $request->input('email'))->exists();
+    return response()->json(['exists' => $exists]);
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

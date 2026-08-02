@@ -20,9 +20,9 @@ class HomeController extends Controller
             ->take(30)
             ->values();
 
-$newGamesPool = collect($newGamesResponse['results'] ?? [])
+        $newGamesPool = collect($newGamesResponse['results'] ?? [])
             ->filter(fn ($item) => !empty($item['rating']))
-            ->take(50)
+            ->take(25)
             ->values();
 
         $topHits = $this->deterministicPick($topHitsPool, $dailySeed, 10)

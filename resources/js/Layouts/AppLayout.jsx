@@ -40,6 +40,7 @@ export default function AppLayout({ children }) {
     }, []);
 
     const toggleNotifMenu = () => {
+        setShowProfileMenu(false);
         setShowNotifMenu(!showNotifMenu);
         if (!showNotifMenu) {
             fetchNotifications();
@@ -198,7 +199,10 @@ export default function AppLayout({ children }) {
 
                         <div className="relative flex items-center gap-3">
                             <button
-                                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                onClick={() => {
+                                    setShowNotifMenu(false);
+                                    setShowProfileMenu(!showProfileMenu);
+                                }}
                                 className="flex items-center gap-4"
                             >
                                 <div className="w-9 h-9 rounded-full bg-[#131916] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-sm font-semibold overflow-hidden">
