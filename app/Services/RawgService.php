@@ -34,14 +34,16 @@ class RawgService
      */
     public function popular(int $page = 1): array
     {
-        $response = Http::get("{$this->baseUrl}/games", [
-            'key' => $this->apiKey,
-            'ordering' => '-added',
-            'page' => $page,
-            'page_size' => 20,
-        ]);
+        return \Illuminate\Support\Facades\Cache::remember("rawg_popular_p{$page}", 3600, function () use ($page) {
+            $response = Http::timeout(10)->get("{$this->baseUrl}/games", [
+                'key' => $this->apiKey,
+                'ordering' => '-added',
+                'page' => $page,
+                'page_size' => 20,
+            ]);
 
-        return $response->json() ?? [];
+            return $response->json() ?? [];
+        });
     }
 
     /**
@@ -52,15 +54,17 @@ class RawgService
         $today = now()->format('Y-m-d');
         $oneYearAgo = now()->subYear()->format('Y-m-d');
 
-        $response = Http::get("{$this->baseUrl}/games", [
-            'key' => $this->apiKey,
-            'dates' => "{$oneYearAgo},{$today}",
-            'ordering' => '-rating',
-            'page' => $page,
-            'page_size' => 40,
-        ]);
+        return \Illuminate\Support\Facades\Cache::remember("rawg_new_releases_p{$page}", 3600, function () use ($today, $oneYearAgo, $page) {
+            $response = Http::timeout(10)->get("{$this->baseUrl}/games", [
+                'key' => $this->apiKey,
+                'dates' => "{$oneYearAgo},{$today}",
+                'ordering' => '-rating',
+                'page' => $page,
+                'page_size' => 40,
+            ]);
 
-        return $response->json() ?? [];
+            return $response->json() ?? [];
+        });
     }
 
     /**

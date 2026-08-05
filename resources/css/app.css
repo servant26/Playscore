@@ -21,16 +21,17 @@ input:-webkit-autofill:focus {
 }
 
 .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
     height: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-    background: #131916;
+    background: #0B0F0D;
     border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #2E3A32;
+    background: #1F2923;
     border-radius: 10px;
 }
 
@@ -40,5 +41,5 @@ input:-webkit-autofill:focus {
 
 .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: #2E3A32 #131916;
+    scrollbar-color: #1F2923 #0B0F0D;
 }

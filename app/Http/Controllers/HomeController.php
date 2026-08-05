@@ -12,26 +12,31 @@ class HomeController extends Controller
     {
         $dailySeed = (int) now()->format('Ymd');
 
-        $topHitsResponse = $rawg->popular(1);
-        $newGamesResponse = $rawg->newReleases(1);
+        try {
+            $topHitsResponse = $rawg->popular(1);
+            $newGamesResponse = $rawg->newReleases(1);
 
-        $topHitsPool = collect($topHitsResponse['results'] ?? [])
-            ->filter(fn ($item) => !empty($item['rating']))
-            ->take(30)
-            ->values();
+            $topHitsPool = collect($topHitsResponse['results'] ?? [])
+                ->filter(fn ($item) => !empty($item['rating']))
+                ->take(30)
+                ->values();
 
-        $newGamesPool = collect($newGamesResponse['results'] ?? [])
-            ->filter(fn ($item) => !empty($item['rating']))
-            ->take(25)
-            ->values();
+            $newGamesPool = collect($newGamesResponse['results'] ?? [])
+                ->filter(fn ($item) => !empty($item['rating']))
+                ->take(25)
+                ->values();
 
-        $topHits = $this->deterministicPick($topHitsPool, $dailySeed, 10)
-            ->map(fn ($item) => $this->mapGame($item))
-            ->values();
+            $topHits = $this->deterministicPick($topHitsPool, $dailySeed, 10)
+                ->map(fn ($item) => $this->mapGame($item))
+                ->values();
 
-        $newGames = $this->deterministicPick($newGamesPool, $dailySeed + 1, 10)
-            ->map(fn ($item) => $this->mapGame($item))
-            ->values();
+            $newGames = $this->deterministicPick($newGamesPool, $dailySeed + 1, 10)
+                ->map(fn ($item) => $this->mapGame($item))
+                ->values();
+        } catch (\Throwable $e) {
+            $topHits = collect([]);
+            $newGames = collect([]);
+        }
 
         return Inertia::render('Home', [
             'topHits' => $topHits,

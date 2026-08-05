@@ -11,9 +11,22 @@ use Inertia\Response;
 
 class GameController extends Controller
 {
-    public function show(Game $game): Response
+    public function show(Game $game, RawgService $rawg): Response
     {
-$game->load(['interests']);
+        $game->load(['interests']);
+
+        if (empty($game->developer) && empty($game->publisher) && !empty($game->external_id)) {
+            try {
+                $detail = $rawg->detail($game->external_id);
+                if ($detail) {
+                    $game->developer = $detail['developers'][0]['name'] ?? null;
+                    $game->publisher = $detail['publishers'][0]['name'] ?? null;
+                    $game->save();
+                }
+            } catch (\Throwable $e) {
+                // Ignore API fetch error
+            }
+        }
 
         $userReview = auth()->user()
             ->reviews()

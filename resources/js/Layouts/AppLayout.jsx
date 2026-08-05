@@ -95,9 +95,9 @@ export default function AppLayout({ children }) {
         .toUpperCase();
 
     return (
-        <div className="min-h-screen bg-[#0B0F0D]">
+        <div className="min-h-screen bg-[#0B0F0D] w-full overflow-x-hidden">
             <nav className="sticky top-0 z-40 bg-[#0F1512] border-b border-[#1F2923]">
-                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-6">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-6">
                     <Link href={route('dashboard')} className="flex items-center gap-2 shrink-0">
                         <div className="w-8 h-8 rounded-md bg-[#22C55E] flex items-center justify-center">
                             <span className="text-[#0B0F0D] font-bold text-sm">P</span>
@@ -139,7 +139,7 @@ export default function AppLayout({ children }) {
                             </button>
 
                             {showNotifMenu && (
-                                <div className="absolute right-0 top-10 w-80 bg-[#131916] border border-[#1F2923] rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto custom-scrollbar">
+                                <div className="absolute -right-14 sm:right-0 top-10 w-[calc(100vw-3rem)] sm:w-80 max-w-sm bg-[#131916] border border-[#1F2923] rounded-xl shadow-2xl z-50 max-h-96 overflow-y-auto custom-scrollbar">
                                     <div className="px-4 py-3 border-b border-[#1F2923]">
                                         <p className="text-[#F5F7F5] text-sm font-medium">Notifications</p>
                                     </div>
@@ -244,7 +244,7 @@ export default function AppLayout({ children }) {
                 </div>
             </nav>
 
-            <main className="max-w-7xl mx-auto px-6 py-8">{children}</main>
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">{children}</main>
         </div>
     );
 }

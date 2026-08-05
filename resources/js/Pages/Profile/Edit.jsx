@@ -116,16 +116,16 @@ export default function Edit({
         <AppLayout>
             <Head title="Profile" />
 
-            <div className="flex gap-8">
-                <aside className="w-56 shrink-0">
-                    <nav className="space-y-1">
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+                <aside className="w-full lg:w-56 shrink-0">
+                    <nav className="flex lg:flex-col overflow-x-auto pb-2 lg:pb-0 gap-1.5 scrollbar-none">
                         {TABS.map((tab) => (
                             <button
                                 key={tab.key}
                                 onClick={() => handleTabChange(tab.key)}
-                                className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === tab.key
+                                className={`text-left whitespace-nowrap px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition ${activeTab === tab.key
                                     ? 'bg-[#22C55E] text-[#0B0F0D]'
-                                    : 'text-[#8B948F] hover:bg-[#131916] hover:text-[#F5F7F5]'
+                                    : 'text-[#8B948F] bg-[#131916]/60 lg:bg-transparent hover:bg-[#131916] hover:text-[#F5F7F5]'
                                     }`}
                             >
                                 {tab.label}

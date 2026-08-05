@@ -1,12 +1,29 @@
 import RatingModal from '@/Components/RatingModal';
 import ConfirmModal from '@/Components/ConfirmModal';
 import { router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 export default function MyReviewTab({ myReviews }) {
     const [selectedReview, setSelectedReview] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
     const [reviewToDelete, setReviewToDelete] = useState(null);
+    const [search, setSearch] = useState('');
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(10);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 1024) {
+                setPerPage(5);
+            } else {
+                setPerPage(10);
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const goToGame = (slug) => {
         router.get(route('games.show', slug));
@@ -22,6 +39,24 @@ export default function MyReviewTab({ myReviews }) {
         });
     };
 
+    const filtered = useMemo(() => {
+        if (!search.trim()) return myReviews;
+        const q = search.toLowerCase();
+        return myReviews.filter(
+            (r) =>
+                r.game.title.toLowerCase().includes(q) ||
+                (r.body && r.body.toLowerCase().includes(q))
+        );
+    }, [search, myReviews]);
+
+    const totalPages = Math.ceil(filtered.length / perPage) || 1;
+    const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+
+    const handleSearchChange = (value) => {
+        setSearch(value);
+        setPage(1);
+    };
+
     if (myReviews.length === 0) {
         return (
             <div className="bg-[#131916] border border-[#1F2923] rounded-xl p-12 text-center">
@@ -34,43 +69,85 @@ export default function MyReviewTab({ myReviews }) {
 
     return (
         <div>
-            <h2 className="text-[#F5F7F5] text-lg font-semibold mb-4">
-                My Reviews ({myReviews.length})
-            </h2>
-
-            <div className="space-y-3">
-                {myReviews.map((review) => (
-                    <div
-                        key={review.id}
-                        onClick={() => setSelectedReview(review)}
-                        className="cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3 flex items-center gap-4 hover:border-[#2E3A32] transition"
-                    >
-                        <img
-                            src={review.game.cover_url}
-                            alt={review.game.title}
-                            className="w-16 h-16 rounded-lg object-cover shrink-0"
-                        />
-
-                        <div className="flex-1 min-w-0">
-                            <h3 className="text-[#F5F7F5] text-sm font-medium truncate">
-                                {review.game.title}
-                            </h3>
-                            <p className="text-[#5A625D] text-xs mt-1">
-                                {new Date(review.created_at).toLocaleDateString('en-US', {
-                                    day: 'numeric',
-                                    month: 'short',
-                                    year: 'numeric',
-                                })}
-                            </p>
-                        </div>
-
-                        <span className="text-[#22C55E] text-sm font-semibold shrink-0 flex items-center gap-1">
-                            {Number(review.rating).toFixed(1)}
-                            <span>★</span>
-                        </span>
-                    </div>
-                ))}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h2 className="text-[#F5F7F5] text-base sm:text-lg font-semibold">
+                    My Reviews ({filtered.length})
+                </h2>
+                <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    placeholder="Search reviews..."
+                    className="w-full sm:w-64 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
+                />
             </div>
+
+            {paginated.length === 0 ? (
+                <div className="bg-[#131916] border border-[#1F2923] rounded-xl p-8 sm:p-12 text-center">
+                    <p className="text-[#8B948F] text-sm">
+                        No reviews match "{search}".
+                    </p>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {paginated.map((review) => (
+                        <div
+                            key={review.id}
+                            onClick={() => setSelectedReview(review)}
+                            className="cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3 flex items-center gap-4 hover:border-[#2E3A32] transition"
+                        >
+                            <img
+                                src={review.game.cover_url}
+                                alt={review.game.title}
+                                className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover shrink-0"
+                            />
+
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-[#F5F7F5] text-xs sm:text-sm font-medium truncate">
+                                    {review.game.title}
+                                </h3>
+                                <p className="text-[#5A625D] text-xs mt-1">
+                                    {new Date(review.created_at).toLocaleDateString('en-US', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        year: 'numeric',
+                                    })}
+                                </p>
+                            </div>
+
+                            <span className="text-[#22C55E] text-xs sm:text-sm font-semibold shrink-0 flex items-center gap-1">
+                                {Number(review.rating).toFixed(1)}
+                                <span>★</span>
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#1F2923]">
+                    <p className="text-xs text-[#8B948F]">
+                        Page {page} of {totalPages}
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                            className="px-3 py-1.5 rounded-lg border border-[#1F2923] text-xs text-[#8B948F] hover:border-[#2E3A32] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        >
+                            Previous
+                        </button>
+                        <button
+                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={page === totalPages}
+                            className="px-3 py-1.5 rounded-lg border border-[#1F2923] text-xs text-[#8B948F] hover:border-[#2E3A32] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {selectedReview && !showEditModal && (
                 <div

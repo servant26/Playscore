@@ -1,6 +1,7 @@
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { Transition } from '@headlessui/react';
 import { useRef, useState } from 'react';
+import Modal from '@/Components/Modal';
 
 export default function ProfileTab({ mustVerifyEmail, status }) {
     const user = usePage().props.auth.user;
@@ -8,6 +9,7 @@ export default function ProfileTab({ mustVerifyEmail, status }) {
     const [avatarPreview, setAvatarPreview] = useState(
         user.avatar ? `/storage/${user.avatar}` : null
     );
+    const [showAvatarModal, setShowAvatarModal] = useState(false);
 
     const {
         data,
@@ -126,7 +128,7 @@ export default function ProfileTab({ mustVerifyEmail, status }) {
     };
 
     return (
-        <div className="space-y-8 max-w-2xl">
+        <div className="space-y-8 w-full">
             {/* Profile Info + Avatar */}
             <section className="bg-[#131916] border border-[#1F2923] rounded-xl p-6">
                 <h2 className="text-[#F5F7F5] text-lg font-semibold mb-1">
@@ -140,8 +142,9 @@ export default function ProfileTab({ mustVerifyEmail, status }) {
                     <div className="flex items-center gap-4">
                         <button
                             type="button"
-                            onClick={() => avatarInputRef.current?.click()}
-                            className="relative w-16 h-16 rounded-full overflow-hidden bg-[#0B0F0D] border-2 border-dashed border-[#1F2923] flex items-center justify-center hover:border-[#22C55E] transition shrink-0"
+                            onClick={() => setShowAvatarModal(true)}
+                            className="relative w-16 h-16 rounded-full overflow-hidden bg-[#0B0F0D] border-2 border-solid border-[#1F2923] flex items-center justify-center hover:border-[#22C55E] transition shrink-0 cursor-pointer"
+                            title="Click to view photo"
                         >
                             {avatarPreview ? (
                                 <img
@@ -165,7 +168,7 @@ export default function ProfileTab({ mustVerifyEmail, status }) {
                         <button
                             type="button"
                             onClick={() => avatarInputRef.current?.click()}
-                            className="text-sm text-[#22C55E] hover:text-[#4ADE80]"
+                            className="text-sm text-[#22C55E] hover:text-[#4ADE80] font-medium"
                         >
                             Change photo
                         </button>
@@ -389,6 +392,28 @@ export default function ProfileTab({ mustVerifyEmail, status }) {
                     </div>
                 )}
             </section>
+
+            {/* Profile Avatar Pure Image Modal Preview */}
+            <Modal show={showAvatarModal} onClose={() => setShowAvatarModal(false)} maxWidth="md">
+                <div
+                    onClick={() => setShowAvatarModal(false)}
+                    className="p-2 sm:p-3 bg-[#131916] border border-[#1F2923] rounded-2xl flex items-center justify-center cursor-pointer"
+                >
+                    <div className="relative w-full aspect-square rounded-xl overflow-hidden shadow-2xl bg-[#0B0F0D] flex items-center justify-center border border-[#1F2923]">
+                        {avatarPreview ? (
+                            <img
+                                src={avatarPreview}
+                                alt={data.name}
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <span className="text-[#22C55E] text-6xl font-bold">
+                                {initials || '?'}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }

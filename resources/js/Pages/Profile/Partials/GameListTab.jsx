@@ -1,11 +1,24 @@
 import { router } from '@inertiajs/react';
-import { useState, useMemo } from 'react';
-
-const PER_PAGE = 10;
+import { useState, useMemo, useEffect } from 'react';
 
 export default function GameListTab({ gameList }) {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(10);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 1024) {
+                setPerPage(5);
+            } else {
+                setPerPage(10);
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const toggleList = (gameId, gameSlug) => {
         router.post(
@@ -30,8 +43,8 @@ export default function GameListTab({ gameList }) {
         return gameList.filter((g) => g.title.toLowerCase().includes(q));
     }, [search, gameList]);
 
-    const totalPages = Math.ceil(filtered.length / PER_PAGE) || 1;
-    const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+    const totalPages = Math.ceil(filtered.length / perPage) || 1;
+    const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
     const handleSearchChange = (value) => {
         setSearch(value);
@@ -50,8 +63,8 @@ export default function GameListTab({ gameList }) {
 
     return (
         <div>
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-[#F5F7F5] text-lg font-semibold">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h2 className="text-[#F5F7F5] text-base sm:text-lg font-semibold">
                     My Game List ({filtered.length})
                 </h2>
                 <input
@@ -59,12 +72,12 @@ export default function GameListTab({ gameList }) {
                     value={search}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     placeholder="Search your list..."
-                    className="w-64 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
+                    className="w-full sm:w-64 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
                 />
             </div>
 
             {paginated.length === 0 ? (
-                <div className="bg-[#131916] border border-[#1F2923] rounded-xl p-12 text-center">
+                <div className="bg-[#131916] border border-[#1F2923] rounded-xl p-8 sm:p-12 text-center">
                     <p className="text-[#8B948F] text-sm">
                         No games match "{search}".
                     </p>
@@ -75,16 +88,16 @@ export default function GameListTab({ gameList }) {
                         <div
                             key={game.id}
                             onClick={() => goToDetail(game.slug)}
-                            className="cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3 flex items-center gap-4 hover:border-[#2E3A32] transition"
+                            className="cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3 flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 hover:border-[#2E3A32] transition"
                         >
                             <img
                                 src={game.cover_url}
                                 alt={game.title}
-                                className="w-16 h-16 rounded-lg object-cover shrink-0"
+                                className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover shrink-0"
                             />
 
-                            <div className="flex-1 min-w-0">
-                                <h3 className="text-[#F5F7F5] text-sm font-medium truncate">
+                            <div className="flex-1 min-w-[140px]">
+                                <h3 className="text-[#F5F7F5] text-xs sm:text-sm font-medium truncate">
                                     {game.title}
                                 </h3>
                                 <div className="flex items-center gap-2 mt-1">
@@ -101,17 +114,22 @@ export default function GameListTab({ gameList }) {
                                 </div>
                             </div>
 
-                            <div className="flex gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2 w-full sm:w-auto justify-end mt-1 sm:mt-0 pt-2 sm:pt-0 border-t border-[#1F2923] sm:border-0">
                                 <button
-                                    onClick={() => openTrailer(game.title)}
-                                    className="rounded-md bg-[#1F2923] text-[#8B948F] text-xs font-medium px-4 py-2 hover:bg-[#2E3A32] hover:text-[#F5F7F5] transition"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        openTrailer(game.title);
+                                    }}
+                                    className="flex-1 sm:flex-initial rounded-md bg-[#1F2923] text-[#8B948F] text-xs font-medium px-3 py-1.5 hover:bg-[#2E3A32] hover:text-[#F5F7F5] transition text-center"
                                 >
                                     Trailer
                                 </button>
                                 <button
-                                    onClick={() => toggleList(game.id, game.slug)}
-                                    style={{ backgroundColor: '#22C55E', color: '#0B0F0D' }}
-                                    className="rounded-md text-xs font-medium px-4 py-2 hover:opacity-90 transition"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleList(game.id, game.slug);
+                                    }}
+                                    className="flex-1 sm:flex-initial rounded-md bg-[#22C55E] text-[#0B0F0D] text-xs font-medium px-3 py-1.5 hover:bg-[#16A34A] transition text-center"
                                 >
                                     ✓ In List
                                 </button>

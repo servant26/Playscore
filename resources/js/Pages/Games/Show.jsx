@@ -107,24 +107,24 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
 
             <div className="max-w-5xl mx-auto">
                 {/* Cover */}
-                <div className="relative rounded-xl overflow-hidden mb-6" style={{ maxHeight: '480px' }}>
+                {/* Cover Image - Strict Responsive Container */}
+                <div className="w-full max-w-full aspect-video sm:aspect-auto sm:h-72 md:h-96 lg:h-[440px] rounded-xl sm:rounded-2xl overflow-hidden mb-5 sm:mb-6 bg-[#131916] border border-[#1F2923] relative">
                     <img
                         src={game.cover_url}
                         alt={game.title}
-                        className="w-full object-cover"
-                        style={{ height: '480px' }}
+                        className="w-full h-full object-cover"
                     />
                 </div>
 
-                {/* Info */}
-                <div className="flex items-start justify-between gap-4 mb-4">
+                {/* Info Header */}
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-4">
                     <div>
-                        <h1 className="text-[#F5F7F5] text-2xl font-semibold mb-2">
+                        <h1 className="text-[#F5F7F5] text-xl sm:text-2xl md:text-3xl font-bold leading-tight mb-2">
                             {game.title}
                         </h1>
-                        <div className="flex items-center gap-3 text-sm text-[#8B948F]">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-[#8B948F]">
                             {game.rawg_rating && (
-                                <span className="text-[#22C55E] font-semibold">
+                                <span className="text-[#22C55E] font-semibold bg-[#22C55E]/10 px-2 py-0.5 rounded">
                                     ★ {Number(game.rawg_rating).toFixed(1)}
                                 </span>
                             )}
@@ -132,25 +132,30 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
                                 <span>{new Date(game.release_date).getFullYear()}</span>
                             )}
                             {game.interests?.length > 0 && (
-                                <span>{game.interests.map((i) => i.name).join(', ')}</span>
+                                <span className="truncate max-w-xs sm:max-w-none">
+                                    • {game.interests.map((i) => i.name).join(', ')}
+                                </span>
                             )}
                         </div>
                     </div>
-                    <ShareButton url={window.location.href} />
+
+                    <div className="self-end sm:self-start shrink-0">
+                        <ShareButton url={window.location.href} />
+                    </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-3 mb-6">
+                {/* Actions Bar */}
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 mb-6">
                     <button
                         onClick={openTrailer}
-                        className="rounded-lg bg-[#1F2923] text-[#F5F7F5] px-6 py-2.5 text-sm font-medium hover:bg-[#2E3A32] transition"
+                        className="flex-1 sm:flex-initial rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] transition text-center"
                     >
                         Trailer
                     </button>
                     <button
                         onClick={toggleList}
-                        className={`rounded-lg px-6 py-2.5 text-sm font-medium transition ${inList
-                            ? 'bg-[#22C55E] text-[#0B0F0D]'
+                        className={`flex-1 sm:flex-initial rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition text-center ${inList
+                            ? 'bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F0D]'
                             : 'bg-[#1F2923] text-[#F5F7F5] hover:bg-[#2E3A32]'
                             }`}
                     >
@@ -159,50 +164,51 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
                     {userReview ? (
                         <button
                             onClick={() => setShowRatingModal(true)}
-                            className="rounded-lg border border-[#1F2923] text-[#8B948F] px-6 py-2.5 text-sm font-medium hover:border-[#2E3A32] hover:text-[#F5F7F5] transition flex items-center gap-2"
+                            className="w-full sm:w-auto justify-center rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] transition flex items-center gap-2"
                         >
                             <span>Your Rating:</span>
-                            <span className="text-[#22C55E] font-semibold">
-                                {Number(userReview.rating).toFixed(1)}
+                            <span className="text-[#22C55E] font-bold">
+                                ★ {Number(userReview.rating).toFixed(1)}
                             </span>
                         </button>
                     ) : (
                         <button
                             onClick={() => setShowRatingModal(true)}
-                            className="rounded-lg border border-[#1F2923] text-[#8B948F] px-6 py-2.5 text-sm font-medium hover:border-[#2E3A32] hover:text-[#F5F7F5] transition"
+                            className="w-full sm:w-auto justify-center rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] transition"
                         >
-                            Give Rating
+                            ★ Give Rating
                         </button>
                     )}
                 </div>
 
                 {/* Description */}
                 {game.description && (
-                    <p className="text-[#8B948F] text-sm leading-relaxed mb-8">
+                    <p className="text-[#8B948F] text-xs sm:text-sm leading-relaxed mb-6 sm:mb-8">
                         {game.description}
                     </p>
                 )}
 
                 {/* Rating summary */}
-                <div className="flex items-center gap-6 mb-10 bg-[#131916] border border-[#1F2923] rounded-xl p-5">
-                    <div className="text-center">
-                        <p className="text-[#22C55E] text-3xl font-bold">{averageRating}</p>
-                        <p className="text-[#5A625D] text-xs">out of 10</p>
+                <div className="flex items-center gap-4 sm:gap-6 mb-8 sm:mb-10 bg-[#131916] border border-[#1F2923] rounded-xl p-4 sm:p-5">
+                    <div className="text-center shrink-0">
+                        <p className="text-[#22C55E] text-2xl sm:text-3xl font-bold">{averageRating}</p>
+                        <p className="text-[#5A625D] text-[10px] sm:text-xs">out of 10</p>
                     </div>
-                    <div className="text-[#8B948F] text-sm">
+                    <div className="text-[#8B948F] text-xs sm:text-sm">
                         Based on {reviewsCount} {reviewsCount === 1 ? 'review' : 'reviews'}
                     </div>
                 </div>
 
                 {/* More Like This */}
                 {moreLikeThis.length > 0 && (
-                    <section className="mb-10">
-                        <h2 className="text-[#F5F7F5] text-lg font-semibold mb-4">
+                    <section className="mb-8 sm:mb-10">
+                        <h2 className="text-[#F5F7F5] text-base sm:text-lg font-semibold mb-3 sm:mb-4">
                             More Like This
                         </h2>
-                        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+                        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-3 custom-scrollbar snap-x snap-mandatory px-4 sm:px-6 lg:px-0 -mx-4 sm:-mx-6 lg:mx-0 scroll-px-4 sm:scroll-px-6">
+                            <div className="flex-shrink-0 w-1 sm:w-2 lg:hidden" />
                             {moreLikeThis.map((g) => (
-                                <div key={g.id} className="w-48 shrink-0">
+                                <div key={g.id} className="w-32 sm:w-44 lg:w-48 shrink-0 snap-start">
                                     <GameCard
                                         game={g}
                                         isInList={moreListIds.includes(g.id)}
@@ -210,6 +216,7 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
                                     />
                                 </div>
                             ))}
+                            <div className="flex-shrink-0 w-1 sm:w-2 lg:hidden" />
                         </div>
 
                         {hasPendingChanges && (
