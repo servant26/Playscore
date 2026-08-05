@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\RawgService;
+use App\Models\Game;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -10,20 +10,13 @@ use Inertia\Response;
 
 class WelcomeController extends Controller
 {
-    public function index(RawgService $rawg): Response
+    public function index(): Response
     {
-        $response = $rawg->popular(1);
-
-        $previewGames = collect($response['results'] ?? [])
-            ->filter(fn ($item) => !empty($item['rating']))
+        $previewGames = Game::whereNotNull('cover_url')
+            ->whereNotNull('rawg_rating')
+            ->inRandomOrder()
             ->take(6)
-            ->map(fn ($item) => [
-                'external_id' => $item['id'],
-                'title' => $item['name'],
-                'cover_url' => $item['background_image'],
-                'rawg_rating' => $item['rating'] ?? null,
-            ])
-            ->values();
+            ->get(['external_id', 'title', 'cover_url', 'rawg_rating']);
 
         return Inertia::render('Welcome', [
             'canLogin' => Route::has('login'),
