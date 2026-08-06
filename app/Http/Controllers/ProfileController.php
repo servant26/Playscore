@@ -32,31 +32,70 @@ class ProfileController extends Controller
             ->limit(10)
             ->get();
 
-        $myReviews = $user->reviews()
-                    ->with('game')
-                    ->latest()
-                    ->get();
+        $myReviewsWithGame = $user->reviews()
+            ->with(['game.interests'])
+            ->latest()
+            ->get();
 
-            return Inertia::render('Profile/Edit', [
-                'mustVerifyEmail' => $user instanceof MustVerifyEmail,
-                'status' => session('status'),
-                'allInterests' => \App\Models\Interest::orderBy('name')->get(['id', 'name', 'slug']),
-                'userInterestIds' => $userInterestIds,
-                'recommendations' => $recommendations,
-                'gameList' => $user->gameList()->with('interests')->get(),
-                'myReviews' => $myReviews,
-                'stats' => [
-                'totalReviews' => $user->reviews()->count(),
+        // Stats calculation from reviewed games
+        $genreCounts = [];
+        $yearCounts = [];
+        $ratingDistribution = [
+            '1-3' => 0,
+            '4-6' => 0,
+            '7-8' => 0,
+            '9-10' => 0,
+        ];
+
+        foreach ($myReviewsWithGame as $rev) {
+            // Genre aggregation
+            if ($rev->game && $rev->game->interests) {
+                foreach ($rev->game->interests as $genre) {
+                    $genreCounts[$genre->name] = ($genreCounts[$genre->name] ?? 0) + 1;
+                }
+            }
+
+            // Release Year aggregation
+            if ($rev->game && $rev->game->release_date) {
+                $year = (string) \Carbon\Carbon::parse($rev->game->release_date)->year;
+                $yearCounts[$year] = ($yearCounts[$year] ?? 0) + 1;
+            }
+
+            // Rating score distribution
+            $score = (float) $rev->rating;
+            if ($score <= 3.9) {
+                $ratingDistribution['1-3']++;
+            } elseif ($score <= 6.9) {
+                $ratingDistribution['4-6']++;
+            } elseif ($score <= 8.9) {
+                $ratingDistribution['7-8']++;
+            } else {
+                $ratingDistribution['9-10']++;
+            }
+        }
+
+        ksort($yearCounts);
+        arsort($genreCounts);
+
+        $avgScore = $myReviewsWithGame->count() > 0
+            ? round($myReviewsWithGame->avg('rating'), 1)
+            : 0;
+
+        return Inertia::render('Profile/Edit', [
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
+            'status' => session('status'),
+            'allInterests' => \App\Models\Interest::orderBy('name')->get(['id', 'name', 'slug']),
+            'userInterestIds' => $userInterestIds,
+            'recommendations' => $recommendations,
+            'gameList' => $user->gameList()->with('interests')->get(),
+            'myReviews' => $myReviewsWithGame,
+            'stats' => [
+                'totalReviews' => $myReviewsWithGame->count(),
                 'totalGamesInList' => $user->gameList()->count(),
-                'reviewsByRating' => $user->reviews()
-                    ->selectRaw('rating, count(*) as count')
-                    ->groupBy('rating')
-                    ->pluck('count', 'rating'),
-                'gamesByGenre' => $user->gameList()
-                    ->with('interests')
-                    ->get()
-                    ->flatMap(fn ($game) => $game->interests->pluck('name'))
-                    ->countBy(),
+                'averageScore' => $avgScore,
+                'reviewsByGenre' => $genreCounts,
+                'reviewsByYear' => $yearCounts,
+                'ratingDistribution' => $ratingDistribution,
             ],
         ]);
     }

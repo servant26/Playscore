@@ -26,7 +26,31 @@ export default function Edit({
     myReviews,
     stats,
 }) {
-    const [activeTab, setActiveTab] = useState('profile');
+    const getInitialTab = () => {
+        if (typeof window !== 'undefined') {
+            const hash = window.location.hash.replace('#', '');
+            const validKeys = TABS.map((t) => t.key);
+            if (hash && validKeys.includes(hash)) {
+                return hash;
+            }
+            const stored = localStorage.getItem('playscore_profile_tab');
+            if (stored && validKeys.includes(stored)) {
+                return stored;
+            }
+        }
+        return 'profile';
+    };
+
+    const [activeTab, setActiveTab] = useState(getInitialTab);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('playscore_profile_tab', activeTab);
+            if (window.location.hash !== `#${activeTab}`) {
+                window.history.replaceState(null, '', `#${activeTab}`);
+            }
+        }
+    }, [activeTab]);
 
     const initialGameListIds = gameList.map((g) => g.id);
     const [listIds, setListIds] = useState(initialGameListIds);
@@ -152,7 +176,9 @@ export default function Edit({
                     )}
                     {activeTab === 'gamelist' && <GameListTab gameList={gameList} />}
                     {activeTab === 'myreview' && <MyReviewTab myReviews={myReviews} />}
-                    {activeTab === 'stats' && <StatsTab stats={stats} />}
+                    {activeTab === 'stats' && (
+                        <StatsTab stats={stats} myReviews={myReviews} onSelectTab={handleTabChange} />
+                    )}
                 </div>
             </div>
 
