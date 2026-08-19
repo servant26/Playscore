@@ -90,11 +90,16 @@ class HomeController extends Controller
             })
             ->values();
 
+        $myListIds = $user ? $user->gameList()->pluck('games.id')->toArray() : [];
+        $myListExternalIds = $user ? $user->gameList()->whereNotNull('external_id')->pluck('games.external_id')->toArray() : [];
+
         return Inertia::render('Home', [
             'topHits' => $topHits,
             'newGames' => $newGames,
             'myStories' => $myStories,
             'followingStoryGroups' => $followingStoryGroups,
+            'myListIds' => $myListIds,
+            'myListExternalIds' => $myListExternalIds,
         ]);
     }
 

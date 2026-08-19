@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { router, usePage } from '@inertiajs/react';
 
 export default function StoryViewerModal({ show, stories = [], initialIndex = 0, onClose, onStoryViewed }) {
@@ -78,9 +79,9 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
         router.get(route('users.show', userId));
     };
 
-    return (
+    const modalContent = (
         <div
-            className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[99999] p-4"
             onClick={onClose}
         >
             {/* Story Card Container */}
@@ -222,4 +223,6 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
             </div>
         </div>
     );
+
+    return typeof window !== 'undefined' ? createPortal(modalContent, document.body) : null;
 }
