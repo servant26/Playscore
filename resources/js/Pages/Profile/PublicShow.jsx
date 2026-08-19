@@ -5,19 +5,33 @@ import FollowListTab from './Partials/FollowListTab';
 import StatsTab from './Partials/StatsTab';
 import StoryViewerModal from '@/Components/StoryViewerModal';
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 
 const PER_PAGE = 10;
 
-export default function PublicShow({ profileUser, userStories = [], interests, reviews, myListIds, stats }) {
+export default function PublicShow({ profileUser, userStories = [], interests = [], myInterestIds = [], myReviewedGameIds = [], reviews, myListIds, stats }) {
     const [selectedReview, setSelectedReview] = useState(null);
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [showStoryViewer, setShowStoryViewer] = useState(false);
     const [showUnfollowConfirm, setShowUnfollowConfirm] = useState(false);
     const [listIds, setListIds] = useState(myListIds || []);
     const [search, setSearch] = useState('');
+    const [reviewFilter, setReviewFilter] = useState('all');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [activeTab, setActiveTab] = useState('reviews');
+
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const authUser = usePage().props.auth?.user;
     const isOwner = authUser && authUser.id === profileUser.id;
@@ -106,15 +120,23 @@ export default function PublicShow({ profileUser, userStories = [], interests, r
         );
     };
 
+    const sharedReviewsCount = useMemo(() => {
+        if (!reviews || !myReviewedGameIds) return 0;
+        return reviews.filter((r) => r.game && myReviewedGameIds.includes(r.game.id)).length;
+    }, [reviews, myReviewedGameIds]);
+
     const filtered = useMemo(() => {
-        if (!search.trim()) return reviews;
-        const q = search.toLowerCase();
-        return reviews.filter(
-            (r) =>
-                r.game.title.toLowerCase().includes(q) ||
-                (r.body && r.body.toLowerCase().includes(q))
-        );
-    }, [search, reviews]);
+        return reviews.filter((r) => {
+            const matchesSearch = !search.trim()
+                ? true
+                : (r.game.title.toLowerCase().includes(search.toLowerCase()) ||
+                   (r.body && r.body.toLowerCase().includes(search.toLowerCase())));
+            const matchesShared = reviewFilter === 'shared'
+                ? (r.game && myReviewedGameIds.includes(r.game.id))
+                : true;
+            return matchesSearch && matchesShared;
+        });
+    }, [search, reviews, reviewFilter, myReviewedGameIds]);
 
     const totalPages = Math.ceil(filtered.length / PER_PAGE) || 1;
     const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
@@ -194,17 +216,33 @@ export default function PublicShow({ profileUser, userStories = [], interests, r
                     )}
                 </div>
 
-                {/* Interests inline with header: hoverable green themed */}
+                {/* Interests inline with header: green highlighted for shared interests */}
                 {interests.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-6">
-                        {interests.map((interest) => (
-                            <span
-                                key={interest.id}
-                                className="px-3.5 py-1.5 rounded-full text-xs bg-[#131916] border border-[#1F2923] text-[#8B948F] hover:bg-[#22C55E] hover:border-[#22C55E] hover:text-[#0B0F0D] hover:font-semibold transition cursor-default"
-                            >
-                                {interest.name}
-                            </span>
-                        ))}
+                    <div className="mb-6">
+                        <div className="flex flex-wrap gap-2">
+                            {interests.map((interest) => {
+                                const isShared = myInterestIds && myInterestIds.includes(interest.id);
+                                return (
+                                    <span
+                                        key={interest.id}
+                                        className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition cursor-default flex items-center gap-1.5 ${
+                                            isShared
+                                                ? 'bg-[#22C55E] border border-[#22C55E] text-[#0B0F0D] shadow-md'
+                                                : 'bg-[#131916] border border-[#1F2923] text-[#8B948F] hover:border-[#2E3A32] hover:text-[#F5F7F5]'
+                                        }`}
+                                        title={isShared ? `Shared Interest! You both like ${interest.name}` : interest.name}
+                                    >
+                                        {isShared && <span className="text-[11px] font-bold">✓</span>}
+                                        <span>{interest.name}</span>
+                                    </span>
+                                );
+                            })}
+                        </div>
+                        {!isOwner && myInterestIds && interests.filter((i) => myInterestIds.includes(i.id)).length > 0 && (
+                            <p className="text-[#22C55E] hover:text-[#15803D] transition-colors duration-200 text-xs font-medium mt-2.5 px-3.5 cursor-default select-none">
+                                You share {interests.filter((i) => myInterestIds.includes(i.id)).length} {interests.filter((i) => myInterestIds.includes(i.id)).length === 1 ? 'genre interest' : 'genre interests'} with {profileUser.name}
+                            </p>
+                        )}
                     </div>
                 )}
 
@@ -217,7 +255,7 @@ export default function PublicShow({ profileUser, userStories = [], interests, r
                             : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
                             }`}
                     >
-                        Reviews ({reviews.length})
+                        Reviews
                     </button>
                     <button
                         onClick={() => setActiveTab('stats')}
@@ -256,18 +294,90 @@ export default function PublicShow({ profileUser, userStories = [], interests, r
                     <FollowListTab user={profileUser} type="followers" />
                 ) : (
                     <>
-                        {/* Reviews Header: 1 block title, search form underneath on mobile */}
+                        {/* Reviews Header: title + dropdown filter & search form */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                             <h2 className="text-[#F5F7F5] text-base sm:text-lg font-semibold">
-                                Reviews ({filtered.length})
+                                {reviewFilter === 'shared' ? 'Shared Reviews' : 'All Reviews'}
                             </h2>
-                            <input
-                                type="text"
-                                value={search}
-                                onChange={(e) => handleSearchChange(e.target.value)}
-                                placeholder="Search reviews..."
-                                className="w-full sm:w-64 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
-                            />
+
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                                {/* Custom Styled Shared Reviews Dropdown */}
+                                {!isOwner && myReviewedGameIds && myReviewedGameIds.length > 0 && (
+                                    <div className="relative" ref={dropdownRef}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsDropdownOpen((prev) => !prev)}
+                                            className="flex items-center justify-between gap-2.5 bg-[#131916] border border-[#1F2923] hover:border-[#22C55E]/50 text-[#F5F7F5] text-xs sm:text-sm font-medium px-3.5 py-2 rounded-lg transition shadow-sm"
+                                        >
+                                            <span>
+                                                {reviewFilter === 'all'
+                                                    ? `All Reviews (${reviews.length})`
+                                                    : `Shared Reviews (${sharedReviewsCount})`}
+                                            </span>
+                                            <svg
+                                                className={`w-4 h-4 text-[#8B948F] transition-transform duration-200 ${
+                                                    isDropdownOpen ? 'rotate-180 text-[#22C55E]' : ''
+                                                }`}
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+
+                                        {isDropdownOpen && (
+                                            <div className="absolute right-0 mt-1.5 w-48 bg-[#131916] border border-[#1F2923] rounded-xl shadow-2xl py-1.5 z-20 overflow-hidden">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setReviewFilter('all');
+                                                        setPage(1);
+                                                        setIsDropdownOpen(false);
+                                                    }}
+                                                    className={`w-full text-left px-3.5 py-2 text-xs sm:text-sm font-medium flex items-center justify-between transition ${
+                                                        reviewFilter === 'all'
+                                                            ? 'bg-[#22C55E]/15 text-[#22C55E]'
+                                                            : 'text-[#8B948F] hover:bg-[#1F2923] hover:text-[#F5F7F5]'
+                                                    }`}
+                                                >
+                                                    <span>All Reviews</span>
+                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#1F2923] text-[#F5F7F5]">
+                                                        {reviews.length}
+                                                    </span>
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setReviewFilter('shared');
+                                                        setPage(1);
+                                                        setIsDropdownOpen(false);
+                                                    }}
+                                                    className={`w-full text-left px-3.5 py-2 text-xs sm:text-sm font-medium flex items-center justify-between transition ${
+                                                        reviewFilter === 'shared'
+                                                            ? 'bg-[#22C55E]/15 text-[#22C55E]'
+                                                            : 'text-[#8B948F] hover:bg-[#1F2923] hover:text-[#F5F7F5]'
+                                                    }`}
+                                                >
+                                                    <span>Shared Reviews</span>
+                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#22C55E]/20 text-[#22C55E]">
+                                                        {sharedReviewsCount}
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={(e) => handleSearchChange(e.target.value)}
+                                    placeholder="Search reviews..."
+                                    className="w-full sm:w-64 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
+                                />
+                            </div>
                         </div>
 
                         {paginated.length === 0 ? (
