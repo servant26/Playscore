@@ -102,4 +102,14 @@ class RawgService
 
         return $response->json()['results'] ?? [];
     }
+
+    /**
+     * Helper to extract best cover URL from RAWG item response.
+     */
+    public function getImageUrl(array $item): ?string
+    {
+        return $item['background_image']
+            ?? $item['background_image_additional']
+            ?? ($item['short_screenshots'][0]['image'] ?? null);
+    }
 }

@@ -51,7 +51,7 @@ function HeroBackground({ images }) {
     );
 }
 
-export default function Welcome({ canLogin, canRegister, previewGames }) {
+export default function Welcome({ canLogin, canRegister, previewGames, totalGamesCount }) {
     const [activeStep, setActiveStep] = useState(0);
     const [legalModal, setLegalModal] = useState(null); // 'privacy' | 'terms' | null
 
@@ -98,7 +98,7 @@ export default function Welcome({ canLogin, canRegister, previewGames }) {
         {
             number: '02',
             title: 'Browse & discover',
-            description: 'Explore a vast catalog of over 800,000 games across all platforms. Filter by trending titles, search your childhood favorites, watch official trailers, and build your custom game lists effortlessly.',
+            description: `Explore a vast catalog of over ${totalGamesCount ? totalGamesCount.replace('+', '') : '800K'} games across all platforms. Filter by trending titles, search your childhood favorites, watch official trailers, and build your custom game lists effortlessly.`,
             image: previewGames[1]?.cover_url || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&auto=format&fit=crop&q=80',
         },
         {
@@ -139,16 +139,16 @@ export default function Welcome({ canLogin, canRegister, previewGames }) {
                 <HeroBackground images={previewGames.slice(0, 4).map((g) => g.cover_url)} />
 
                 <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-10 lg:px-12 w-full py-12 sm:py-0">
-                    <div className="max-w-2xl">
+                    <div className="max-w-2xl text-center sm:text-left mx-auto sm:mx-0">
                         <h1 className="text-[#F5F7F5] text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6 tracking-tight">
                             Rate it. Review it.<br />Remember it.
                         </h1>
-                        <p className="text-[#8B948F] text-sm sm:text-base leading-relaxed mb-6 sm:mb-8">
+                        <p className="text-[#8B948F] text-sm sm:text-base leading-relaxed mb-6 sm:mb-8 max-w-xl mx-auto sm:mx-0">
                             Track every game you play, share honest reviews, and discover what to
                             play next based on what you actually like.
                         </p>
                         {canRegister && (
-                            <div className="mb-8 sm:mb-10">
+                            <div className="mb-8 sm:mb-10 flex justify-center sm:justify-start">
                                 <Link
                                     href={route('login')}
                                     className="inline-block rounded-lg bg-[#22C55E] text-[#0B0F0D] px-5 py-2.5 sm:px-6 sm:py-3 text-xs sm:text-sm font-semibold hover:bg-[#4ADE80] transition"
@@ -159,9 +159,9 @@ export default function Welcome({ canLogin, canRegister, previewGames }) {
                         )}
 
                         {/* Inline Stats */}
-                        <div className="pt-4 sm:pt-6 grid grid-cols-3 gap-3 sm:gap-6">
+                        <div className="pt-4 sm:pt-6 grid grid-cols-3 gap-3 sm:gap-6 text-center sm:text-left">
                             <div>
-                                <p className="text-[#22C55E] text-xl sm:text-3xl font-bold">800K+</p>
+                                <p className="text-[#22C55E] text-xl sm:text-3xl font-bold">{totalGamesCount || '800K+'}</p>
                                 <p className="text-[#8B948F] text-[11px] sm:text-sm mt-0.5 sm:mt-1">Games in database</p>
                             </div>
                             <div>
@@ -306,6 +306,11 @@ export default function Welcome({ canLogin, canRegister, previewGames }) {
                                         <img
                                             src={game.cover_url}
                                             alt={game.title}
+                                            onError={(e) => {
+                                                e.target.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+                                                    `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800"><rect width="100%" height="100%" fill="#131916"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#22C55E" font-family="sans-serif" font-size="24" font-weight="bold">${game.title.replace(/&/g, '&amp;')}</text></svg>`
+                                                )}`;
+                                            }}
                                             className="w-full h-full object-cover"
                                         />
                                         {game.rawg_rating && (

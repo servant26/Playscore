@@ -1,33 +1,35 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
-const ALL_IMAGES = [
+const FALLBACK_IMAGES = [
     'https://media.rawg.io/media/games/20a/20aa03a10cda45239fe22d035c0ebe64.jpg',
     'https://media.rawg.io/media/games/562/562553814dd54e001a541e4ee83a591c.jpg',
     'https://media.rawg.io/media/games/bc0/bc06a29ceac58652b684deefe7d56099.jpg',
     'https://media.rawg.io/media/games/4be/4be6a6ad0364751a96229c56bf69be59.jpg',
-    'https://media.rawg.io/media/games/34b/34b1f1850a1c06fd971bc6ab3ac0ce0e.jpg',
-    'https://media.rawg.io/media/games/d82/d82990b9c67ba0d2d09d4e6fa88885a7.jpg',
-    'https://media.rawg.io/media/games/942/9424d6bb763dc38d9378b488603c87fa.jpg',
-    'https://media.rawg.io/media/games/73e/73eecb8909e0c39fb246f457b5d6cbbe.jpg',
-    'https://media.rawg.io/media/games/46d/46d98e6910fbc0706e2948a7cc9b10c5.jpg',
 ];
 
 function pickRandomImages(pool, count) {
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    const source = (pool && pool.length > 0) ? pool : FALLBACK_IMAGES;
+    const shuffled = [...source].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count);
 }
 
 export default function AuthLayout({ children, title, subtitle }) {
-    const [slideImages] = useState(() => pickRandomImages(ALL_IMAGES, 4));
+    const { rawgAuthImages } = usePage().props;
+    const [slideImages, setSlideImages] = useState([]);
     const [activeSlide, setActiveSlide] = useState(0);
 
     useEffect(() => {
+        setSlideImages(pickRandomImages(rawgAuthImages, 4));
+    }, [rawgAuthImages]);
+
+    useEffect(() => {
+        if (slideImages.length === 0) return;
         const interval = setInterval(() => {
             setActiveSlide((prev) => (prev + 1) % slideImages.length);
         }, 5000);
         return () => clearInterval(interval);
-    }, []);
+    }, [slideImages]);
 
     return (
         <div className="flex min-h-screen bg-[#0B0F0D]">
