@@ -30,10 +30,11 @@ class AllGamesController extends Controller
                     'genres' => collect($item['genres'] ?? [])->pluck('name')->implode(', '),
                 ];
             })
+            ->take(9)
             ->values();
 
         $totalCount = $response['count'] ?? 0;
-        $perPage = 20;
+        $perPage = 9;
         $lastPage = (int) ceil($totalCount / $perPage);
 
         $user = auth()->user();
@@ -88,12 +89,17 @@ class AllGamesController extends Controller
             })
             ->values();
 
+        $myListIds = $user ? $user->gameList()->pluck('games.id')->toArray() : [];
+        $myListExternalIds = $user ? $user->gameList()->whereNotNull('external_id')->pluck('games.external_id')->toArray() : [];
+
         return Inertia::render('AllGames', [
             'games' => $games,
             'currentPage' => $page,
             'lastPage' => min($lastPage, 500),
             'myStories' => $myStories,
             'followingStoryGroups' => $followingStoryGroups,
+            'myListIds' => $myListIds,
+            'myListExternalIds' => $myListExternalIds,
         ]);
     }
 }
