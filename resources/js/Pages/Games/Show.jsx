@@ -4,10 +4,10 @@ import RatingModal from '@/Components/RatingModal';
 import ShareButton from '@/Components/ShareButton';
 import ConfirmModal from '@/Components/ConfirmModal';
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getFallbackImage } from '@/Utils/imageFallback';
 
-export default function Show({ game, userReview, reviews, moreLikeThis, isInList, myListIds, reviewsCount, averageRating }) {
+export default function Show({ game, userReview, reviews, moreLikeThis = [], isInList, myListIds, reviewsCount, averageRating }) {
     const { auth } = usePage().props;
     const [showRatingModal, setShowRatingModal] = useState(false);
     const [reviewToDelete, setReviewToDelete] = useState(null);
@@ -17,6 +17,20 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
     const [showLeaveWarning, setShowLeaveWarning] = useState(false);
     const [pendingUrl, setPendingUrl] = useState(null);
     const [coverSrc, setCoverSrc] = useState(game.cover_url || getFallbackImage(game.title));
+
+    const scrollContainerRef = useRef(null);
+
+    const scrollLeft = () => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+        }
+    };
+
+    const scrollRight = () => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+        }
+    };
 
     useEffect(() => {
         setCoverSrc(game.cover_url || getFallbackImage(game.title));
@@ -55,17 +69,24 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
         setPendingChanges({});
     };
 
+    const isBackNavigationRef = useRef(false);
+
     const confirmLeaveWithoutSaving = () => {
         setShowLeaveWarning(false);
         setPendingChanges({});
         if (pendingUrl) {
             window.location.href = pendingUrl;
+            setPendingUrl(null);
+        } else if (isBackNavigationRef.current) {
+            isBackNavigationRef.current = false;
+            window.history.back();
         }
     };
 
     const cancelLeave = () => {
         setShowLeaveWarning(false);
         setPendingUrl(null);
+        isBackNavigationRef.current = false;
     };
 
     useEffect(() => {
@@ -84,6 +105,35 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
         });
 
         return () => removeListener();
+    }, [hasPendingChanges]);
+
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (hasPendingChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+
+        const handlePopState = (e) => {
+            if (hasPendingChanges) {
+                window.history.pushState(null, '', window.location.href);
+                isBackNavigationRef.current = true;
+                setPendingUrl(null);
+                setShowLeaveWarning(true);
+            }
+        };
+
+        if (hasPendingChanges) {
+            window.history.pushState({ unsaved: true }, '', window.location.href);
+            window.addEventListener('beforeunload', handleBeforeUnload);
+            window.addEventListener('popstate', handlePopState);
+        }
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            window.removeEventListener('popstate', handlePopState);
+        };
     }, [hasPendingChanges]);
 
     const openTrailer = () => {
@@ -111,7 +161,7 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
         <AppLayout>
             <Head title={game.title} />
 
-            <div className="max-w-5xl mx-auto">
+            <div className="w-full mx-auto">
                 {/* Cover */}
                 {/* Cover Image - Strict Responsive Container */}
                 <div className="w-full max-w-full aspect-video sm:aspect-auto sm:h-72 md:h-96 lg:h-[440px] rounded-xl sm:rounded-2xl overflow-hidden mb-5 sm:mb-6 bg-[#131916] border border-[#1F2923] relative">
@@ -209,13 +259,34 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
                 {/* More Like This */}
                 {moreLikeThis.length > 0 && (
                     <section className="mb-8 sm:mb-10">
-                        <h2 className="text-[#F5F7F5] text-base sm:text-lg font-semibold mb-3 sm:mb-4">
-                            More Like This
-                        </h2>
-                        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-3 custom-scrollbar snap-x snap-mandatory px-4 sm:px-6 lg:px-0 -mx-4 sm:-mx-6 lg:mx-0 scroll-px-4 sm:scroll-px-6">
-                            <div className="flex-shrink-0 w-1 sm:w-2 lg:hidden" />
+                        <div className="flex items-center justify-between mb-3 sm:mb-4">
+                            <h2 className="text-[#F5F7F5] text-base sm:text-lg font-semibold">
+                                More Like This
+                            </h2>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={scrollLeft}
+                                    className="w-8 h-8 rounded-full bg-[#131916] border border-[#1F2923] text-[#8B948F] hover:text-[#F5F7F5] hover:border-[#22C55E] flex items-center justify-center transition text-sm font-bold shadow-sm"
+                                    title="Scroll left"
+                                >
+                                    ‹
+                                </button>
+                                <button
+                                    onClick={scrollRight}
+                                    className="w-8 h-8 rounded-full bg-[#131916] border border-[#1F2923] text-[#8B948F] hover:text-[#F5F7F5] hover:border-[#22C55E] flex items-center justify-center transition text-sm font-bold shadow-sm"
+                                    title="Scroll right"
+                                >
+                                    ›
+                                </button>
+                            </div>
+                        </div>
+
+                        <div
+                            ref={scrollContainerRef}
+                            className="flex gap-3 sm:gap-4 overflow-x-auto pb-3.5 custom-scrollbar snap-x snap-mandatory scroll-smooth"
+                        >
                             {moreLikeThis.map((g) => (
-                                <div key={g.id} className="w-32 sm:w-44 lg:w-48 shrink-0 snap-start">
+                                <div key={g.id} className="w-36 sm:w-44 lg:w-48 shrink-0 snap-start">
                                     <GameCard
                                         game={g}
                                         isInList={moreListIds.includes(g.id)}
@@ -223,7 +294,6 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
                                     />
                                 </div>
                             ))}
-                            <div className="flex-shrink-0 w-1 sm:w-2 lg:hidden" />
                         </div>
 
                         {hasPendingChanges && (

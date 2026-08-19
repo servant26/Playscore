@@ -87,7 +87,7 @@ export default function AppLayout({ children }) {
     return (
         <div className="min-h-screen bg-[#0B0F0D] w-full overflow-x-hidden">
             <nav className="sticky top-0 z-40 bg-[#0F1512] border-b border-[#1F2923]">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-6">
+                <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 h-16 flex items-center gap-6">
                     <Link href={route('dashboard')} className="flex items-center gap-2 shrink-0">
                         <div className="w-8 h-8 rounded-md bg-[#22C55E] flex items-center justify-center">
                             <span className="text-[#0B0F0D] font-bold text-sm">P</span>
@@ -247,7 +247,7 @@ export default function AppLayout({ children }) {
                 </div>
             </nav>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">{children}</main>
+            <main className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 py-6 sm:py-8">{children}</main>
         </div>
     );
 }
