@@ -151,11 +151,10 @@ export default function FollowListTab({ user, type = 'following' }) {
                             {!u.is_self && (
                                 <button
                                     onClick={() => handleToggleFollowClick(u)}
-                                    className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${
-                                        u.is_following
+                                    className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${u.is_following
                                             ? 'bg-[#1F2923] text-[#8B948F] hover:bg-[#2E3A32] hover:text-[#DC2626]'
                                             : 'bg-[#22C55E] text-[#0B0F0D] hover:bg-[#16A34A]'
-                                    }`}
+                                        }`}
                                 >
                                     {u.is_following ? 'Following' : '+ Follow'}
                                 </button>
@@ -179,11 +178,10 @@ export default function FollowListTab({ user, type = 'following' }) {
                         <button
                             key={p}
                             onClick={() => setPage(p)}
-                            className={`rounded-lg px-3 py-1.5 text-sm transition ${
-                                p === page
+                            className={`rounded-lg px-3 py-1.5 text-sm transition ${p === page
                                     ? 'bg-[#22C55E] text-[#0B0F0D] font-medium'
                                     : 'border border-[#1F2923] text-[#8B948F] hover:border-[#2E3A32]'
-                            }`}
+                                }`}
                         >
                             {p}
                         </button>
