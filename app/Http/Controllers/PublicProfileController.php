@@ -73,6 +73,8 @@ class PublicProfileController extends Controller
 
         $authUser = auth()->user();
         $isFollowing = $authUser ? $authUser->isFollowing($user) : false;
+        $myInterestIds = $authUser ? $authUser->interests()->pluck('interests.id')->toArray() : [];
+        $myReviewedGameIds = $authUser ? $authUser->reviews()->pluck('game_id')->toArray() : [];
 
         $formatStory = function ($story) {
             if (!$story || !$story->review || !$story->review->game) return null;
@@ -114,6 +116,8 @@ class PublicProfileController extends Controller
             ],
             'userStories' => $userStories,
             'interests' => $user->interests()->get(['interests.id', 'interests.name']),
+            'myInterestIds' => $myInterestIds,
+            'myReviewedGameIds' => $myReviewedGameIds,
             'reviews' => $reviews,
             'myListIds' => $myListIds,
             'stats' => [

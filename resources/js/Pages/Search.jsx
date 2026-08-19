@@ -3,7 +3,7 @@ import RawgGameCard from '@/Components/RawgGameCard';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function Search({ query, games = [], users = [] }) {
+export default function Search({ query, games = [], users = [], recommendedUsers = [] }) {
     const [activeTab, setActiveTab] = useState(() => {
         if (games.length === 0 && users.length > 0) return 'users';
         return 'games';
@@ -21,7 +21,7 @@ export default function Search({ query, games = [], users = [] }) {
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <h2 className="text-[#F5F7F5] text-xl font-semibold">
-                    Search results for "{query}"
+                    {query ? `Search results for "${query}"` : 'Discover Users & Games'}
                 </h2>
 
                 {/* Filter Tabs */}
@@ -52,7 +52,7 @@ export default function Search({ query, games = [], users = [] }) {
             </div>
 
             {!hasResults ? (
-                <div className="bg-[#131916] border border-[#1F2923] rounded-xl p-12 sm:p-16 text-center">
+                <div className="bg-[#131916] border border-[#1F2923] rounded-xl p-12 sm:p-16 text-center mb-8">
                     <p className="text-[#F5F7F5] text-lg font-medium mb-2">
                         Not Found
                     </p>
@@ -151,6 +151,94 @@ export default function Search({ query, games = [], users = [] }) {
                         )
                     )}
                 </>
+            )}
+
+            {/* Recommendations Section */}
+            {recommendedUsers && recommendedUsers.length > 0 && (
+                <div className="mt-12 pt-8 border-t border-[#1F2923]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+                        <div>
+                            <h3 className="text-[#F5F7F5] text-lg font-bold flex items-center gap-2.5">
+                                <span>Recommended Users For You</span>
+                                <span className="text-xs bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] px-2.5 py-0.5 rounded-full font-semibold">
+                                    Top 10 Closest Taste
+                                </span>
+                            </h3>
+                            <p className="text-[#8B948F] text-xs mt-1">
+                                Users with similar genre interests, game lists, and review ratings closest to your taste.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3 w-full">
+                        {recommendedUsers.map((recUser, idx) => (
+                            <div
+                                key={recUser.id}
+                                onClick={() => goToProfile(recUser.id)}
+                                className="group cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3.5 sm:p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 hover:border-[#2E3A32] transition"
+                            >
+                                <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                                    {/* Rank Badge + Avatar */}
+                                    <div className="relative shrink-0">
+                                        <div
+                                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-sm sm:text-base font-semibold overflow-hidden"
+                                            style={{ minWidth: '48px', minHeight: '48px' }}
+                                        >
+                                            {recUser.avatar ? (
+                                                <img
+                                                    src={`/storage/${recUser.avatar}`}
+                                                    alt={recUser.name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                recUser.name.slice(0, 2).toUpperCase()
+                                            )}
+                                        </div>
+                                        <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-[#22C55E] text-[#0B0F0D] font-bold text-[10px] flex items-center justify-center shadow">
+                                            #{idx + 1}
+                                        </span>
+                                    </div>
+
+                                    {/* Details */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                                            <h4 className="text-[#F5F7F5] text-sm sm:text-base font-medium truncate group-hover:text-[#22C55E] transition">
+                                                {recUser.name}
+                                            </h4>
+
+                                            {/* Taste Match Badge */}
+                                            <span className="bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                                <span>⚡</span>
+                                                <span>{recUser.match_percentage}% Similar Taste</span>
+                                            </span>
+                                        </div>
+
+                                        <div className="flex flex-wrap items-center gap-2 text-xs text-[#8B948F]">
+                                            <span className="bg-[#1F2923] text-[#8B948F] text-[10px] sm:text-xs px-2.5 py-0.5 rounded-md font-medium">
+                                                {recUser.shared_interests_count} Shared {recUser.shared_interests_count === 1 ? 'Interest' : 'Interests'}
+                                            </span>
+
+                                            <span className="bg-[#1F2923] text-[#8B948F] text-[10px] sm:text-xs px-2.5 py-0.5 rounded-md font-medium">
+                                                {recUser.shared_reviews_count} Shared {recUser.shared_reviews_count === 1 ? 'Review' : 'Reviews'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Action Button */}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        goToProfile(recUser.id);
+                                    }}
+                                    className="w-full sm:w-auto shrink-0 rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 py-2 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] hover:text-[#22C55E] transition text-center"
+                                >
+                                    View Profile
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             )}
         </AppLayout>
     );
