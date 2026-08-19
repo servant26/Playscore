@@ -41,6 +41,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::get('/users/{user}', [App\Http\Controllers\PublicProfileController::class, 'show'])->name('users.show');
+    Route::post('/users/{user}/follow', [App\Http\Controllers\FollowController::class, 'toggle'])->name('users.follow');
+    Route::get('/users/{user}/followers', [App\Http\Controllers\FollowController::class, 'followers'])->name('users.followers');
+    Route::get('/users/{user}/following', [App\Http\Controllers\FollowController::class, 'following'])->name('users.following');
 });
 
 require __DIR__.'/auth.php';

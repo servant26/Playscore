@@ -1,15 +1,19 @@
 import AppLayout from '@/Layouts/AppLayout';
 import GameCard from '@/Components/GameCard';
 import Modal from '@/Components/Modal';
+import FollowListTab from './Partials/FollowListTab';
 import StatsTab from './Partials/StatsTab';
+import StoryViewerModal from '@/Components/StoryViewerModal';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 
 const PER_PAGE = 10;
 
-export default function PublicShow({ profileUser, interests, reviews, myListIds, stats }) {
+export default function PublicShow({ profileUser, userStories = [], interests, reviews, myListIds, stats }) {
     const [selectedReview, setSelectedReview] = useState(null);
     const [showAvatarModal, setShowAvatarModal] = useState(false);
+    const [showStoryViewer, setShowStoryViewer] = useState(false);
+    const [showUnfollowConfirm, setShowUnfollowConfirm] = useState(false);
     const [listIds, setListIds] = useState(myListIds || []);
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
@@ -17,6 +21,58 @@ export default function PublicShow({ profileUser, interests, reviews, myListIds,
 
     const authUser = usePage().props.auth?.user;
     const isOwner = authUser && authUser.id === profileUser.id;
+
+    const [isFollowing, setIsFollowing] = useState(profileUser.is_following || false);
+    const [followersCount, setFollowersCount] = useState(profileUser.followers_count || 0);
+
+    const [viewedIds, setViewedIds] = useState(() => {
+        if (typeof window === 'undefined') return [];
+        try {
+            const saved = localStorage.getItem('playscore_viewed_stories');
+            return saved ? JSON.parse(saved) : [];
+        } catch {
+            return [];
+        }
+    });
+
+    const handleStoryViewed = (storyId) => {
+        setViewedIds((prev) => {
+            if (prev.includes(storyId)) return prev;
+            const updated = [...prev, storyId];
+            try {
+                localStorage.setItem('playscore_viewed_stories', JSON.stringify(updated));
+            } catch {}
+            return updated;
+        });
+    };
+
+    const hasStories = userStories && userStories.length > 0;
+    const hasUnviewedStories = hasStories && userStories.some((s) => !viewedIds.includes(s.id));
+
+    const handleFollowButtonClick = () => {
+        if (isFollowing) {
+            setShowUnfollowConfirm(true);
+        } else {
+            setIsFollowing(true);
+            setFollowersCount((prev) => prev + 1);
+            router.post(
+                route('users.follow', profileUser.id),
+                {},
+                { preserveScroll: true, preserveState: true }
+            );
+        }
+    };
+
+    const confirmUnfollowHeader = () => {
+        setIsFollowing(false);
+        setFollowersCount((prev) => Math.max(0, prev - 1));
+        setShowUnfollowConfirm(false);
+        router.post(
+            route('users.follow', profileUser.id),
+            {},
+            { preserveScroll: true, preserveState: true }
+        );
+    };
 
     const avatarUrl = profileUser.avatar ? `/storage/${profileUser.avatar}` : null;
 
@@ -74,30 +130,68 @@ export default function PublicShow({ profileUser, interests, reviews, myListIds,
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6">
                 {/* Header */}
-                <div className="flex items-center gap-4 mb-4">
-                    <button
-                        type="button"
-                        onClick={() => setShowAvatarModal(true)}
-                        className="w-16 h-16 aspect-square rounded-full bg-[#131916] border-2 border-solid border-[#1F2923] hover:border-[#22C55E] transition flex items-center justify-center text-[#22C55E] text-xl font-semibold overflow-hidden shrink-0 cursor-pointer"
-                        style={{ minWidth: '64px', minHeight: '64px' }}
-                        title="Click to view photo"
-                    >
-                        {avatarUrl ? (
-                            <img
-                                src={avatarUrl}
-                                alt={profileUser.name}
-                                className="w-full h-full object-cover"
-                            />
-                        ) : (
-                            initials
-                        )}
-                    </button>
-                    <div>
-                        <h1 className="text-[#F5F7F5] text-xl font-semibold">{profileUser.name}</h1>
-                        <p className="text-[#8B948F] text-sm mt-1">
-                            {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
-                        </p>
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                    <div className="flex items-center gap-4">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (hasStories) {
+                                    setShowStoryViewer(true);
+                                } else {
+                                    setShowAvatarModal(true);
+                                }
+                            }}
+                            className={`relative w-16 h-16 rounded-full transition flex items-center justify-center shrink-0 cursor-pointer ${
+                                !hasStories
+                                    ? 'border-2 border-solid border-[#1F2923] hover:border-[#22C55E] bg-[#131916]'
+                                    : hasUnviewedStories
+                                    ? 'p-[3px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC] hover:scale-105'
+                                    : 'border-2 border-[#1F2923] hover:border-[#2E3A32] opacity-75 hover:scale-105 bg-[#131916]'
+                            }`}
+                            style={{ minWidth: '64px', minHeight: '64px' }}
+                            title={hasStories ? "Click to view story" : "Click to view photo"}
+                        >
+                            <div className="w-full h-full rounded-full bg-[#131916] flex items-center justify-center overflow-hidden text-xl font-semibold">
+                                {avatarUrl ? (
+                                    <img
+                                        src={avatarUrl}
+                                        alt={profileUser.name}
+                                        className="w-full h-full object-cover rounded-full"
+                                    />
+                                ) : (
+                                    <span className={hasUnviewedStories ? "text-[#22C55E]" : "text-[#8B948F]"}>
+                                        {initials}
+                                    </span>
+                                )}
+                            </div>
+                            {hasStories && (
+                                <span className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-[#0B0F0D] flex items-center justify-center text-[9px] font-bold ${
+                                    hasUnviewedStories ? 'bg-[#22C55E] text-[#0B0F0D]' : 'bg-[#1F2923] text-[#8B948F]'
+                                }`}>
+                                    {userStories.length}
+                                </span>
+                            )}
+                        </button>
+                        <div>
+                            <h1 className="text-[#F5F7F5] text-xl font-semibold">{profileUser.name}</h1>
+                            <p className="text-[#8B948F] text-sm mt-1">
+                                {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
+                            </p>
+                        </div>
                     </div>
+
+                    {!isOwner && (
+                        <button
+                            onClick={handleFollowButtonClick}
+                            className={`px-5 py-2 rounded-lg text-sm font-semibold transition shrink-0 ${
+                                isFollowing
+                                    ? 'bg-[#1F2923] text-[#8B948F] hover:bg-[#2E3A32] hover:text-[#DC2626]'
+                                    : 'bg-[#22C55E] text-[#0B0F0D] hover:bg-[#16A34A]'
+                            }`}
+                        >
+                            {isFollowing ? 'Following' : '+ Follow'}
+                        </button>
+                    )}
                 </div>
 
                 {/* Interests inline with header: hoverable green themed */}
@@ -115,10 +209,10 @@ export default function PublicShow({ profileUser, interests, reviews, myListIds,
                 )}
 
                 {/* Profile Tabs Header Navigation */}
-                <div className="flex border-b border-[#1F2923] mb-6">
+                <div className="flex border-b border-[#1F2923] mb-6 overflow-x-auto scrollbar-none">
                     <button
                         onClick={() => setActiveTab('reviews')}
-                        className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition ${activeTab === 'reviews'
+                        className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'reviews'
                             ? 'border-[#22C55E] text-[#22C55E]'
                             : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
                             }`}
@@ -127,17 +221,39 @@ export default function PublicShow({ profileUser, interests, reviews, myListIds,
                     </button>
                     <button
                         onClick={() => setActiveTab('stats')}
-                        className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition ${activeTab === 'stats'
+                        className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'stats'
                             ? 'border-[#22C55E] text-[#22C55E]'
                             : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
                             }`}
                     >
                         Stats
                     </button>
+                    <button
+                        onClick={() => setActiveTab('following')}
+                        className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'following'
+                            ? 'border-[#22C55E] text-[#22C55E]'
+                            : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
+                            }`}
+                    >
+                        Following
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('followers')}
+                        className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'followers'
+                            ? 'border-[#22C55E] text-[#22C55E]'
+                            : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
+                            }`}
+                    >
+                        Followers
+                    </button>
                 </div>
 
                 {activeTab === 'stats' ? (
                     <StatsTab stats={stats} myReviews={reviews} user={profileUser} showDownload={isOwner} />
+                ) : activeTab === 'following' ? (
+                    <FollowListTab user={profileUser} type="following" />
+                ) : activeTab === 'followers' ? (
+                    <FollowListTab user={profileUser} type="followers" />
                 ) : (
                     <>
                         {/* Reviews Header: 1 block title, search form underneath on mobile */}
@@ -353,6 +469,50 @@ export default function PublicShow({ profileUser, interests, reviews, myListIds,
                     </div>
                 </div>
             </Modal>
+
+            {/* Header Unfollow Confirmation Modal in English */}
+            {showUnfollowConfirm && (
+                <div
+                    className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] px-4"
+                    onClick={() => setShowUnfollowConfirm(false)}
+                >
+                    <div
+                        className="bg-[#131916] border border-[#1F2923] rounded-xl p-6 max-w-sm w-full shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-[#F5F7F5] text-base font-semibold mb-2">
+                            Unfollow {profileUser.name}?
+                        </h3>
+                        <p className="text-[#8B948F] text-xs leading-relaxed mb-6">
+                            Are you sure you want to unfollow <span className="text-[#F5F7F5] font-medium">{profileUser.name}</span>?
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setShowUnfollowConfirm(false)}
+                                className="rounded-lg border border-[#1F2923] text-[#8B948F] px-4 py-2 text-xs font-medium hover:border-[#2E3A32] hover:text-[#F5F7F5] transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmUnfollowHeader}
+                                style={{ backgroundColor: '#DC2626', color: '#FFFFFF' }}
+                                className="rounded-lg font-semibold px-4 py-2 text-xs hover:opacity-90 transition"
+                            >
+                                Unfollow
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Story Viewer Modal */}
+            <StoryViewerModal
+                show={showStoryViewer}
+                stories={userStories}
+                initialIndex={0}
+                onClose={() => setShowStoryViewer(false)}
+                onStoryViewed={handleStoryViewed}
+            />
         </AppLayout>
     );
 }

@@ -1,31 +1,40 @@
 import AppLayout from '@/Layouts/AppLayout';
 import ConfirmModal from '@/Components/ConfirmModal';
-import { Head, router } from '@inertiajs/react';
+import StoryBar from '@/Components/StoryBar';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import ProfileTab from './Partials/ProfileTab';
 import InterestTab from './Partials/InterestTab';
 import GameListTab from './Partials/GameListTab';
 import MyReviewTab from './Partials/MyReviewTab';
 import StatsTab from './Partials/StatsTab';
-
-const TABS = [
-    { key: 'profile', label: 'Profile' },
-    { key: 'interest', label: 'Interest' },
-    { key: 'gamelist', label: 'Gamelist' },
-    { key: 'myreview', label: 'My Review' },
-    { key: 'stats', label: 'Stats' },
-];
+import FollowListTab from './Partials/FollowListTab';
 
 export default function Edit({
     mustVerifyEmail,
     status,
+    followersCount = 0,
+    followingCount = 0,
     allInterests,
     userInterestIds,
     recommendations,
     gameList,
     myReviews,
+    myStories = [],
+    followingStoryGroups = [],
     stats,
 }) {
+    const authUser = usePage().props.auth.user;
+
+    const TABS = [
+        { key: 'profile', label: 'Profile' },
+        { key: 'interest', label: 'Interest' },
+        { key: 'gamelist', label: 'Gamelist' },
+        { key: 'myreview', label: 'My Review' },
+        { key: 'stats', label: 'Stats' },
+        { key: 'following', label: 'Following' },
+        { key: 'followers', label: 'Followers' },
+    ];
     const getInitialTab = () => {
         if (typeof window !== 'undefined') {
             const hash = window.location.hash.replace('#', '');
@@ -160,7 +169,12 @@ export default function Edit({
 
                 <div className="flex-1 min-w-0">
                     {activeTab === 'profile' && (
-                        <ProfileTab mustVerifyEmail={mustVerifyEmail} status={status} />
+                        <ProfileTab
+                            mustVerifyEmail={mustVerifyEmail}
+                            status={status}
+                            followersCount={followersCount}
+                            followingCount={followingCount}
+                        />
                     )}
                     {activeTab === 'interest' && (
                         <InterestTab
@@ -176,6 +190,8 @@ export default function Edit({
                     )}
                     {activeTab === 'gamelist' && <GameListTab gameList={gameList} />}
                     {activeTab === 'myreview' && <MyReviewTab myReviews={myReviews} />}
+                    {activeTab === 'followers' && <FollowListTab user={authUser} type="followers" />}
+                    {activeTab === 'following' && <FollowListTab user={authUser} type="following" />}
                     {activeTab === 'stats' && (
                         <StatsTab stats={stats} myReviews={myReviews} onSelectTab={handleTabChange} />
                     )}
