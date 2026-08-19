@@ -65,8 +65,8 @@ export default function StoryBar({ myStories = [], followingStoryGroups = [], is
                                 !hasMyStories
                                     ? 'border-2 border-dashed border-[#1F2923] cursor-default opacity-80'
                                     : myHasUnviewed
-                                    ? 'p-[2px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC] cursor-pointer hover:scale-105'
-                                    : 'border-2 border-[#1F2923] cursor-pointer opacity-75 hover:scale-105'
+                                    ? 'p-[2px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC] cursor-pointer hover:opacity-100'
+                                    : 'border-2 border-[#1F2923] cursor-pointer opacity-75 hover:opacity-100 hover:border-white'
                             }`}
                         >
                             <div className="w-full h-full rounded-full bg-[#0B0F0D] p-[2px] flex items-center justify-center overflow-hidden">
@@ -128,8 +128,8 @@ export default function StoryBar({ myStories = [], followingStoryGroups = [], is
                                     title={group.user_name}
                                     className={`relative ${circleSize} rounded-full transition shrink-0 ${
                                         groupHasUnviewed
-                                            ? 'p-[2.5px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC] cursor-pointer hover:scale-105'
-                                            : 'border-2 border-[#1F2923] cursor-pointer opacity-75 hover:scale-105'
+                                            ? 'p-[2.5px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC] cursor-pointer hover:opacity-100'
+                                            : 'border-2 border-[#1F2923] cursor-pointer opacity-75 hover:opacity-100 hover:border-white'
                                     }`}
                                 >
                                     <div className="w-full h-full rounded-full bg-[#0B0F0D] p-[2px] flex items-center justify-center overflow-hidden">
