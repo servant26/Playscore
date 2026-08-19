@@ -121,7 +121,7 @@ export default function Welcome({ canLogin, canRegister, previewGames, totalGame
 
             {/* Navbar */}
             <nav className="sticky top-0 z-40 bg-[#0B0F0D]/90 backdrop-blur-sm border-b border-[#1F2923]">
-                <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 h-16 flex items-center">
+                <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 h-16 flex items-center">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-md bg-[#22C55E] flex items-center justify-center">
                             <span className="text-[#0B0F0D] font-bold text-sm">P</span>
@@ -138,7 +138,7 @@ export default function Welcome({ canLogin, canRegister, previewGames, totalGame
             >
                 <HeroBackground images={previewGames.slice(0, 4).map((g) => g.cover_url)} />
 
-                <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-10 lg:px-12 w-full py-12 sm:py-0">
+                <div className="relative z-10 max-w-[1440px] mx-auto px-5 sm:px-10 lg:px-12 w-full py-12 sm:py-0">
                     <div className="max-w-2xl text-center sm:text-left mx-auto sm:mx-0">
                         <h1 className="text-[#F5F7F5] text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6 tracking-tight">
                             Rate it. Review it.<br />Remember it.
@@ -179,7 +179,7 @@ export default function Welcome({ canLogin, canRegister, previewGames, totalGame
 
             {/* How it works (Interactive Card Slider) */}
             <section className="bg-[#F4F6F4] text-[#0B0F0D]">
-                <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-24">
+                <div className="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-24">
                     <div className="text-center mb-10 sm:mb-14">
                         <h2 className="text-[#0B0F0D] text-2xl sm:text-4xl font-bold mb-2 sm:mb-3">How it works</h2>
                         <p className="text-[#4A5568] text-sm sm:text-base max-w-xl mx-auto">
@@ -252,7 +252,7 @@ export default function Welcome({ canLogin, canRegister, previewGames, totalGame
 
             {/* Features (Light mode) */}
             <section className="bg-[#FFFFFF] border-t border-[#E2E8F0] text-[#0B0F0D]">
-                <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-24">
+                <div className="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-24">
                     <div className="text-center mb-10 sm:mb-14">
                         <h2 className="text-[#0B0F0D] text-2xl sm:text-3xl font-bold mb-2 sm:mb-3">
                             Everything you need
@@ -284,7 +284,7 @@ export default function Welcome({ canLogin, canRegister, previewGames, totalGame
             {/* Game preview (Light mode) */}
             {previewGames.length > 0 && (
                 <section className="bg-[#F4F6F4] border-t border-[#E2E8F0] text-[#0B0F0D]">
-                    <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-24">
+                    <div className="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-24">
                         <div className="text-center mb-8 sm:mb-12">
                             <h2 className="text-[#0B0F0D] text-2xl sm:text-3xl font-bold mb-1.5 sm:mb-2">
                                 Trending Right Now
@@ -340,7 +340,7 @@ export default function Welcome({ canLogin, canRegister, previewGames, totalGame
 
             {/* Footer */}
             <footer className="py-16 bg-[#0B0F0D] text-[#8B948F]">
-                <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+                <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-12">
                         <div className="col-span-2 sm:col-span-1">
                             <div className="flex items-center gap-2 mb-4">

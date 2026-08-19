@@ -20,6 +20,7 @@ export default function PublicShow({ profileUser, userStories = [], interests = 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [activeTab, setActiveTab] = useState('reviews');
+    const [followSubTab, setFollowSubTab] = useState('following');
 
     const dropdownRef = useRef(null);
 
@@ -110,7 +111,7 @@ export default function PublicShow({ profileUser, userStories = [], interests = 
         const isInList = listIds.includes(gameId);
 
         setListIds((prev) =>
-            isInList ? prev.filter((id) => id !== gameId) : [...prev, gameId]
+            isInList ? prev.filter((id) => id !== gameId) : [...prev, id]
         );
 
         router.post(
@@ -150,7 +151,7 @@ export default function PublicShow({ profileUser, userStories = [], interests = 
         <AppLayout>
             <Head title={profileUser.name} />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12">
                 {/* Header */}
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                     <div className="flex items-center gap-4">
@@ -267,31 +268,42 @@ export default function PublicShow({ profileUser, userStories = [], interests = 
                         Stats
                     </button>
                     <button
-                        onClick={() => setActiveTab('following')}
-                        className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'following'
+                        onClick={() => setActiveTab('follow')}
+                        className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'follow'
                             ? 'border-[#22C55E] text-[#22C55E]'
                             : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
                             }`}
                     >
-                        Following
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('followers')}
-                        className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'followers'
-                            ? 'border-[#22C55E] text-[#22C55E]'
-                            : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
-                            }`}
-                    >
-                        Followers
+                        Following & Followers
                     </button>
                 </div>
 
                 {activeTab === 'stats' ? (
                     <StatsTab stats={stats} myReviews={reviews} user={profileUser} showDownload={isOwner} />
-                ) : activeTab === 'following' ? (
-                    <FollowListTab user={profileUser} type="following" />
-                ) : activeTab === 'followers' ? (
-                    <FollowListTab user={profileUser} type="followers" />
+                ) : activeTab === 'follow' ? (
+                    <div>
+                        <div className="flex border-b border-[#1F2923] mb-6 overflow-x-auto scrollbar-none">
+                            <button
+                                onClick={() => setFollowSubTab('following')}
+                                className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${followSubTab === 'following'
+                                    ? 'border-[#22C55E] text-[#22C55E]'
+                                    : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
+                                    }`}
+                            >
+                                Following ({profileUser.following_count || 0})
+                            </button>
+                            <button
+                                onClick={() => setFollowSubTab('followers')}
+                                className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${followSubTab === 'followers'
+                                    ? 'border-[#22C55E] text-[#22C55E]'
+                                    : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
+                                    }`}
+                            >
+                                Followers ({followersCount})
+                            </button>
+                        </div>
+                        <FollowListTab user={profileUser} type={followSubTab} />
+                    </div>
                 ) : (
                     <>
                         {/* Reviews Header: title + dropdown filter & search form */}

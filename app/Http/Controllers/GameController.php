@@ -33,14 +33,25 @@ class GameController extends Controller
             ->where('game_id', $game->id)
             ->first();
 
+        $interestIds = $game->interests->pluck('id');
         $moreLikeThis = Game::with('interests')
-            ->whereHas('interests', function ($q) use ($game) {
-                $q->whereIn('interests.id', $game->interests->pluck('id'));
+            ->whereHas('interests', function ($q) use ($interestIds) {
+                $q->whereIn('interests.id', $interestIds);
             })
             ->where('id', '!=', $game->id)
             ->inRandomOrder()
-            ->limit(6)
+            ->limit(10)
             ->get();
+
+        if ($moreLikeThis->count() < 10) {
+            $existingIds = $moreLikeThis->pluck('id')->push($game->id);
+            $additional = Game::with('interests')
+                ->whereNotIn('id', $existingIds)
+                ->inRandomOrder()
+                ->limit(10 - $moreLikeThis->count())
+                ->get();
+            $moreLikeThis = $moreLikeThis->concat($additional);
+        }
 
         $isInList = auth()->user()
             ->gameList()

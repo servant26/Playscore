@@ -3,8 +3,22 @@ import { Transition } from '@headlessui/react';
 import { useRef, useState } from 'react';
 import Modal from '@/Components/Modal';
 import FollowListModal from '@/Components/FollowListModal';
+import GameCard from '@/Components/GameCard';
 
-export default function ProfileTab({ mustVerifyEmail, status, followersCount = 0, followingCount = 0 }) {
+export default function ProfileTab({
+    mustVerifyEmail,
+    status,
+    followersCount = 0,
+    followingCount = 0,
+    allInterests = [],
+    userInterestIds = [],
+    recommendations = [],
+    listIds = [],
+    pendingChanges = {},
+    onToggleList,
+    onSave,
+    onDiscard,
+}) {
     const user = usePage().props.auth.user;
     const avatarInputRef = useRef();
     const [avatarPreview, setAvatarPreview] = useState(
@@ -12,6 +26,34 @@ export default function ProfileTab({ mustVerifyEmail, status, followersCount = 0
     );
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [showFollowModal, setShowFollowModal] = useState({ show: false, type: 'followers' });
+
+    // Interest state & functions
+    const [selectedIds, setSelectedIds] = useState(userInterestIds || []);
+    const [savingInterests, setSavingInterests] = useState(false);
+
+    const toggleInterest = (id) => {
+        setSelectedIds((prev) =>
+            prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+        );
+    };
+
+    const saveInterests = () => {
+        setSavingInterests(true);
+        router.post(
+            route('interests.update'),
+            { interests: selectedIds },
+            {
+                preserveScroll: true,
+                onFinish: () => setSavingInterests(false),
+            }
+        );
+    };
+
+    const hasInterestChanges =
+        JSON.stringify([...selectedIds].sort()) !==
+        JSON.stringify([...(userInterestIds || [])].sort());
+
+    const hasPendingListChanges = Object.keys(pendingChanges || {}).length > 0;
 
     const {
         data,
@@ -245,6 +287,46 @@ export default function ProfileTab({ mustVerifyEmail, status, followersCount = 0
                 </form>
             </section>
 
+            {/* Your Interests Section */}
+            {allInterests && allInterests.length > 0 && (
+                <section className="bg-[#131916] border border-[#1F2923] rounded-xl p-6">
+                    <h2 className="text-[#F5F7F5] text-lg font-semibold mb-1">Your Interests</h2>
+                    <p className="text-[#8B948F] text-sm mb-5">
+                        Pick genres you're into.
+                    </p>
+
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-5 max-h-28 sm:max-h-none overflow-y-auto sm:overflow-visible pr-1 custom-scrollbar">
+                        {allInterests.map((interest) => {
+                            const active = selectedIds.includes(interest.id);
+                            return (
+                                <button
+                                    key={interest.id}
+                                    type="button"
+                                    onClick={() => toggleInterest(interest.id)}
+                                    className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm border transition duration-200 ${active
+                                        ? 'bg-[#22C55E] border-[#22C55E] text-[#0B0F0D] font-semibold shadow-[0_0_12px_rgba(34,197,94,0.35)] hover:bg-[#16A34A] hover:border-[#16A34A]'
+                                        : 'bg-[#0B0F0D] border-[#1F2923] text-[#8B948F] hover:bg-[#131916] hover:border-[#22C55E] hover:text-[#22C55E]'
+                                        }`}
+                                >
+                                    {interest.name}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {hasInterestChanges && (
+                        <button
+                            onClick={saveInterests}
+                            disabled={savingInterests}
+                            style={{ backgroundColor: '#22C55E', color: '#0B0F0D', minWidth: '130px' }}
+                            className="rounded-lg font-semibold py-2 text-xs sm:text-sm hover:opacity-90 transition disabled:opacity-50"
+                        >
+                            {savingInterests ? 'Saving...' : 'Save Interests'}
+                        </button>
+                    )}
+                </section>
+            )}
+
             {/* Password */}
             <section className="bg-[#131916] border border-[#1F2923] rounded-xl p-6">
                 <h2 className="text-[#F5F7F5] text-lg font-semibold mb-1">
@@ -426,4 +508,4 @@ export default function ProfileTab({ mustVerifyEmail, status, followersCount = 0
             />
         </div>
     );
-}
+}
