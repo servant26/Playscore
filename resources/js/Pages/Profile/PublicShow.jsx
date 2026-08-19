@@ -2,7 +2,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import GameCard from '@/Components/GameCard';
 import Modal from '@/Components/Modal';
 import StatsTab from './Partials/StatsTab';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 
 const PER_PAGE = 10;
@@ -14,6 +14,9 @@ export default function PublicShow({ profileUser, interests, reviews, myListIds,
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [activeTab, setActiveTab] = useState('reviews');
+
+    const authUser = usePage().props.auth?.user;
+    const isOwner = authUser && authUser.id === profileUser.id;
 
     const avatarUrl = profileUser.avatar ? `/storage/${profileUser.avatar}` : null;
 
@@ -69,7 +72,7 @@ export default function PublicShow({ profileUser, interests, reviews, myListIds,
         <AppLayout>
             <Head title={profileUser.name} />
 
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-4">
                     <button
@@ -134,7 +137,7 @@ export default function PublicShow({ profileUser, interests, reviews, myListIds,
                 </div>
 
                 {activeTab === 'stats' ? (
-                    <StatsTab stats={stats} myReviews={reviews} showDownload={false} />
+                    <StatsTab stats={stats} myReviews={reviews} user={profileUser} showDownload={isOwner} />
                 ) : (
                     <>
                         {/* Reviews Header: 1 block title, search form underneath on mobile */}
