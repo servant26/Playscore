@@ -5,6 +5,7 @@ export default function RatingModal({ show, onClose, gameSlug, existingReview })
     const { data, setData, post, processing, reset } = useForm({
         rating: existingReview?.rating || 0,
         body: existingReview?.body || '',
+        post_to_story: true,
     });
 
     useEffect(() => {
@@ -12,6 +13,7 @@ export default function RatingModal({ show, onClose, gameSlug, existingReview })
             setData({
                 rating: existingReview?.rating || 0,
                 body: existingReview?.body || '',
+                post_to_story: true,
             });
         }
     }, [show, existingReview]);
@@ -63,8 +65,20 @@ export default function RatingModal({ show, onClose, gameSlug, existingReview })
                         onChange={(e) => setData('body', e.target.value)}
                         rows={4}
                         placeholder="Share your thoughts about this game..."
-                        className="w-full rounded-lg bg-[#0B0F0D] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent resize-none mb-5"
+                        className="w-full rounded-lg bg-[#0B0F0D] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent resize-none mb-4"
                     />
+
+                    <label className="flex items-center gap-2.5 mb-5 cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={data.post_to_story}
+                            onChange={(e) => setData('post_to_story', e.target.checked)}
+                            className="w-4 h-4 rounded border-[#1F2923] bg-[#0B0F0D] text-[#22C55E] focus:ring-[#22C55E] focus:ring-offset-0 cursor-pointer"
+                        />
+                        <span className="text-xs sm:text-sm text-[#F5F7F5] font-medium">
+                            Post to Story <span className="text-[#8B948F] text-xs font-normal">(visible for 24h)</span>
+                        </span>
+                    </label>
 
                     <div className="flex gap-3">
                         <button

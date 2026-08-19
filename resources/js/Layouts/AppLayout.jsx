@@ -60,31 +60,21 @@ export default function AppLayout({ children }) {
             );
         }
 
-        if (notif.data.game_slug) {
+        if (notif.data.type === 'user_followed' || notif.data.follower_id) {
+            router.get(route('users.show', notif.data.follower_id));
+        } else if (notif.data.game_slug) {
             router.get(route('games.show', notif.data.game_slug));
         }
 
         setShowNotifMenu(false);
     };
 
-    const handleReviewerClick = (e, notif) => {
+    const handleUserClick = (e, userId) => {
         e.stopPropagation();
         setShowNotifMenu(false);
-        if (notif.data.reviewer_id) {
-            router.get(route('users.show', notif.data.reviewer_id));
+        if (userId) {
+            router.get(route('users.show', userId));
         }
-    };
-
-    const renderNotifMessage = (notif) => {
-        if (notif.data.type === 'game_also_reviewed') {
-            return (
-                <>
-                    <span className="font-medium">{notif.data.reviewer_name}</span> also
-                    reviewed <span className="font-medium">{notif.data.game_title}</span>.
-                </>
-            );
-        }
-        return 'New notification';
     };
 
     const initials = auth.user.name
@@ -151,47 +141,60 @@ export default function AppLayout({ children }) {
                                             No notifications yet.
                                         </p>
                                     ) : (
-                                        notifications.map((notif) => (
-                                            <div
-                                                key={notif.id}
-                                                onClick={() => handleNotificationClick(notif)}
-                                                className={`w-full text-left px-4 py-3 border-b border-[#1F2923] last:border-0 hover:bg-[#1F2923] transition flex items-start gap-3 cursor-pointer ${!notif.read_at ? 'bg-[#0F1512]' : ''
-                                                    }`}
-                                            >
-                                                <button
-                                                    onClick={(e) => handleReviewerClick(e, notif)}
-                                                    className="w-9 h-9 aspect-square rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-xs font-semibold overflow-hidden shrink-0 hover:ring-2 hover:ring-[#22C55E] transition"
-                                                    style={{ minWidth: '36px', minHeight: '36px' }}
-                                                    title="View Profile"
+                                        notifications.map((notif) => {
+                                            const isFollowNotif = notif.data.type === 'user_followed' || notif.data.follower_id;
+                                            const targetUserId = isFollowNotif ? notif.data.follower_id : notif.data.reviewer_id;
+                                            const userName = isFollowNotif ? notif.data.follower_name : notif.data.reviewer_name;
+                                            const userAvatar = isFollowNotif ? notif.data.follower_avatar : notif.data.reviewer_avatar;
+
+                                            return (
+                                                <div
+                                                    key={notif.id}
+                                                    onClick={() => handleNotificationClick(notif)}
+                                                    className={`w-full text-left px-4 py-3 border-b border-[#1F2923] last:border-0 hover:bg-[#1F2923] transition flex items-start gap-3 cursor-pointer ${!notif.read_at ? 'bg-[#0F1512]' : ''
+                                                        }`}
                                                 >
-                                                    {notif.data.reviewer_avatar ? (
-                                                        <img
-                                                            src={`/storage/${notif.data.reviewer_avatar}`}
-                                                            alt={notif.data.reviewer_name}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        notif.data.reviewer_name?.slice(0, 2).toUpperCase()
-                                                    )}
-                                                </button>
-                                                <div className="flex-1 min-w-0 pr-2">
-                                                    <p className="text-[#F5F7F5] text-xs leading-relaxed">
-                                                        <button
-                                                            onClick={(e) => handleReviewerClick(e, notif)}
-                                                            className="font-medium hover:text-[#22C55E] hover:underline transition"
-                                                            title="View Profile"
-                                                        >
-                                                            {notif.data.reviewer_name}
-                                                        </button>{' '}
-                                                        also reviewed{' '}
-                                                        <span className="font-medium">{notif.data.game_title}</span>.
-                                                    </p>
-                                                    <p className="text-[#5A625D] text-[11px] mt-1">
-                                                        See more · {notif.created_at}
-                                                    </p>
+                                                    <button
+                                                        onClick={(e) => handleUserClick(e, targetUserId)}
+                                                        className="w-9 h-9 aspect-square rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-xs font-semibold overflow-hidden shrink-0 hover:ring-2 hover:ring-[#22C55E] transition"
+                                                        style={{ minWidth: '36px', minHeight: '36px' }}
+                                                        title="View Profile"
+                                                    >
+                                                        {userAvatar ? (
+                                                            <img
+                                                                src={`/storage/${userAvatar}`}
+                                                                alt={userName}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            userName?.slice(0, 2).toUpperCase()
+                                                        )}
+                                                    </button>
+                                                    <div className="flex-1 min-w-0 pr-2">
+                                                        <p className="text-[#F5F7F5] text-xs leading-relaxed">
+                                                            <button
+                                                                onClick={(e) => handleUserClick(e, targetUserId)}
+                                                                className="font-medium hover:text-[#22C55E] hover:underline transition"
+                                                                title="View Profile"
+                                                            >
+                                                                {userName}
+                                                            </button>{' '}
+                                                            {isFollowNotif ? (
+                                                                'started following you.'
+                                                            ) : (
+                                                                <>
+                                                                    also reviewed{' '}
+                                                                    <span className="font-medium">{notif.data.game_title}</span>.
+                                                                </>
+                                                            )}
+                                                        </p>
+                                                        <p className="text-[#5A625D] text-[11px] mt-1">
+                                                            See profile · {notif.created_at}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
+                                            );
+                                        })
                                     )}
                                 </div>
                             )}

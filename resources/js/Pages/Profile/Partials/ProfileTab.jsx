@@ -2,14 +2,16 @@ import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { Transition } from '@headlessui/react';
 import { useRef, useState } from 'react';
 import Modal from '@/Components/Modal';
+import FollowListModal from '@/Components/FollowListModal';
 
-export default function ProfileTab({ mustVerifyEmail, status }) {
+export default function ProfileTab({ mustVerifyEmail, status, followersCount = 0, followingCount = 0 }) {
     const user = usePage().props.auth.user;
     const avatarInputRef = useRef();
     const [avatarPreview, setAvatarPreview] = useState(
         user.avatar ? `/storage/${user.avatar}` : null
     );
     const [showAvatarModal, setShowAvatarModal] = useState(false);
+    const [showFollowModal, setShowFollowModal] = useState({ show: false, type: 'followers' });
 
     const {
         data,
@@ -414,6 +416,14 @@ export default function ProfileTab({ mustVerifyEmail, status }) {
                     </div>
                 </div>
             </Modal>
+
+            {/* Followers / Following List Modal */}
+            <FollowListModal
+                show={showFollowModal.show}
+                type={showFollowModal.type}
+                user={user}
+                onClose={() => setShowFollowModal({ show: false, type: 'followers' })}
+            />
         </div>
     );
 }

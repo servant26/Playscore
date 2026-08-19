@@ -81,14 +81,68 @@ class ProfileController extends Controller
             ? round($myReviewsWithGame->avg('rating'), 1)
             : 0;
 
+        $formatStory = function ($story) {
+            if (!$story || !$story->review || !$story->review->game) return null;
+            return [
+                'id' => $story->id,
+                'user_id' => $story->user_id,
+                'user_name' => $story->user->name,
+                'user_avatar' => $story->user->avatar,
+                'created_at' => $story->created_at->diffForHumans(),
+                'review' => [
+                    'rating' => (float) $story->review->rating,
+                    'body' => $story->review->body,
+                    'game_title' => $story->review->game->title,
+                    'game_cover' => $story->review->game->cover_url,
+                    'game_slug' => $story->review->game->slug,
+                ],
+            ];
+        };
+
+        $myStoriesModels = \App\Models\Story::active()
+            ->where('user_id', $user->id)
+            ->with(['review.game', 'user'])
+            ->oldest()
+            ->get();
+
+        $myStories = $myStoriesModels
+            ->map($formatStory)
+            ->filter()
+            ->values();
+
+        $followingIds = $user->following()->pluck('users.id')->toArray();
+        $followingStoryModels = \App\Models\Story::active()
+            ->whereIn('user_id', $followingIds)
+            ->with(['review.game', 'user'])
+            ->oldest()
+            ->get();
+
+        $followingStoryGroups = $followingStoryModels
+            ->groupBy('user_id')
+            ->map(function ($group) use ($formatStory) {
+                $firstStoryUser = $group->first()->user;
+                $stories = $group->map($formatStory)->filter()->values();
+                return [
+                    'user_id' => $firstStoryUser->id,
+                    'user_name' => $firstStoryUser->name,
+                    'user_avatar' => $firstStoryUser->avatar,
+                    'stories' => $stories,
+                ];
+            })
+            ->values();
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
+            'followersCount' => $user->followers()->count(),
+            'followingCount' => $user->following()->count(),
             'allInterests' => \App\Models\Interest::orderBy('name')->get(['id', 'name', 'slug']),
             'userInterestIds' => $userInterestIds,
             'recommendations' => $recommendations,
             'gameList' => $user->gameList()->with('interests')->get(),
             'myReviews' => $myReviewsWithGame,
+            'myStories' => $myStories,
+            'followingStoryGroups' => $followingStoryGroups,
             'stats' => [
                 'totalReviews' => $myReviewsWithGame->count(),
                 'totalGamesInList' => $user->gameList()->count(),

@@ -42,6 +42,16 @@ class ReviewController extends Controller
             }
         }
 
+        if ($request->boolean('post_to_story')) {
+            \App\Models\Story::updateOrCreate(
+                ['review_id' => $review->id],
+                [
+                    'user_id' => auth()->id(),
+                    'expires_at' => now()->addHours(24),
+                ]
+            );
+        }
+
         return back();
     }
 

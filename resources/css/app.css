@@ -11,12 +11,14 @@ input:-webkit-autofill:focus {
     transition: background-color 5000s ease-in-out 0s;
 }
 
-.hide-scrollbar {
+.hide-scrollbar,
+.scrollbar-none {
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
 
-.hide-scrollbar::-webkit-scrollbar {
+.hide-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
     display: none;
 }
 

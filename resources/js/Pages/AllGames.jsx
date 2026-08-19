@@ -1,8 +1,9 @@
 import AppLayout from '@/Layouts/AppLayout';
 import RawgGameCard from '@/Components/RawgGameCard';
+import StoryBar from '@/Components/StoryBar';
 import { Head, Link, router } from '@inertiajs/react';
 
-export default function AllGames({ games, currentPage, lastPage }) {
+export default function AllGames({ games, currentPage, lastPage, myStories = [], followingStoryGroups = [] }) {
     const goToPage = (page) => {
         router.get(route('all-games'), { page }, { preserveScroll: true });
     };
@@ -19,16 +20,27 @@ export default function AllGames({ games, currentPage, lastPage }) {
         <AppLayout>
             <Head title="All Games" />
 
-            <div className="flex items-center gap-2 mb-8">
+            {/* Mobile Only: StoryBar stays on top */}
+            <div className="block sm:hidden">
+                <StoryBar myStories={myStories} followingStoryGroups={followingStoryGroups} />
+            </div>
+
+            {/* Navigation Header Row */}
+            <div className="flex items-center gap-3 sm:gap-4 mb-8 w-full flex-wrap sm:flex-nowrap">
                 <Link
                     href={route('dashboard')}
-                    className="rounded-lg border border-[#1F2923] text-[#8B948F] px-5 py-2 text-sm font-medium hover:border-[#2E3A32] hover:text-[#F5F7F5] transition"
+                    className="flex-1 sm:flex-initial text-center rounded-lg border border-[#1F2923] text-[#8B948F] px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-medium hover:border-[#2E3A32] hover:text-[#F5F7F5] transition whitespace-nowrap"
                 >
                     Top Hits & New Games
                 </Link>
-                <span className="rounded-lg bg-[#22C55E] text-[#0B0F0D] px-5 py-2 text-sm font-medium">
+                <span className="flex-1 sm:flex-initial text-center rounded-lg bg-[#22C55E] text-[#0B0F0D] px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-semibold transition cursor-default whitespace-nowrap">
                     All Games
                 </span>
+
+                {/* PC & Tablet Only: StoryBar placed directly next to All Games button */}
+                <div className="hidden sm:flex items-center shrink-0">
+                    <StoryBar myStories={myStories} followingStoryGroups={followingStoryGroups} isInline={true} />
+                </div>
             </div>
 
             <h2 className="text-[#F5F7F5] text-xl font-semibold mb-6">All Games</h2>

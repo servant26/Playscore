@@ -8,8 +8,12 @@ use Inertia\Response;
 
 class PublicProfileController extends Controller
 {
-    public function show(User $user): Response
+    public function show(User $user)
     {
+        if (auth()->check() && auth()->id() === $user->id) {
+            return redirect()->route('profile.edit');
+        }
+
         $reviews = $user->reviews()->with('game.interests')->latest()->get();
 
         $totalReviews = $reviews->count();
@@ -67,12 +71,48 @@ class PublicProfileController extends Controller
             ->pluck('games.id')
             ->toArray();
 
+        $authUser = auth()->user();
+        $isFollowing = $authUser ? $authUser->isFollowing($user) : false;
+
+        $formatStory = function ($story) {
+            if (!$story || !$story->review || !$story->review->game) return null;
+            return [
+                'id' => $story->id,
+                'user_id' => $story->user_id,
+                'user_name' => $story->user->name,
+                'user_avatar' => $story->user->avatar,
+                'created_at' => $story->created_at->diffForHumans(),
+                'review' => [
+                    'rating' => (float) $story->review->rating,
+                    'body' => $story->review->body,
+                    'game_title' => $story->review->game->title,
+                    'game_cover' => $story->review->game->cover_url,
+                    'game_slug' => $story->review->game->slug,
+                ],
+            ];
+        };
+
+        $userStoriesModels = \App\Models\Story::active()
+            ->where('user_id', $user->id)
+            ->with(['review.game', 'user'])
+            ->oldest()
+            ->get();
+
+        $userStories = $userStoriesModels
+            ->map($formatStory)
+            ->filter()
+            ->values();
+
         return Inertia::render('Profile/PublicShow', [
             'profileUser' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'avatar' => $user->avatar,
+                'followers_count' => $user->followers()->count(),
+                'following_count' => $user->following()->count(),
+                'is_following' => $isFollowing,
             ],
+            'userStories' => $userStories,
             'interests' => $user->interests()->get(['interests.id', 'interests.name']),
             'reviews' => $reviews,
             'myListIds' => $myListIds,
