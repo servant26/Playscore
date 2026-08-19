@@ -11,8 +11,21 @@ use Inertia\Response;
 
 class GameController extends Controller
 {
-    public function show(Game $game): Response
+    public function show(Game $game, RawgService $rawg): Response
     {
+        if ($game->external_id && (empty($game->cover_url) || !str_contains($game->cover_url, 'media.rawg.io'))) {
+            try {
+                $detail = $rawg->detail($game->external_id);
+                if ($detail) {
+                    $coverUrl = $detail['background_image'] ?? $detail['background_image_additional'] ?? null;
+                    if ($coverUrl) {
+                        $game->cover_url = $coverUrl;
+                        $game->save();
+                    }
+                }
+            } catch (\Throwable $e) {}
+        }
+
         $game->load(['interests']);
 
         $userReview = auth()->user()
@@ -69,12 +82,13 @@ class GameController extends Controller
 
             $trailers = $rawg->trailers($external_id);
             $trailerUrl = $trailers[0]['data']['max'] ?? $trailers[0]['data']['480'] ?? null;
+            $coverUrl = $detail['background_image'] ?? $detail['background_image_additional'] ?? null;
 
             $game = Game::create([
                 'external_id' => $detail['id'],
                 'title' => $detail['name'],
                 'slug' => \Illuminate\Support\Str::slug($detail['name']).'-'.$detail['id'],
-                'cover_url' => $detail['background_image'],
+                'cover_url' => $coverUrl,
                 'trailer_url' => $trailerUrl,
                 'description' => strip_tags($detail['description'] ?? ''),
                 'release_date' => $detail['released'] ?? null,
@@ -88,6 +102,17 @@ class GameController extends Controller
             if ($genreSlugs->isNotEmpty()) {
                 $interestIds = Interest::whereIn('slug', $genreSlugs)->pluck('id');
                 $game->interests()->sync($interestIds);
+            }
+        } else {
+            // Update cover_url if missing or broken non-RAWG URL
+            if (empty($game->cover_url) || (!str_contains($game->cover_url, 'media.rawg.io'))) {
+                $detail = $rawg->detail($external_id);
+                if ($detail) {
+                    $coverUrl = $detail['background_image'] ?? $detail['background_image_additional'] ?? null;
+                    if ($coverUrl) {
+                        $game->update(['cover_url' => $coverUrl]);
+                    }
+                }
             }
         }
 

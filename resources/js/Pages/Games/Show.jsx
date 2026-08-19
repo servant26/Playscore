@@ -5,6 +5,7 @@ import ShareButton from '@/Components/ShareButton';
 import ConfirmModal from '@/Components/ConfirmModal';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import { getFallbackImage } from '@/Utils/imageFallback';
 
 export default function Show({ game, userReview, reviews, moreLikeThis, isInList, myListIds, reviewsCount, averageRating }) {
     const { auth } = usePage().props;
@@ -15,6 +16,11 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
     const [pendingChanges, setPendingChanges] = useState({});
     const [showLeaveWarning, setShowLeaveWarning] = useState(false);
     const [pendingUrl, setPendingUrl] = useState(null);
+    const [coverSrc, setCoverSrc] = useState(game.cover_url || getFallbackImage(game.title));
+
+    useEffect(() => {
+        setCoverSrc(game.cover_url || getFallbackImage(game.title));
+    }, [game.cover_url, game.title]);
 
     const toggleMoreListItem = (gameId, gameSlug) => {
         const currentlyIn = moreListIds.includes(gameId);
@@ -110,8 +116,9 @@ export default function Show({ game, userReview, reviews, moreLikeThis, isInList
                 {/* Cover Image - Strict Responsive Container */}
                 <div className="w-full max-w-full aspect-video sm:aspect-auto sm:h-72 md:h-96 lg:h-[440px] rounded-xl sm:rounded-2xl overflow-hidden mb-5 sm:mb-6 bg-[#131916] border border-[#1F2923] relative">
                     <img
-                        src={game.cover_url}
+                        src={coverSrc}
                         alt={game.title}
+                        onError={() => setCoverSrc(getFallbackImage(game.title))}
                         className="w-full h-full object-cover"
                     />
                 </div>

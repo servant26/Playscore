@@ -36,7 +36,11 @@ class ImportRawgGames extends Command
             }
 
             foreach ($results as $item) {
-                if (empty($item['background_image'])) {
+                $coverUrl = $item['background_image']
+                    ?? $item['background_image_additional']
+                    ?? ($item['short_screenshots'][0]['image'] ?? null);
+
+                if (empty($coverUrl)) {
                     $skipped++;
                     continue;
                 }
@@ -49,9 +53,8 @@ class ImportRawgGames extends Command
                     [
                         'title' => $item['name'],
                         'slug' => Str::slug($item['name']).'-'.$item['id'],
-                        'cover_url' => $item['background_image'],
+                        'cover_url' => $coverUrl,
                         'trailer_url' => $trailerUrl,
-                        'description' => null,
                         'release_date' => $item['released'] ?? null,
                         'rawg_rating' => $item['rating'] ?? null,
                     ]

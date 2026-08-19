@@ -1,6 +1,10 @@
 import { router } from '@inertiajs/react';
+import { useState } from 'react';
+import { getFallbackImage } from '@/Utils/imageFallback';
 
 export default function RawgGameCard({ game }) {
+    const [imgSrc, setImgSrc] = useState(game.cover_url || getFallbackImage(game.title));
+
     const openTrailer = (e) => {
         e.stopPropagation();
         const query = encodeURIComponent(`${game.title} trailer`);
@@ -18,8 +22,9 @@ export default function RawgGameCard({ game }) {
         >
             <div className="relative aspect-[3/4] overflow-hidden">
                 <img
-                    src={game.cover_url}
+                    src={imgSrc}
                     alt={game.title}
+                    onError={() => setImgSrc(getFallbackImage(game.title))}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                 />
                 {game.rawg_rating && (

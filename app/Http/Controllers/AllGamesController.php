@@ -18,10 +18,14 @@ class AllGamesController extends Controller
         $games = collect($response['results'] ?? [])
             ->filter(fn ($item) => !empty($item['rating']))
             ->map(function ($item) {
+                $cover = $item['background_image']
+                    ?? $item['background_image_additional']
+                    ?? ($item['short_screenshots'][0]['image'] ?? null);
+
                 return [
                     'external_id' => $item['id'],
                     'title' => $item['name'],
-                    'cover_url' => $item['background_image'],
+                    'cover_url' => $cover,
                     'rawg_rating' => $item['rating'] ?? null,
                     'genres' => collect($item['genres'] ?? [])->pluck('name')->implode(', '),
                 ];

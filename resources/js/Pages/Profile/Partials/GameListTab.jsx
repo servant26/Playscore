@@ -93,6 +93,11 @@ export default function GameListTab({ gameList }) {
                             <img
                                 src={game.cover_url}
                                 alt={game.title}
+                                onError={(e) => {
+                                    e.target.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+                                        `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="100%" height="100%" fill="#131916"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#22C55E" font-family="sans-serif" font-size="14" font-weight="bold">${game.title.replace(/&/g, '&amp;')}</text></svg>`
+                                    )}`;
+                                }}
                                 className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover shrink-0"
                             />
 

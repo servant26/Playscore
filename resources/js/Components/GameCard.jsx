@@ -1,9 +1,11 @@
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import ConfirmModal from '@/Components/ConfirmModal';
+import { getFallbackImage } from '@/Utils/imageFallback';
 
 export default function GameCard({ game, isInList, onToggleList }) {
     const [showConfirm, setShowConfirm] = useState(false);
+    const [imgSrc, setImgSrc] = useState(game.cover_url || getFallbackImage(game.title));
 
     const openTrailer = (e) => {
         e.stopPropagation();
@@ -37,8 +39,9 @@ export default function GameCard({ game, isInList, onToggleList }) {
             >
                 <div className="relative aspect-[3/4] overflow-hidden">
                     <img
-                        src={game.cover_url}
+                        src={imgSrc}
                         alt={game.title}
+                        onError={() => setImgSrc(getFallbackImage(game.title))}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />
                     {game.rawg_rating && (

@@ -74,10 +74,14 @@ class HomeController extends Controller
 
     private function mapGame(array $item): array
     {
+        $cover = $item['background_image']
+            ?? $item['background_image_additional']
+            ?? ($item['short_screenshots'][0]['image'] ?? null);
+
         return [
             'external_id' => $item['id'],
             'title' => $item['name'],
-            'cover_url' => $item['background_image'],
+            'cover_url' => $cover,
             'rawg_rating' => $item['rating'] ?? null,
             'genres' => collect($item['genres'] ?? [])->pluck('name')->implode(', '),
         ];
