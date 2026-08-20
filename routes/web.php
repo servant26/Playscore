@@ -36,8 +36,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/search', [App\Http\Controllers\SearchController::class, 'index'])->name('search');
     Route::post('/interests', [App\Http\Controllers\InterestController::class, 'update'])->name('interests.update');
     Route::post('/games/{game}/reviews', [App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
+    Route::post('/reviews/{review}/story', [App\Http\Controllers\ReviewController::class, 'publishToStory'])->name('reviews.story');
+    Route::post('/stories/rank', [App\Http\Controllers\ReviewController::class, 'publishRankStory'])->name('stories.rank');
+    Route::delete('/stories/{story}', [App\Http\Controllers\ReviewController::class, 'destroyStory'])->name('stories.destroy');
+    Route::post('/users/{user}/congratulate-rank', [App\Http\Controllers\ReviewController::class, 'congratulateRank'])->name('users.congratulate-rank');
     Route::delete('/reviews/{review}', [App\Http\Controllers\ReviewController::class, 'destroy'])->name('reviews.destroy');
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/unread', [App\Http\Controllers\NotificationController::class, 'unread'])->name('notifications.unread');
     Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::get('/users/{user}', [App\Http\Controllers\PublicProfileController::class, 'show'])->name('users.show');
