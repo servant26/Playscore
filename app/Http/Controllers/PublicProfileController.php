@@ -77,9 +77,26 @@ class PublicProfileController extends Controller
         $myReviewedGameIds = $authUser ? $authUser->reviews()->pluck('game_id')->toArray() : [];
 
         $formatStory = function ($story) {
-            if (!$story || !$story->review || !$story->review->game) return null;
+            if (!$story) return null;
+
+            if ($story->type === 'rank_up') {
+                return [
+                    'id' => $story->id,
+                    'type' => 'rank_up',
+                    'user_id' => $story->user_id,
+                    'user_name' => $story->user->name,
+                    'user_avatar' => $story->user->avatar,
+                    'created_at' => $story->created_at->diffForHumans(),
+                    'rank_name' => $story->rank_name,
+                    'rank_count' => $story->rank_count,
+                ];
+            }
+
+            if (!$story->review || !$story->review->game) return null;
+
             return [
                 'id' => $story->id,
+                'type' => 'review',
                 'user_id' => $story->user_id,
                 'user_name' => $story->user->name,
                 'user_avatar' => $story->user->avatar,

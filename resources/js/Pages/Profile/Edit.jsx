@@ -257,6 +257,7 @@ export default function Edit({
                             onToggleList={toggleList}
                             onSave={saveChanges}
                             onDiscard={discardChanges}
+                            myReviews={myReviews}
                         />
                     )}
 

@@ -13,6 +13,9 @@ class Story extends Model
 
     protected $fillable = [
         'user_id',
+        'type',
+        'rank_name',
+        'rank_count',
         'review_id',
         'expires_at',
     ];

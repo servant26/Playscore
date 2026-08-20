@@ -1,8 +1,9 @@
 import { Link, usePage, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import RankUpModal from '@/Components/RankUpModal';
 
 export default function AppLayout({ children }) {
-    const { auth, url } = usePage().props;
+    const { auth, url, flash } = usePage().props;
     const currentUrl = usePage().url;
     const [search, setSearch] = useState('');
     const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -10,6 +11,13 @@ export default function AppLayout({ children }) {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loadingNotifs, setLoadingNotifs] = useState(false);
+    const [rankUpData, setRankUpData] = useState(null);
+
+    useEffect(() => {
+        if (flash?.rank_up) {
+            setRankUpData(flash.rank_up);
+        }
+    }, [flash?.rank_up]);
 
     const isHomeOrSearch = currentUrl.startsWith('/dashboard') || currentUrl.startsWith('/search') || currentUrl.startsWith('/all-games');
 
@@ -24,12 +32,13 @@ export default function AppLayout({ children }) {
 
     const fetchNotifications = () => {
         setLoadingNotifs(true);
-        fetch(route('notifications.index'))
+        fetch(route('notifications.unread'))
             .then((res) => res.json())
             .then((data) => {
-                setNotifications(data.notifications);
-                setUnreadCount(data.unread_count);
+                setNotifications(data.notifications || []);
+                setUnreadCount(data.unread_count || 0);
             })
+            .catch(() => {})
             .finally(() => setLoadingNotifs(false));
     };
 
@@ -47,31 +56,62 @@ export default function AppLayout({ children }) {
         }
     };
 
+    const handleMarkAllAsRead = (e) => {
+        e.stopPropagation();
+        setUnreadCount(0);
+        setNotifications([]);
+
+        fetch(route('notifications.read-all'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            },
+        }).catch(() => {});
+    };
+
     const handleNotificationClick = (notif) => {
+        setShowNotifMenu(false);
+
         if (!notif.read_at) {
-            router.post(
-                route('notifications.read', notif.id),
-                {},
-                {
-                    preserveScroll: true,
-                    preserveState: true,
-                    onSuccess: () => fetchNotifications(),
-                }
-            );
+            setUnreadCount((prev) => Math.max(0, prev - 1));
+            setNotifications((prev) => prev.filter((n) => n.id !== notif.id));
+
+            fetch(route('notifications.read', notif.id), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+            }).catch(() => {});
         }
 
         if (notif.data.type === 'user_followed' || notif.data.follower_id) {
             router.get(route('users.show', notif.data.follower_id));
+        } else if (notif.data.sender_id && notif.data.type === 'rank_congratulation') {
+            router.get(route('users.show', notif.data.sender_id));
         } else if (notif.data.game_slug) {
             router.get(route('games.show', notif.data.game_slug));
         }
-
-        setShowNotifMenu(false);
     };
 
-    const handleUserClick = (e, userId) => {
+    const handleUserClick = (e, userId, notif = null) => {
         e.stopPropagation();
         setShowNotifMenu(false);
+
+        if (notif && !notif.read_at) {
+            setUnreadCount((prev) => Math.max(0, prev - 1));
+            setNotifications((prev) => prev.filter((n) => n.id !== notif.id));
+
+            fetch(route('notifications.read', notif.id), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+            }).catch(() => {});
+        }
+
         if (userId) {
             router.get(route('users.show', userId));
         }
@@ -129,73 +169,101 @@ export default function AppLayout({ children }) {
                             </button>
 
                             {showNotifMenu && (
-                                <div className="absolute -right-14 sm:right-0 top-10 w-[calc(100vw-3rem)] sm:w-80 max-w-sm bg-[#131916] border border-[#1F2923] rounded-xl shadow-2xl z-50 max-h-96 overflow-y-auto custom-scrollbar">
-                                    <div className="px-4 py-3 border-b border-[#1F2923]">
-                                        <p className="text-[#F5F7F5] text-sm font-medium">Notifications</p>
+                                <div className="absolute -right-14 sm:right-0 top-10 w-[calc(100vw-3rem)] sm:w-80 max-w-sm bg-[#131916] border border-[#1F2923] rounded-xl shadow-2xl z-50 overflow-hidden">
+                                    <div className="px-4 py-3 border-b border-[#1F2923] flex items-center justify-between">
+                                        <p className="text-[#F5F7F5] text-sm font-medium">New Notifications</p>
+                                        {unreadCount > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={handleMarkAllAsRead}
+                                                className="text-[11px] text-[#22C55E] hover:underline font-medium"
+                                            >
+                                                Mark all as read
+                                            </button>
+                                        )}
                                     </div>
 
-                                    {loadingNotifs ? (
-                                        <p className="text-[#5A625D] text-sm text-center py-6">Loading...</p>
-                                    ) : notifications.length === 0 ? (
-                                        <p className="text-[#5A625D] text-sm text-center py-6">
-                                            No notifications yet.
-                                        </p>
-                                    ) : (
-                                        notifications.map((notif) => {
-                                            const isFollowNotif = notif.data.type === 'user_followed' || notif.data.follower_id;
-                                            const targetUserId = isFollowNotif ? notif.data.follower_id : notif.data.reviewer_id;
-                                            const userName = isFollowNotif ? notif.data.follower_name : notif.data.reviewer_name;
-                                            const userAvatar = isFollowNotif ? notif.data.follower_avatar : notif.data.reviewer_avatar;
+                                    <div className="max-h-80 overflow-y-auto custom-scrollbar">
+                                        {loadingNotifs ? (
+                                            <p className="text-[#5A625D] text-sm text-center py-6">Loading...</p>
+                                        ) : notifications.length === 0 ? (
+                                            <div className="py-8 text-center px-4">
+                                                <p className="text-[#8B948F] text-xs font-medium">No unread notifications.</p>
+                                                <p className="text-[#5A625D] text-[11px] mt-1">Check full history in View All.</p>
+                                            </div>
+                                        ) : (
+                                            notifications.map((notif) => {
+                                                const isCongratNotif = notif.data.type === 'rank_congratulation';
+                                                const isFollowNotif = notif.data.type === 'user_followed' || notif.data.follower_id;
+                                                const targetUserId = isCongratNotif ? notif.data.sender_id : (isFollowNotif ? notif.data.follower_id : notif.data.reviewer_id);
+                                                const rawName = isCongratNotif ? notif.data.sender_name : (isFollowNotif ? notif.data.follower_name : notif.data.reviewer_name);
+                                                const userName = rawName || 'A Gamer';
+                                                const userAvatar = isCongratNotif ? notif.data.sender_avatar : (isFollowNotif ? notif.data.follower_avatar : notif.data.reviewer_avatar);
 
-                                            return (
-                                                <div
-                                                    key={notif.id}
-                                                    onClick={() => handleNotificationClick(notif)}
-                                                    className={`w-full text-left px-4 py-3 border-b border-[#1F2923] last:border-0 hover:bg-[#1F2923] transition flex items-start gap-3 cursor-pointer ${!notif.read_at ? 'bg-[#0F1512]' : ''
-                                                        }`}
-                                                >
-                                                    <button
-                                                        onClick={(e) => handleUserClick(e, targetUserId)}
-                                                        className="w-9 h-9 aspect-square rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-xs font-semibold overflow-hidden shrink-0 hover:ring-2 hover:ring-[#22C55E] transition"
-                                                        style={{ minWidth: '36px', minHeight: '36px' }}
-                                                        title="View Profile"
+                                                return (
+                                                    <div
+                                                        key={notif.id}
+                                                        onClick={() => handleNotificationClick(notif)}
+                                                        className="w-full text-left px-4 py-3 border-b border-[#1F2923] last:border-0 hover:bg-[#19221C] transition flex items-start gap-3 cursor-pointer bg-[#0B120E]"
                                                     >
-                                                        {userAvatar ? (
-                                                            <img
-                                                                src={`/storage/${userAvatar}`}
-                                                                alt={userName}
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        ) : (
-                                                            userName?.slice(0, 2).toUpperCase()
-                                                        )}
-                                                    </button>
-                                                    <div className="flex-1 min-w-0 pr-2">
-                                                        <p className="text-[#F5F7F5] text-xs leading-relaxed">
-                                                            <button
-                                                                onClick={(e) => handleUserClick(e, targetUserId)}
-                                                                className="font-medium hover:text-[#22C55E] hover:underline transition"
-                                                                title="View Profile"
-                                                            >
-                                                                {userName}
-                                                            </button>{' '}
-                                                            {isFollowNotif ? (
-                                                                'started following you.'
+                                                        <button
+                                                            onClick={(e) => handleUserClick(e, targetUserId, notif)}
+                                                            className="w-9 h-9 aspect-square rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-xs font-semibold overflow-hidden shrink-0 hover:ring-2 hover:ring-[#22C55E] transition"
+                                                            style={{ minWidth: '36px', minHeight: '36px' }}
+                                                            title="View Profile"
+                                                        >
+                                                            {userAvatar ? (
+                                                                <img
+                                                                    src={`/storage/${userAvatar}`}
+                                                                    alt={userName}
+                                                                    className="w-full h-full object-cover"
+                                                                />
                                                             ) : (
-                                                                <>
-                                                                    also reviewed{' '}
-                                                                    <span className="font-medium">{notif.data.game_title}</span>.
-                                                                </>
+                                                                userName.slice(0, 2).toUpperCase()
                                                             )}
-                                                        </p>
-                                                        <p className="text-[#5A625D] text-[11px] mt-1">
-                                                            See profile · {notif.created_at}
-                                                        </p>
+                                                        </button>
+                                                        <div className="flex-1 min-w-0 pr-2">
+                                                            <p className="text-[#F5F7F5] text-xs leading-relaxed">
+                                                                <button
+                                                                    onClick={(e) => handleUserClick(e, targetUserId, notif)}
+                                                                    className="font-medium hover:text-[#22C55E] hover:underline transition"
+                                                                    title="View Profile"
+                                                                >
+                                                                    {userName}
+                                                                </button>{' '}
+                                                                {isCongratNotif ? (
+                                                                    <>
+                                                                        congratulated you on reaching <span className="font-semibold text-[#22C55E]">{notif.data.rank_name}</span>: "{notif.data.message}"
+                                                                    </>
+                                                                ) : isFollowNotif ? (
+                                                                    'started following you.'
+                                                                ) : (
+                                                                    <>
+                                                                        also reviewed{' '}
+                                                                        <span className="font-medium">{notif.data.game_title || 'a game'}</span>.
+                                                                    </>
+                                                                )}
+                                                            </p>
+                                                            <p className="text-[#5A625D] text-[11px] mt-1">
+                                                                {notif.created_at}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            );
-                                        })
-                                    )}
+                                                );
+                                            })
+                                        )}
+                                    </div>
+
+                                    <div className="px-4 py-3 bg-[#0B0F0D] border-t border-[#1F2923] text-center">
+                                        <Link
+                                            href={route('notifications.index')}
+                                            onClick={() => setShowNotifMenu(false)}
+                                            className="text-xs text-[#22C55E] hover:underline font-bold inline-flex items-center gap-1"
+                                        >
+                                            <span>View All Notifications</span>
+                                            <span>→</span>
+                                        </Link>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -248,6 +316,13 @@ export default function AppLayout({ children }) {
             </nav>
 
             <main className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 py-6 sm:py-8">{children}</main>
+
+            {/* Rank Up Celebration Modal */}
+            <RankUpModal
+                show={!!rankUpData}
+                rankUpData={rankUpData}
+                onClose={() => setRankUpData(null)}
+            />
         </div>
     );
 }

@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import Modal from '@/Components/Modal';
 import FollowListModal from '@/Components/FollowListModal';
 import GameCard from '@/Components/GameCard';
+import UserRankCard from '@/Components/UserRankCard';
 
 export default function ProfileTab({
     mustVerifyEmail,
@@ -18,6 +19,7 @@ export default function ProfileTab({
     onToggleList,
     onSave,
     onDiscard,
+    myReviews = [],
 }) {
     const user = usePage().props.auth.user;
     const avatarInputRef = useRef();
@@ -173,6 +175,9 @@ export default function ProfileTab({
 
     return (
         <div className="space-y-8 w-full">
+            {/* Gamer Rank Card */}
+            <UserRankCard reviewCount={myReviews ? myReviews.length : 0} />
+
             {/* Profile Info + Avatar */}
             <section className="bg-[#131916] border border-[#1F2923] rounded-xl p-6">
                 <h2 className="text-[#F5F7F5] text-lg font-semibold mb-1">

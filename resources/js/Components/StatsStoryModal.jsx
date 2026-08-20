@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import Modal from '@/Components/Modal';
 import { toBlob } from 'html-to-image';
+import { getRankInfo } from '@/Utils/rankSystem';
 
 export default function StatsStoryModal({ show, onClose, user, stats, reviews = [] }) {
     const [theme, setTheme] = useState('emerald');
@@ -15,6 +16,9 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
         averageScore = 0,
         reviewsByGenre = {},
     } = stats || {};
+
+    const rankInfo = getRankInfo(totalReviews);
+    const cRank = rankInfo.currentRank;
 
     // Calculate Top Genre
     const topGenre = Object.entries(reviewsByGenre).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Gamer';
@@ -199,10 +203,10 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
                 {/* Modal Header */}
                 <div className="w-full flex items-center justify-between mb-3 border-b border-[#1F2923] pb-3 shrink-0">
                     <div>
-                        <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
-                            <span>🎮</span> PlayScore Stats Card
+                        <h2 className="text-base sm:text-lg font-bold">
+                            PlayScore Stats Card
                         </h2>
-                        <p className="text-[#8B948F] text-xs mt-2">
+                        <p className="text-[#8B948F] text-xs mt-1">
                             Share your gaming achievements and PlayScore statistics to your Instagram Story!
                         </p>
                     </div>
@@ -251,97 +255,92 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
                                     style={{ backgroundColor: currentTheme.glow }}
                                 />
 
-                                {/* Top Bar: Left Icon P, Center PLAYSCORE STATS, Right 2026 */}
-                                <div className="grid grid-cols-3 items-center z-10 w-full">
-                                    <div className="flex justify-start">
-                                        <div className={`w-8 h-8 rounded-lg bg-[#0B0F0D] border ${currentTheme.border} flex items-center justify-center font-black text-sm ${currentTheme.accent}`}>
-                                            P
+                                {/* Top Header: Centered PLAYSCORE STATS */}
+                                <div className="w-full text-center z-10 py-1">
+                                    <span className="font-extrabold tracking-widest text-xs sm:text-sm text-white uppercase drop-shadow">
+                                        PLAYSCORE STATS
+                                    </span>
+                                </div>
+
+                                {/* User Header Section */}
+                                <div className="my-auto py-2 z-10 text-center flex flex-col items-center">
+                                    <div
+                                        className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 p-1 mb-2 shadow-lg ${currentTheme.border}`}
+                                    >
+                                        <div className="w-full h-full rounded-full bg-[#131916] overflow-hidden flex items-center justify-center font-bold text-lg sm:text-xl text-white">
+                                            {avatarUrl ? (
+                                                <img src={avatarUrl} alt={user?.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className={currentTheme.accent}>{initials}</span>
+                                            )}
                                         </div>
                                     </div>
-                                    <div className="flex justify-center">
-                                        <span className="font-extrabold tracking-wider text-[11px] sm:text-xs text-white uppercase whitespace-nowrap">
-                                            PLAYSCORE STATS
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-end">
-                                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest border ${currentTheme.pillBg}`}>
-                                            2026
-                                        </span>
-                                    </div>
-                                </div>
 
-                            {/* User Header Section */}
-                            <div className="my-auto py-2 z-10 text-center flex flex-col items-center">
-                                <div
-                                    className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 p-1 mb-2 sm:mb-3 shadow-lg ${currentTheme.border}`}
-                                >
-                                    <div className="w-full h-full rounded-full bg-[#131916] overflow-hidden flex items-center justify-center font-bold text-lg sm:text-xl text-white">
-                                        {avatarUrl ? (
-                                            <img src={avatarUrl} alt={user?.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className={currentTheme.accent}>{initials}</span>
-                                        )}
-                                    </div>
-                                </div>
-                                <h3 className="text-lg sm:text-xl font-black text-white tracking-tight drop-shadow-md truncate max-w-[240px]">
-                                    {user?.name || 'Gamer'}
-                                </h3>
-                                <p className="text-[11px] sm:text-xs text-white/70 font-medium mt-0.5">
-                                    Top Genre: <span className={`font-bold ${currentTheme.accent}`}>{topGenre}</span>
-                                </p>
-                            </div>
+                                    <h3 className="text-lg sm:text-xl font-black text-white tracking-tight drop-shadow-md truncate max-w-[240px]">
+                                        {user?.name || 'Gamer'}
+                                    </h3>
 
-                            {/* Middle: Big Stats Grid */}
-                            <div className="grid grid-cols-3 gap-2 z-10 mb-2 sm:mb-3">
-                                <div className={`p-2.5 sm:p-3 rounded-xl text-center border backdrop-blur-md ${currentTheme.cardBg}`}>
-                                    <p className="text-[9px] text-white/60 font-semibold uppercase whitespace-nowrap">Reviewed</p>
-                                    <p className={`text-base sm:text-lg font-black mt-0.5 ${currentTheme.accent}`}>
-                                        {totalReviews}
+                                    {/* Pure Text Rank Description - Subtle & Compact */}
+                                    <p className="text-[10px] text-white/70 font-normal mt-0.5">
+                                        <span className={`font-semibold ${currentTheme.accent}`}>{cRank.name}</span> with {cRank.min}+ Reviews
+                                    </p>
+
+                                    <p className="text-[9px] text-white/50 font-normal mt-0.5">
+                                        Top Genre: <span className="font-medium text-white/80">{topGenre}</span>
                                     </p>
                                 </div>
-                                <div className={`p-2.5 sm:p-3 rounded-xl text-center border backdrop-blur-md ${currentTheme.cardBg}`}>
-                                    <p className="text-[9px] text-white/60 font-semibold uppercase whitespace-nowrap">In List</p>
-                                    <p className="text-base sm:text-lg font-black text-white mt-0.5">
-                                        {totalGamesInList}
-                                    </p>
-                                </div>
-                                <div className={`p-2.5 sm:p-3 rounded-xl text-center border backdrop-blur-md ${currentTheme.cardBg}`}>
-                                    <p className="text-[9px] text-white/60 font-semibold uppercase whitespace-nowrap">Avg Score</p>
-                                    <p className="text-base sm:text-lg font-black text-white mt-0.5 flex items-center justify-center gap-1">
-                                        <span className="text-xs sm:text-sm font-normal">★</span> {averageScore}
-                                    </p>
-                                </div>
-                            </div>
 
-                            {/* Highest Rated Game Highlight */}
-                            {topGame && (
-                                <div className={`p-2.5 sm:p-3 rounded-xl border backdrop-blur-md flex items-center gap-2.5 sm:gap-3 z-10 mb-2 sm:mb-3 ${currentTheme.cardBg}`}>
-                                    <img
-                                        src={topGame.game?.cover_url}
-                                        alt={topGame.game?.title}
-                                        className="w-10 h-12 sm:w-12 sm:h-14 rounded-lg object-cover shrink-0 border border-white/10"
-                                    />
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-[8px] sm:text-[9px] text-white/50 font-bold uppercase tracking-wider">Top Rated Game</p>
-                                        <h4 className="text-xs font-bold text-white truncate mt-0.5">
-                                            {topGame.game?.title}
-                                        </h4>
-                                        <p className={`text-xs font-black mt-0.5 ${currentTheme.accent}`}>
-                                            Score: {topGame.rating} / 10 <span className="text-[10px] font-normal">★</span>
+                                {/* Middle: Big Stats Grid */}
+                                <div className="grid grid-cols-3 gap-2 z-10 mb-2 sm:mb-3">
+                                    <div className={`p-2.5 sm:p-3 rounded-xl text-center border backdrop-blur-md ${currentTheme.cardBg}`}>
+                                        <p className="text-[9px] text-white/60 font-semibold uppercase whitespace-nowrap">Reviewed</p>
+                                        <p className={`text-base sm:text-lg font-black mt-0.5 ${currentTheme.accent}`}>
+                                            {totalReviews}
+                                        </p>
+                                    </div>
+                                    <div className={`p-2.5 sm:p-3 rounded-xl text-center border backdrop-blur-md ${currentTheme.cardBg}`}>
+                                        <p className="text-[9px] text-white/60 font-semibold uppercase whitespace-nowrap">In List</p>
+                                        <p className="text-base sm:text-lg font-black text-white mt-0.5">
+                                            {totalGamesInList}
+                                        </p>
+                                    </div>
+                                    <div className={`p-2.5 sm:p-3 rounded-xl text-center border backdrop-blur-md ${currentTheme.cardBg}`}>
+                                        <p className="text-[9px] text-white/60 font-semibold uppercase whitespace-nowrap">Avg Score</p>
+                                        <p className="text-base sm:text-lg font-black text-white mt-0.5 flex items-center justify-center gap-1">
+                                            <span className="text-xs sm:text-sm font-normal">★</span> {averageScore}
                                         </p>
                                     </div>
                                 </div>
-                            )}
 
-                            {/* Footer Card Info */}
-                            <div className="pt-2 border-t border-white/10 flex items-center justify-between z-10 text-[10px] text-white/60 font-semibold">
-                                <span>Track your gaming journey</span>
-                                <span className="font-bold text-white/90">play-score.com</span>
+                                {/* Highest Rated Game Highlight */}
+                                {topGame && (
+                                    <div className={`p-2.5 sm:p-3 rounded-xl border backdrop-blur-md flex items-center gap-2.5 sm:gap-3 z-10 mb-2 sm:mb-3 ${currentTheme.cardBg}`}>
+                                        <img
+                                            src={topGame.game?.cover_url}
+                                            alt={topGame.game?.title}
+                                            className="w-10 h-12 sm:w-12 sm:h-14 rounded-lg object-cover shrink-0 border border-white/10"
+                                        />
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[8px] sm:text-[9px] text-white/50 font-bold uppercase tracking-wider">Top Rated Game</p>
+                                            <h4 className="text-xs font-bold text-white truncate mt-0.5">
+                                                {topGame.game?.title}
+                                            </h4>
+                                            <p className={`text-xs font-black mt-0.5 ${currentTheme.accent}`}>
+                                                Score: {topGame.rating} / 10 <span className="text-[10px] font-normal">★</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Footer Card Info */}
+                                <div className="pt-2 border-t border-white/10 flex items-center justify-between z-10 text-[10px] text-white/60 font-semibold">
+                                    <span>Track your gaming journey</span>
+                                    <span className="font-bold text-white/90">©Playscore</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
                 {/* Status Message */}
                 {message && (
@@ -350,39 +349,30 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
                     </div>
                 )}
 
-                {/* Action Buttons */}
+                {/* Action Buttons - Pure text, no icons */}
                 <div className="w-full space-y-2 shrink-0">
                     <button
                         onClick={handleShareIgStory}
                         disabled={isGenerating}
                         className={`w-full py-3 px-4 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 transition shadow-lg ${currentTheme.button} disabled:opacity-50`}
                     >
-                        {isGenerating ? (
-                            <span>Generating Image...</span>
-                        ) : (
-                            <>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                                </svg>
-                                <span>Share to IG Story</span>
-                            </>
-                        )}
+                        {isGenerating ? 'Generating Image...' : 'Share to IG Story'}
                     </button>
 
                     <div className="flex gap-2">
                         <button
                             onClick={handleSavePng}
                             disabled={isGenerating}
-                            className="flex-1 py-2.5 px-3 rounded-xl bg-[#131916] border border-[#1F2923] text-xs font-semibold text-[#8B948F] hover:text-white hover:border-[#2E3A32] transition flex items-center justify-center gap-1.5 disabled:opacity-50"
+                            className="flex-1 py-2.5 px-3 rounded-xl bg-[#131916] border border-[#1F2923] text-xs font-semibold text-[#8B948F] hover:text-white hover:border-[#2E3A32] transition flex items-center justify-center disabled:opacity-50"
                         >
-                            <span>💾 Save PNG</span>
+                            Save PNG
                         </button>
 
                         <button
                             onClick={handleCopyProfileLink}
-                            className="flex-1 py-2.5 px-3 rounded-xl bg-[#131916] border border-[#1F2923] text-xs font-semibold text-[#8B948F] hover:text-white hover:border-[#2E3A32] transition flex items-center justify-center gap-1.5"
+                            className="flex-1 py-2.5 px-3 rounded-xl bg-[#131916] border border-[#1F2923] text-xs font-semibold text-[#8B948F] hover:text-white hover:border-[#2E3A32] transition flex items-center justify-center"
                         >
-                            <span>{copied ? '✓ Link Copied!' : '🔗 Copy Profile Link'}</span>
+                            {copied ? 'Link Copied!' : 'Copy Profile Link'}
                         </button>
                     </div>
                 </div>
