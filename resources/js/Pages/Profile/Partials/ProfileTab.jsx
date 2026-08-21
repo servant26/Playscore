@@ -6,6 +6,8 @@ import FollowListModal from '@/Components/FollowListModal';
 import GameCard from '@/Components/GameCard';
 import UserRankCard from '@/Components/UserRankCard';
 
+import HighlightSection from '@/Components/HighlightSection';
+
 export default function ProfileTab({
     mustVerifyEmail,
     status,
@@ -21,6 +23,9 @@ export default function ProfileTab({
     onDiscard,
     myReviews = [],
     adminSubTab = null,
+    highlights = [],
+    myStories = [],
+    onSelectHighlight,
 }) {
     const user = usePage().props.auth.user;
     const avatarInputRef = useRef();
@@ -180,9 +185,19 @@ export default function ProfileTab({
     };
 
     return (
-        <div className="space-y-8 w-full">
-            {/* Gamer Rank Card */}
-            {user.role !== 'admin' && <UserRankCard reviewCount={myReviews ? myReviews.length : 0} />}
+        <div className="space-y-6 w-full">
+            {/* Story Highlights Section (Above Gamer Rank) */}
+            {user.role !== 'admin' && (
+                <div className="space-y-2">
+                    <HighlightSection
+                        highlights={highlights}
+                        isOwner={true}
+                        myStories={myStories}
+                        onSelectHighlight={onSelectHighlight}
+                    />
+                    <UserRankCard reviewCount={myReviews ? myReviews.length : 0} />
+                </div>
+            )}
 
             {/* Profile Info + Avatar */}
             {(!adminSubTab || adminSubTab === 'profile') && (

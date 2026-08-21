@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import ConfirmModal from '@/Components/ConfirmModal';
 import StoryBar from '@/Components/StoryBar';
+import StoryViewerModal from '@/Components/StoryViewerModal';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import ProfileTab from './Partials/ProfileTab';
@@ -21,9 +22,12 @@ export default function Edit({
     myReviews = [],
     myStories = [],
     followingStoryGroups = [],
+    highlights = [],
     stats,
 }) {
     const authUser = usePage().props.auth.user;
+    const [viewerStories, setViewerStories] = useState([]);
+    const [showViewer, setShowViewer] = useState(false);
 
     const TABS = authUser?.role === 'admin'
         ? [{ key: 'profile', label: 'Profile' }]
@@ -314,6 +318,12 @@ export default function Edit({
                             onSave={saveChanges}
                             onDiscard={discardChanges}
                             myReviews={myReviews}
+                            highlights={highlights}
+                            myStories={myStories}
+                            onSelectHighlight={(hl) => {
+                                setViewerStories(hl.stories || []);
+                                setShowViewer(true);
+                            }}
                         />
                     )}
 
@@ -380,6 +390,12 @@ export default function Edit({
                     )}
                 </div>
             </div>
+
+            <StoryViewerModal
+                show={showViewer}
+                stories={viewerStories}
+                onClose={() => setShowViewer(false)}
+            />
 
             <ConfirmModal
                 show={showLeaveWarning}

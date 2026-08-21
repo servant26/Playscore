@@ -49,6 +49,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/users/{user}/follow', [App\Http\Controllers\FollowController::class, 'toggle'])->name('users.follow');
     Route::get('/users/{user}/followers', [App\Http\Controllers\FollowController::class, 'followers'])->name('users.followers');
     Route::get('/users/{user}/following', [App\Http\Controllers\FollowController::class, 'following'])->name('users.following');
+
+    Route::post('/highlights', [App\Http\Controllers\HighlightController::class, 'store'])->name('highlights.store');
+    Route::post('/highlights/{highlight}/update', [App\Http\Controllers\HighlightController::class, 'update'])->name('highlights.update');
+    Route::post('/highlights/{highlight}/stories', [App\Http\Controllers\HighlightController::class, 'addStory'])->name('highlights.add-story');
+    Route::delete('/highlights/{highlight}', [App\Http\Controllers\HighlightController::class, 'destroy'])->name('highlights.destroy');
+    Route::delete('/highlights/{highlight}/stories/{story}', [App\Http\Controllers\HighlightController::class, 'removeStory'])->name('highlights.remove-story');
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {

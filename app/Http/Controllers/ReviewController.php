@@ -106,6 +106,7 @@ class ReviewController extends Controller
         abort_unless($story->user_id === auth()->id(), 403);
 
         $story->delete();
+        \App\Models\Highlight::whereDoesntHave('stories')->delete();
 
         return back()->with('success', 'Story deleted!');
     }
@@ -137,6 +138,7 @@ class ReviewController extends Controller
         abort_unless($review->user_id === auth()->id(), 403);
 
         $review->delete();
+        \App\Models\Highlight::whereDoesntHave('stories')->delete();
 
         return back();
     }

@@ -116,6 +116,32 @@ class HandleInertiaRequests extends Middleware
                     ];
                 })
                 ->values();
+
+            $highlights = $user->highlights()
+                ->has('stories')
+                ->with(['stories.review.game', 'stories.user'])
+                ->latest()
+                ->get()
+                ->map(function ($hl) use ($formatStory) {
+                    $stories = $hl->stories->map($formatStory)->filter()->values();
+                    if ($stories->count() === 0) return null;
+                    $coverUrl = $hl->cover_image ? asset('storage/' . $hl->cover_image) : null;
+                    if (!$coverUrl && $stories->count() > 0) {
+                        $firstReviewStory = $stories->first(fn ($s) => isset($s['review']['game_cover']));
+                        if ($firstReviewStory) {
+                            $coverUrl = $firstReviewStory['review']['game_cover'];
+                        }
+                    }
+                    return [
+                        'id' => $hl->id,
+                        'title' => $hl->title,
+                        'cover_url' => $coverUrl,
+                        'stories' => $stories,
+                        'story_ids' => $hl->stories->pluck('id')->toArray(),
+                    ];
+                })
+                ->filter()
+                ->values();
         }
 
         return [
@@ -129,6 +155,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'myStories' => $myStories,
             'followingStoryGroups' => $followingStoryGroups,
+            'highlights' => $user ? $highlights : [],
             'rawgAuthImages' => $rawgAuthImages,
         ];
     }

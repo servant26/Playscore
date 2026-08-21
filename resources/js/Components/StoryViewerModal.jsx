@@ -1,14 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { router, usePage } from '@inertiajs/react';
 import { getRankInfo } from '@/Utils/rankSystem';
 
 export default function StoryViewerModal({ show, stories = [], initialIndex = 0, onClose, onStoryViewed }) {
-    const authUser = usePage().props.auth?.user;
+    const pageProps = usePage().props;
+    const authUser = pageProps.auth?.user;
+    const userHighlights = pageProps.highlights || [];
+
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
     const [progress, setProgress] = useState(0);
+    const [showMenu, setShowMenu] = useState(false);
     const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+    const [showHighlightModal, setShowHighlightModal] = useState(false);
+    const [newHighlightTitle, setNewHighlightTitle] = useState('');
+    const [newHighlightCover, setNewHighlightCover] = useState(null);
+    const [newHighlightCoverPreview, setNewHighlightCoverPreview] = useState(null);
+    const [highlightProcessing, setHighlightProcessing] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const highlightFileInputRef = useRef(null);
 
     // Congratulation Modal State
     const [showCongratModal, setShowCongratModal] = useState(false);
@@ -22,7 +32,9 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
     useEffect(() => {
         setCurrentIndex(initialIndex);
         setProgress(0);
+        setShowMenu(false);
         setShowConfirmDelete(false);
+        setShowHighlightModal(false);
         setShowCongratModal(false);
         setCongratSent(false);
     }, [initialIndex, show]);
@@ -41,7 +53,7 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
     }, [show, currentStory?.id]);
 
     useEffect(() => {
-        if (!show || stories.length === 0 || showConfirmDelete || showCongratModal) return;
+        if (!show || stories.length === 0 || showConfirmDelete || showCongratModal || showMenu || showHighlightModal) return;
 
         const interval = setInterval(() => {
             setProgress((prev) => {
@@ -59,7 +71,7 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
         }, 100);
 
         return () => clearInterval(interval);
-    }, [show, currentIndex, stories.length, showConfirmDelete, showCongratModal]);
+    }, [show, currentIndex, stories.length, showConfirmDelete, showCongratModal, showMenu, showHighlightModal]);
 
     if (!show || stories.length === 0) return null;
     if (!currentStory) return null;
@@ -104,22 +116,57 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
         }
     };
 
-    const handleDeleteStory = (e) => {
-        e.stopPropagation();
-        if (!currentStory?.id || deleting) return;
-        setDeleting(true);
+    const handleAddToHighlight = (highlightId) => {
+        if (!currentStory) return;
+        setHighlightProcessing(true);
+        router.post(
+            route('highlights.add-story', highlightId),
+            { story_id: currentStory.id },
+            {
+                onSuccess: () => {
+                    setHighlightProcessing(false);
+                    setShowHighlightModal(false);
+                },
+                onError: () => setHighlightProcessing(false),
+            }
+        );
+    };
 
+    const handleCreateAndAddHighlight = (e) => {
+        e.preventDefault();
+        if (!newHighlightTitle.trim() || !currentStory) return;
+
+        setHighlightProcessing(true);
+        router.post(
+            route('highlights.store'),
+            {
+                title: newHighlightTitle.trim(),
+                cover_image: newHighlightCover,
+                story_id: currentStory.id,
+            },
+            {
+                onSuccess: () => {
+                    setNewHighlightTitle('');
+                    setNewHighlightCover(null);
+                    setNewHighlightCoverPreview(null);
+                    setHighlightProcessing(false);
+                    setShowHighlightModal(false);
+                },
+                onError: () => setHighlightProcessing(false),
+            }
+        );
+    };
+
+    const handleDeleteStory = () => {
+        if (!currentStory?.id) return;
+        setDeleting(true);
         router.delete(route('stories.destroy', currentStory.id), {
-            preserveScroll: true,
-            preserveState: false,
             onSuccess: () => {
                 setDeleting(false);
                 setShowConfirmDelete(false);
                 onClose();
             },
-            onError: () => {
-                setDeleting(false);
-            },
+            onError: () => setDeleting(false),
         });
     };
 
@@ -169,11 +216,11 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
         >
             {/* Main Story Card Container */}
             <div
-                className="relative w-full max-w-sm h-[540px] sm:h-[550px] rounded-3xl overflow-hidden shadow-2xl border border-[#1F2923] bg-[#0B0F0D] flex flex-col justify-between p-5 sm:p-6"
+                className="relative w-full max-w-sm h-[540px] sm:h-[550px] rounded-3xl shadow-2xl border border-[#1F2923] bg-[#0B0F0D] flex flex-col justify-between p-5 sm:p-6"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Background Blur Overlay */}
-                <div className="absolute inset-0 z-0">
+                <div className="absolute inset-0 z-0 rounded-3xl overflow-hidden">
                     {isRankStory ? (
                         <div className="w-full h-full bg-gradient-to-b from-[#131916] via-[#0B0F0D] to-[#050706] opacity-95" />
                     ) : (
@@ -189,7 +236,7 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                 </div>
 
                 {/* Top Section: Progress Bar + User Header */}
-                <div className="relative z-10 space-y-3.5">
+                <div className="relative z-50 space-y-3.5">
                     {/* Progress Bar Segment */}
                     <div className="flex gap-1.5 w-full">
                         {stories.map((s, idx) => (
@@ -213,7 +260,7 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                     </div>
 
                     {/* User Header */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between relative">
                         <div
                             onClick={(e) => goToUser(e, currentStory.user_id)}
                             className="flex items-center gap-3 z-30 cursor-pointer group"
@@ -240,27 +287,66 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                             </div>
                         </div>
 
-                        {/* Control Icon: Vertical Three Dots (⋮) for own stories opens Delete Modal directly; Close (✕) for others */}
-                        <div className="relative z-40">
+                        {/* Control Icon: Vertical Three Dots (⋮) for own stories / options menu */}
+                        <div className="relative z-50">
                             {isOwnStory ? (
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowConfirmDelete(true);
-                                    }}
-                                    title="Delete Story"
-                                    className="w-8 h-8 rounded-full bg-black/40 text-[#F5F7F5] hover:bg-black/70 flex items-center justify-center text-lg transition font-bold"
-                                >
-                                    ⋮
-                                </button>
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowMenu((prev) => !prev);
+                                        }}
+                                        title="Story Options"
+                                        className="w-8 h-8 rounded-full bg-black/40 text-[#F5F7F5] hover:bg-black/70 flex items-center justify-center text-lg transition font-bold"
+                                    >
+                                        ⋮
+                                    </button>
+
+                                    {/* Options Dropdown Menu */}
+                                    {showMenu && (
+                                        <div
+                                            className="absolute right-0 top-10 w-48 bg-[#131916] border border-[#1F2923] rounded-xl shadow-2xl overflow-hidden z-[100] text-left"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setShowMenu(false);
+                                                    setShowHighlightModal(true);
+                                                }}
+                                                className="w-full text-left px-4 py-2.5 text-xs text-[#F5F7F5] hover:bg-[#1F2923] transition flex items-center gap-2 font-medium"
+                                            >
+                                                <svg className="w-3.5 h-3.5 text-[#22C55E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                </svg>
+                                                <span>Add to Highlights</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setShowMenu(false);
+                                                    setShowConfirmDelete(true);
+                                                }}
+                                                className="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-[#1F2923] transition flex items-center gap-2 font-medium border-t border-[#1F2923]"
+                                            >
+                                                <svg className="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                <span>Delete Story</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             ) : (
                                 <button
                                     type="button"
                                     onClick={onClose}
                                     className="w-8 h-8 rounded-full bg-black/40 text-[#F5F7F5] hover:bg-black/70 flex items-center justify-center text-sm transition"
                                 >
-                                    ✕
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
                                 </button>
                             )}
                         </div>
@@ -353,7 +439,6 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                         ) : hasCongratulated ? (
                             <div className="w-full rounded-xl bg-[#131916] border border-[#1F2923] text-[#8B948F] text-xs sm:text-sm font-medium py-2.5 text-center flex items-center justify-center gap-2">
                                 <span>You've sent congratulations to {currentStory.user_name}</span>
-                                <span>🎉</span>
                             </div>
                         ) : (
                             <button
@@ -361,14 +446,13 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     const rankName = currentStory.rank_name || 'Gamer Rank';
-                                    setCongratMessage(`Congratulations on reaching ${rankName}! 🎉`);
+                                    setCongratMessage(`Congratulations on reaching ${rankName}!`);
                                     setShowCongratModal(true);
                                 }}
                                 style={{ backgroundColor: '#22C55E', color: '#0B0F0D' }}
                                 className="w-full rounded-xl font-bold py-2.5 text-xs sm:text-sm hover:opacity-90 transition shadow-lg flex items-center justify-center gap-2"
                             >
                                 <span>Send Congratulations</span>
-                                <span>🎉</span>
                             </button>
                         )
                     ) : (
@@ -397,7 +481,7 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                 />
             </div>
 
-            {/* Send Congratulations Modal - Enlarged & Spacious */}
+            {/* Send Congratulations Modal */}
             {showCongratModal && (
                 <div
                     className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
@@ -410,9 +494,6 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                         className="bg-[#131916] border border-[#1F2923] rounded-3xl p-6 sm:p-7 max-w-md w-full text-center shadow-2xl text-[#F5F7F5]"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="w-14 h-14 rounded-2xl bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] flex items-center justify-center text-2xl mx-auto mb-4">
-                            🎉
-                        </div>
                         <h4 className="text-xl font-bold text-[#F5F7F5]">
                             Congratulate {currentStory.user_name}
                         </h4>
@@ -442,7 +523,7 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                                     disabled={sendingCongrat || congratSent}
                                     className="flex-1 py-3 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F0D] text-xs sm:text-sm font-bold transition disabled:opacity-75 flex items-center justify-center gap-2 shadow-lg"
                                 >
-                                    {sendingCongrat ? 'Sending...' : congratSent ? 'Sent! 🎉' : 'Send 🎉'}
+                                    {sendingCongrat ? 'Sending...' : congratSent ? 'Sent!' : 'Send'}
                                 </button>
                             </div>
                         </form>
@@ -463,11 +544,8 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                         className="bg-[#131916] border border-[#1F2923] rounded-2xl p-6 max-w-xs w-full text-center shadow-2xl text-[#F5F7F5]"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-center text-xl mx-auto mb-3">
-                            🗑️
-                        </div>
                         <h4 className="text-base font-bold text-[#F5F7F5]">Delete Story?</h4>
-                        <p className="text-xs text-[#8B948F] mt-1.5 mb-5 leading-relaxed">
+                        <p className="text-xs text-[#8B948F] mt-2 mb-6 leading-relaxed">
                             Are you sure you want to delete this story? It will be permanently removed for all followers.
                         </p>
 
@@ -491,6 +569,151 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                                 {deleting ? 'Deleting...' : 'Delete'}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add to Highlight Modal Overlay */}
+            {showHighlightModal && (
+                <div
+                    className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setShowHighlightModal(false);
+                    }}
+                >
+                    <div
+                        className="bg-[#131916] border border-[#1F2923] rounded-3xl p-7 sm:p-8 max-w-md sm:max-w-lg w-full shadow-2xl text-[#F5F7F5] space-y-5"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between border-b border-[#1F2923] pb-3">
+                            <h4 className="text-base font-bold text-[#F5F7F5]">Add to Highlights</h4>
+                            <button
+                                onClick={() => setShowHighlightModal(false)}
+                                className="text-[#8B948F] hover:text-[#F5F7F5] transition"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Existing Highlights List */}
+                        {(() => {
+                            const availableHighlights = userHighlights.filter((hl) => {
+                                if (!currentStory?.id) return true;
+                                const hasInStories = hl.stories && hl.stories.some((s) => Number(s.id) === Number(currentStory.id));
+                                const hasInStoryIds = hl.story_ids && hl.story_ids.map(Number).includes(Number(currentStory.id));
+                                return !hasInStories && !hasInStoryIds;
+                            });
+
+                            if (availableHighlights.length === 0) return null;
+
+                            return (
+                                <>
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-semibold text-[#8B948F]">
+                                            Select Existing Highlight:
+                                        </label>
+                                        <div className="max-h-44 overflow-y-auto space-y-2 pr-1">
+                                            {availableHighlights.map((hl) => (
+                                                <div
+                                                    key={hl.id}
+                                                    className="flex items-center justify-between bg-[#0B0F0D] border border-[#1F2923] rounded-xl p-3"
+                                                >
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <div className="w-9 h-9 rounded-full bg-[#1F2923] overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-[#22C55E]">
+                                                            {hl.cover_url ? (
+                                                                <img src={hl.cover_url} alt={hl.title} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                hl.title.slice(0, 2).toUpperCase()
+                                                            )}
+                                                        </div>
+                                                        <span className="text-xs sm:text-sm font-semibold text-[#F5F7F5] truncate">
+                                                            {hl.title}
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleAddToHighlight(hl.id)}
+                                                        disabled={highlightProcessing}
+                                                        className="px-3.5 py-1.5 bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F0D] rounded-xl text-xs font-bold transition disabled:opacity-50"
+                                                    >
+                                                        Add
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* OR Divider */}
+                                    <div className="relative flex items-center justify-center my-3">
+                                        <div className="border-t border-[#1F2923] w-full" />
+                                        <span className="bg-[#131916] px-3 text-[10px] font-extrabold text-[#8B948F] uppercase tracking-widest absolute">
+                                            OR
+                                        </span>
+                                    </div>
+                                </>
+                            );
+                        })()}
+
+                        {/* Create New Highlight */}
+                        <form onSubmit={handleCreateAndAddHighlight} className="space-y-4 pt-1">
+                            <label className="block text-xs font-semibold text-[#8B948F]">
+                                Create New Highlight:
+                            </label>
+
+                            <div className="flex items-center gap-3">
+                                <div
+                                    onClick={() => highlightFileInputRef.current?.click()}
+                                    className="w-12 h-12 rounded-full border border-dashed border-[#1F2923] hover:border-[#22C55E] bg-[#0B0F0D] flex items-center justify-center overflow-hidden cursor-pointer shrink-0 transition"
+                                    title="Upload cover image (Optional)"
+                                >
+                                    {newHighlightCoverPreview ? (
+                                        <img src={newHighlightCoverPreview} alt="Cover Preview" className="w-full h-full object-cover rounded-full" />
+                                    ) : (
+                                        <svg className="w-5 h-5 text-[#8B948F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    )}
+                                </div>
+                                <input
+                                    ref={highlightFileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            setNewHighlightCover(file);
+                                            setNewHighlightCoverPreview(URL.createObjectURL(file));
+                                        }
+                                    }}
+                                    className="hidden"
+                                />
+                                <div className="flex-1 min-w-0">
+                                    <input
+                                        type="text"
+                                        value={newHighlightTitle}
+                                        onChange={(e) => setNewHighlightTitle(e.target.value)}
+                                        placeholder="Highlight title..."
+                                        maxLength={50}
+                                        required
+                                        className="w-full bg-[#0B0F0D] border border-[#1F2923] focus:border-[#22C55E] text-[#F5F7F5] rounded-xl px-3.5 py-2 text-xs sm:text-sm outline-none"
+                                    />
+                                    <p className="text-[10px] text-[#8B948F] mt-1">
+                                        {newHighlightCoverPreview ? 'Custom cover selected' : 'Cover Image (Optional)'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={highlightProcessing || !newHighlightTitle.trim()}
+                                className="w-full py-3 bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F0D] rounded-xl text-xs sm:text-sm font-bold transition disabled:opacity-50 shadow-lg"
+                            >
+                                {highlightProcessing ? 'Creating...' : 'Create & Add Story'}
+                            </button>
+                        </form>
                     </div>
                 </div>
             )}
