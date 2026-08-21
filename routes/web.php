@@ -6,6 +6,10 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', [App\Http\Controllers\WelcomeController::class, 'index'])->name('welcome');
+Route::get('/about', [App\Http\Controllers\AboutController::class, 'index'])->name('about');
+Route::get('/reviews-community', [App\Http\Controllers\PublicReviewsController::class, 'index'])->name('reviews.index');
+Route::get('/games', [App\Http\Controllers\PublicGamesController::class, 'index'])->name('games.index');
+Route::get('/leaderboard', [App\Http\Controllers\LeaderboardController::class, 'index'])->name('leaderboard');
 
 Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])
     ->middleware(['auth', 'verified'])

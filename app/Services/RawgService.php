@@ -104,6 +104,21 @@ class RawgService
     }
 
     /**
+     * Get game reviews from RAWG API.
+     */
+    public function reviews(int $pageSize = 30): array
+    {
+        return \Illuminate\Support\Facades\Cache::remember("rawg_reviews_v2_{$pageSize}", 1800, function () use ($pageSize) {
+            $response = Http::timeout(10)->get("{$this->baseUrl}/reviews", [
+                'key' => $this->apiKey,
+                'page_size' => $pageSize,
+            ]);
+
+            return $response->json()['results'] ?? [];
+        });
+    }
+
+    /**
      * Helper to extract best cover URL from RAWG item response.
      */
     public function getImageUrl(array $item): ?string

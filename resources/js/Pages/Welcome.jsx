@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import Modal from '@/Components/Modal';
+import PublicNavbar from '@/Components/PublicNavbar';
 
 function HeroBackground({ images }) {
     const [activeSlide, setActiveSlide] = useState(0);
@@ -34,14 +35,14 @@ function HeroBackground({ images }) {
             <div className="absolute inset-0 bg-[#0B0F0D]/70" />
 
             {images.length > 1 && (
-                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5">
                     {images.map((_, i) => (
                         <button
                             key={i}
                             onClick={() => setActiveSlide(i)}
-                            className={`h-1.5 rounded-full transition-all ${i === activeSlide
-                                ? 'w-6 bg-[#22C55E]'
-                                : 'w-1.5 bg-[#F5F7F5]/40 hover:bg-[#F5F7F5]/60'
+                            className={`w-2 h-2 rounded-full transition-all ${i === activeSlide
+                                ? 'bg-[#22C55E]'
+                                : 'bg-[#F5F7F5]/30 hover:bg-[#F5F7F5]/60'
                                 }`}
                         />
                     ))}
@@ -51,7 +52,7 @@ function HeroBackground({ images }) {
     );
 }
 
-export default function Welcome({ canLogin, canRegister, previewGames, totalGamesCount }) {
+export default function Welcome({ auth, canLogin, canRegister, previewGames, totalGamesCount }) {
     const [activeStep, setActiveStep] = useState(0);
     const [legalModal, setLegalModal] = useState(null); // 'privacy' | 'terms' | null
 
@@ -120,16 +121,7 @@ export default function Welcome({ canLogin, canRegister, previewGames, totalGame
             <Head title="Welcome to Playscore" />
 
             {/* Navbar */}
-            <nav className="sticky top-0 z-40 bg-[#0B0F0D]/90 backdrop-blur-sm border-b border-[#1F2923]">
-                <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 h-16 flex items-center">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-md bg-[#22C55E] flex items-center justify-center">
-                            <span className="text-[#0B0F0D] font-bold text-sm">P</span>
-                        </div>
-                        <span className="text-[#F5F7F5] font-semibold text-lg">Playscore</span>
-                    </div>
-                </div>
-            </nav>
+            <PublicNavbar currentRoute="welcome" />
 
             {/* Hero */}
             <section
@@ -235,12 +227,12 @@ export default function Welcome({ canLogin, canRegister, previewGames, totalGame
                                     </button>
                                 </div>
 
-                                <div className="flex items-center gap-2 ml-3 sm:ml-4">
+                                <div className="flex items-center gap-1.5 ml-3 sm:ml-4">
                                     {steps.map((_, idx) => (
                                         <button
                                             key={idx}
                                             onClick={() => setActiveStep(idx)}
-                                            className={`h-2 rounded-full transition-all ${idx === activeStep ? 'w-6 sm:w-8 bg-[#16A34A]' : 'w-2 bg-[#CBD5E1] hover:bg-[#94A3B8]'}`}
+                                            className={`w-2 h-2 rounded-full transition-all ${idx === activeStep ? 'bg-[#16A34A]' : 'bg-[#CBD5E1] hover:bg-[#94A3B8]'}`}
                                         />
                                     ))}
                                 </div>
