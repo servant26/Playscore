@@ -33,19 +33,40 @@ class PasswordResetLinkController extends Controller
             'email' => 'required|email',
         ]);
 
-        // We will send the password reset link to this user. Once we have attempted
-        // to send the link, we will examine the response then see the message we
-        // need to show to the user. Finally, we'll send out a proper response.
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $user = \App\Models\User::where('email', $request->email)->first();
 
-        if ($status == Password::RESET_LINK_SENT) {
-            return back()->with('status', __($status));
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'email' => ['We could not find a user with that email address.'],
+            ]);
         }
 
-        throw ValidationException::withMessages([
-            'email' => [trans($status)],
+        $pendingRequest = \App\Models\PasswordResetRequest::where('email', $user->email)
+            ->where('status', 'pending')
+            ->first();
+
+        if ($pendingRequest) {
+            return back()->with(
+                'status',
+                'Your password reset request is currently pending Admin review. Please wait for Admin approval.'
+            );
+        }
+
+        // Clear any old approved requests for this email before creating a new one
+        \App\Models\PasswordResetRequest::where('email', $user->email)
+            ->where('status', 'approved')
+            ->delete();
+
+        // Create new pending request for Admin
+        \App\Models\PasswordResetRequest::create([
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'status' => 'pending',
         ]);
+
+        return back()->with(
+            'status',
+            'Password reset request submitted successfully! An Admin will review your request.'
+        );
     }
 }

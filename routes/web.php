@@ -51,4 +51,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/{user}/following', [App\Http\Controllers\FollowController::class, 'following'])->name('users.following');
 });
 
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
+    Route::post('/requests/{passwordResetRequest}/approve', [App\Http\Controllers\AdminController::class, 'approveRequest'])->name('requests.approve');
+    Route::post('/users/{user}/reset-password', [App\Http\Controllers\AdminController::class, 'resetUserPassword'])->name('users.reset-password');
+    Route::delete('/users/{user}', [App\Http\Controllers\AdminController::class, 'deleteUser'])->name('users.delete');
+});
+
 require __DIR__.'/auth.php';

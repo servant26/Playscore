@@ -19,7 +19,7 @@ class WelcomeController extends Controller
             $results = collect($popularResponse['results'] ?? [])
                 ->filter(fn ($item) => !empty($item['background_image']))
                 ->shuffle()
-                ->take(6);
+                ->take(7);
 
             $rawCount = $popularResponse['count'] ?? 870000;
             if ($rawCount >= 1000000) {
@@ -31,11 +31,13 @@ class WelcomeController extends Controller
             }
 
             $previewGames = $results->map(function ($item) {
+                $genreList = collect($item['genres'] ?? [])->pluck('name')->take(2)->join(', ');
                 return [
                     'external_id' => $item['id'],
                     'title' => $item['name'],
                     'cover_url' => $item['background_image'] ?? $item['background_image_additional'] ?? null,
                     'rawg_rating' => $item['rating'] ?? null,
+                    'genres' => $genreList,
                 ];
             })->values();
         } catch (\Throwable $e) {

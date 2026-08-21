@@ -92,13 +92,13 @@ export default function Welcome({ canLogin, canRegister, previewGames, totalGame
         {
             number: '01',
             title: 'Create your account',
-            description: 'Sign up in under a minute with just a username and email. Select your favorite gaming genres so Playscore can immediately tailor fresh recommendations specifically to your taste.',
+            description: 'Sign up in under a minute with just your username and email address. Select your favorite gaming genres and platforms so Playscore can immediately tailor fresh, accurate recommendations specifically to your unique gaming taste.',
             image: previewGames[0]?.cover_url || 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600&auto=format&fit=crop&q=80',
         },
         {
             number: '02',
             title: 'Browse & discover',
-            description: `Explore a vast catalog of over ${totalGamesCount ? totalGamesCount.replace('+', '') : '800K'} games across all platforms. Filter by trending titles, search your childhood favorites, watch official trailers, and build your custom game lists effortlessly.`,
+            description: `Explore a vast catalog of over ${totalGamesCount ? totalGamesCount.replace('+', '') : '800K'} games across all gaming platforms and retro consoles. Easily filter by trending titles, search for your all-time childhood favorites, watch official trailers, and build your custom game lists effortlessly.`,
             image: previewGames[1]?.cover_url || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&auto=format&fit=crop&q=80',
         },
         {
@@ -295,14 +295,15 @@ export default function Welcome({ canLogin, canRegister, previewGames, totalGame
                         </div>
 
                         {/* Responsive horizontal scroll slider on mobile/tablet, grid on desktop */}
-                        <div className="flex lg:grid lg:grid-cols-6 gap-3 sm:gap-4 overflow-x-auto pb-4 lg:pb-0 scrollbar-none snap-x snap-mandatory px-4 sm:px-6 lg:px-0 -mx-5 sm:-mx-8 lg:mx-0 scroll-px-4 sm:scroll-px-6">
+                        <div className="flex lg:grid lg:grid-cols-7 gap-3 sm:gap-4 overflow-x-auto pb-4 lg:pb-0 scrollbar-none snap-x snap-mandatory px-4 sm:px-6 lg:px-0 -mx-5 sm:-mx-8 lg:mx-0 scroll-px-4 sm:scroll-px-6">
                             <div className="flex-shrink-0 w-1 sm:w-2 lg:hidden" />
                             {previewGames.map((game) => (
                                 <div
                                     key={game.external_id}
-                                    className="group flex-shrink-0 w-32 sm:w-40 lg:w-auto bg-white border border-[#E2E8F0] rounded-xl overflow-hidden hover:bg-[#1E293B] hover:border-[#334155] transition duration-300 snap-start"
+                                    onClick={(e) => openTrailer(e, game.title)}
+                                    className="group flex-shrink-0 w-32 sm:w-40 lg:w-auto bg-[#0B0F0D] border border-[#CBD5E1] rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 snap-start cursor-pointer"
                                 >
-                                    <div className="relative aspect-[3/4] overflow-hidden">
+                                    <div className="relative aspect-[3/4] overflow-hidden bg-[#0B0F0D]">
                                         <img
                                             src={game.cover_url}
                                             alt={game.title}
@@ -311,24 +312,25 @@ export default function Welcome({ canLogin, canRegister, previewGames, totalGame
                                                     `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800"><rect width="100%" height="100%" fill="#131916"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#22C55E" font-family="sans-serif" font-size="24" font-weight="bold">${game.title.replace(/&/g, '&amp;')}</text></svg>`
                                                 )}`;
                                             }}
-                                            className="w-full h-full object-cover"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                                         />
                                         {game.rawg_rating && (
-                                            <div className="absolute top-1.5 right-1.5 bg-[#0B0F0D]/80 backdrop-blur-sm text-[#22C55E] text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 rounded-md">
+                                            <div className="absolute top-1.5 right-1.5 bg-[#0B0F0D]/80 backdrop-blur-sm text-[#22C55E] text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 rounded-md z-10">
                                                 ★ {Number(game.rawg_rating).toFixed(1)}
                                             </div>
                                         )}
-                                    </div>
-                                    <div className="p-2 sm:p-3">
-                                        <p className="text-[#0B0F0D] group-hover:text-white text-[11px] sm:text-xs font-semibold truncate mb-1.5 sm:mb-2 transition-colors">
-                                            {game.title}
-                                        </p>
-                                        <button
-                                            onClick={(e) => openTrailer(e, game.title)}
-                                            className="w-full rounded-md bg-white text-[#0B0F0D] text-[10px] sm:text-xs font-semibold py-1 transition border border-[#E2E8F0] hover:bg-[#F8FAFC]"
-                                        >
-                                            Trailer
-                                        </button>
+
+                                        {/* Hover Title & Genre Overlay */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F0D]/95 via-[#0B0F0D]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-3 sm:p-4 flex flex-col justify-end pointer-events-none">
+                                            <h3 className="text-[#F5F7F5] text-xs sm:text-sm font-bold line-clamp-2 leading-tight">
+                                                {game.title}
+                                            </h3>
+                                            {game.genres && (
+                                                <p className="text-[#22C55E] text-[11px] sm:text-xs font-medium truncate mt-1">
+                                                    {game.genres}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}

@@ -6,8 +6,14 @@ export default function ConfirmModal({
     onCancel,
     cancelLabel = 'Cancel',
     confirmLabel = 'Remove',
+    variant = 'danger',
 }) {
     if (!show) return null;
+
+    const buttonClass =
+        variant === 'success'
+            ? 'bg-[#22C55E] hover:bg-[#4ADE80] text-[#0B0F0D]'
+            : 'bg-[#DC2626] hover:bg-[#EF4444] text-white';
 
     return (
         <div
@@ -29,8 +35,7 @@ export default function ConfirmModal({
                     </button>
                     <button
                         onClick={onConfirm}
-                        style={{ backgroundColor: '#DC2626', color: '#FFFFFF' }}
-                        className="rounded-lg font-medium px-4 py-2 text-sm hover:opacity-90 transition"
+                        className={`rounded-lg font-semibold px-4 py-2 text-sm transition ${buttonClass}`}
                     >
                         {confirmLabel}
                     </button>
