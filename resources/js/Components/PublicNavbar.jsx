@@ -8,8 +8,8 @@ export default function PublicNavbar({ currentRoute = 'welcome', variant = 'dark
     const navLinks = [
         { name: 'Home', href: route('welcome'), id: 'welcome' },
         { name: 'About Us', href: route('about'), id: 'about' },
-        { name: 'Reviews', href: route('reviews.index'), id: 'reviews.index' },
-        { name: 'Blog', href: route('blog'), id: 'blog' },
+        { name: 'Community', href: route('reviews.index'), id: 'reviews.index' },
+        { name: 'News', href: route('blog'), id: 'blog' },
     ];
 
     return (
@@ -37,7 +37,7 @@ export default function PublicNavbar({ currentRoute = 'welcome', variant = 'dark
                 {/* Right side: Nav Links & Mobile Menu Toggle */}
                 <div className="flex items-center">
                     {/* Desktop Nav Links */}
-                    <div className="hidden md:flex items-center gap-10 lg:gap-12 text-sm font-medium">
+                    <div className="hidden md:flex items-center gap-8 lg:gap-10 text-sm font-medium">
                         {navLinks.map((link) => {
                             const isActive = currentRoute === link.id;
                             const textColor = isLight
@@ -65,6 +65,14 @@ export default function PublicNavbar({ currentRoute = 'welcome', variant = 'dark
                                 </a>
                             );
                         })}
+
+                        {/* Join with Us Button (Darkens on Hover) */}
+                        <Link
+                            href={route('login')}
+                            className="px-4 py-2 rounded-xl bg-[#22C55E] text-[#0B0F0D] font-bold text-xs hover:bg-[#16A34A] hover:text-white transition shadow-md shadow-[#22C55E]/20"
+                        >
+                            Join with Us
+                        </Link>
                     </div>
 
                     {/* Mobile menu button */}
@@ -118,6 +126,14 @@ export default function PublicNavbar({ currentRoute = 'welcome', variant = 'dark
                             </a>
                         );
                     })}
+
+                    <Link
+                        href={route('login')}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block w-full text-center px-4 py-2.5 rounded-xl bg-[#22C55E] text-[#0B0F0D] font-bold text-xs hover:bg-[#16A34A] hover:text-white transition shadow-md shadow-[#22C55E]/20 mt-2"
+                    >
+                        Join with Us
+                    </Link>
                 </div>
             )}
         </nav>

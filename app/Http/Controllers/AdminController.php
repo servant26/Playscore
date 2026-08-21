@@ -47,15 +47,19 @@ class AdminController extends Controller
                 ];
             });
 
+        $articles = \App\Models\Article::latest()->get();
+
         return Inertia::render('Admin/Dashboard', [
             'resetRequests' => $requests,
             'users' => $users,
+            'articles' => $articles,
             'stats' => [
                 'total_users' => User::where(function ($q) {
                     $q->where('role', '!=', 'admin')->orWhereNull('role');
                 })->count(),
                 'pending_requests' => PasswordResetRequest::where('status', 'pending')->count(),
                 'approved_requests' => PasswordResetRequest::where('status', 'approved')->count(),
+                'total_articles' => \App\Models\Article::count(),
             ],
         ]);
     }
