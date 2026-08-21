@@ -9,7 +9,7 @@ export default function PublicNavbar({ currentRoute = 'welcome', variant = 'dark
         { name: 'Home', href: route('welcome'), id: 'welcome' },
         { name: 'About Us', href: route('about'), id: 'about' },
         { name: 'Reviews', href: route('reviews.index'), id: 'reviews.index' },
-        { name: 'Blog', href: '#', id: 'blog' },
+        { name: 'Blog', href: route('blog'), id: 'blog' },
     ];
 
     return (
