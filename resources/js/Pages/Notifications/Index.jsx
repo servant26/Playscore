@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import { getAvatarUrl } from '@/Utils/avatar';
 
 export default function NotificationsIndex({ notifications, unreadCount }) {
     const handleMarkAllAsRead = () => {
@@ -96,13 +97,20 @@ export default function NotificationsIndex({ notifications, unreadCount }) {
                                             >
                                                 {userAvatar ? (
                                                     <img
-                                                        src={`/storage/${userAvatar}`}
+                                                        src={getAvatarUrl(userAvatar)}
                                                         alt={userName}
                                                         className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.target.style.display = 'none';
+                                                            if (e.target.nextSibling) {
+                                                                e.target.nextSibling.style.display = 'block';
+                                                            }
+                                                        }}
                                                     />
-                                                ) : (
-                                                    userName.slice(0, 2).toUpperCase()
-                                                )}
+                                                ) : null}
+                                                <span style={{ display: userAvatar ? 'none' : 'block' }}>
+                                                    {userName.slice(0, 2).toUpperCase()}
+                                                </span>
                                             </button>
 
                                             {/* Content */}

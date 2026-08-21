@@ -1,5 +1,6 @@
 import { Link, usePage, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import { getAvatarUrl } from '@/Utils/avatar';
 import RankUpModal from '@/Components/RankUpModal';
 
 export default function AppLayout({ children }) {
@@ -214,13 +215,20 @@ export default function AppLayout({ children }) {
                                                         >
                                                             {userAvatar ? (
                                                                 <img
-                                                                    src={`/storage/${userAvatar}`}
+                                                                    src={getAvatarUrl(userAvatar)}
                                                                     alt={userName}
                                                                     className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        e.target.style.display = 'none';
+                                                                        if (e.target.nextSibling) {
+                                                                            e.target.nextSibling.style.display = 'block';
+                                                                        }
+                                                                    }}
                                                                 />
-                                                            ) : (
-                                                                userName.slice(0, 2).toUpperCase()
-                                                            )}
+                                                            ) : null}
+                                                            <span style={{ display: userAvatar ? 'none' : 'block' }}>
+                                                                {userName.slice(0, 2).toUpperCase()}
+                                                            </span>
                                                         </button>
                                                         <div className="flex-1 min-w-0 pr-2">
                                                             <p className="text-[#F5F7F5] text-xs leading-relaxed">
@@ -279,13 +287,20 @@ export default function AppLayout({ children }) {
                                 <div className="w-9 h-9 rounded-full bg-[#131916] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-sm font-semibold overflow-hidden">
                                     {auth.user.avatar ? (
                                         <img
-                                            src={`/storage/${auth.user.avatar}`}
+                                            src={getAvatarUrl(auth.user.avatar)}
                                             alt={auth.user.name}
                                             className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                if (e.target.nextSibling) {
+                                                    e.target.nextSibling.style.display = 'block';
+                                                }
+                                            }}
                                         />
-                                    ) : (
-                                        initials
-                                    )}
+                                    ) : null}
+                                    <span style={{ display: auth.user.avatar ? 'none' : 'block' }}>
+                                        {initials}
+                                    </span>
                                 </div>
                                 <span className="text-[#F5F7F5] text-sm font-medium hidden sm:block">
                                     {auth.user.name}

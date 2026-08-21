@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
+import { getAvatarUrl } from '@/Utils/avatar';
 
 export default function FollowListModal({ show, type = 'followers', user, onClose }) {
     const [usersList, setUsersList] = useState([]);
@@ -133,13 +134,20 @@ export default function FollowListModal({ show, type = 'followers', user, onClos
                                     <div className="w-10 h-10 rounded-full bg-[#131916] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-xs font-semibold overflow-hidden shrink-0 group-hover:border-[#22C55E] transition">
                                         {u.avatar ? (
                                             <img
-                                                src={`/storage/${u.avatar}`}
+                                                src={getAvatarUrl(u.avatar)}
                                                 alt={u.name}
                                                 className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    if (e.target.nextSibling) {
+                                                        e.target.nextSibling.style.display = 'block';
+                                                    }
+                                                }}
                                             />
-                                        ) : (
-                                            u.name.slice(0, 2).toUpperCase()
-                                        )}
+                                        ) : null}
+                                        <span style={{ display: u.avatar ? 'none' : 'block' }}>
+                                            {u.name.slice(0, 2).toUpperCase()}
+                                        </span>
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <h4 className="text-[#F5F7F5] text-xs font-medium truncate group-hover:text-[#22C55E] transition">

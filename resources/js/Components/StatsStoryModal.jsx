@@ -28,7 +28,11 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
         ? [...reviews].sort((a, b) => Number(b.rating) - Number(a.rating))[0]
         : null;
 
-    const avatarUrl = user?.avatar ? `/storage/${user.avatar}` : null;
+    const avatarUrl = user?.avatar
+        ? (user.avatar.startsWith('http://') || user.avatar.startsWith('https://') || user.avatar.startsWith('data:')
+            ? user.avatar
+            : `/storage/${user.avatar}`)
+        : null;
     const initials = user?.name
         ? user.name
             .split(' ')

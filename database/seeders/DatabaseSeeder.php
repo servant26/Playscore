@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             InterestSeeder::class,
+            DummyUsersAndReviewsSeeder::class,
         ]);
     }
 }

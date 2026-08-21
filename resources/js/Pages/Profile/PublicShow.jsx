@@ -92,7 +92,15 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
         );
     };
 
-    const avatarUrl = profileUser.avatar ? `/storage/${profileUser.avatar}` : null;
+    const getAvatarUrl = (avatar) => {
+        if (!avatar) return null;
+        if (avatar.startsWith('http://') || avatar.startsWith('https://') || avatar.startsWith('data:')) {
+            return avatar;
+        }
+        return `/storage/${avatar}`;
+    };
+
+    const avatarUrl = getAvatarUrl(profileUser.avatar);
 
     const initials = profileUser.name
         .split(' ')
@@ -183,12 +191,20 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                                         src={avatarUrl}
                                         alt={profileUser.name}
                                         className="w-full h-full object-cover rounded-full"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            if (e.target.nextSibling) {
+                                                e.target.nextSibling.style.display = 'block';
+                                            }
+                                        }}
                                     />
-                                ) : (
-                                    <span className={hasUnviewedStories ? "text-[#22C55E]" : "text-[#8B948F]"}>
-                                        {initials}
-                                    </span>
-                                )}
+                                ) : null}
+                                <span
+                                    style={{ display: avatarUrl ? 'none' : 'block' }}
+                                    className={hasUnviewedStories ? "text-[#22C55E]" : "text-[#8B948F]"}
+                                >
+                                    {initials}
+                                </span>
                             </div>
                             {hasStories && (
                                 <span className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-[#0B0F0D] flex items-center justify-center text-[9px] font-bold ${
@@ -598,12 +614,17 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                                 src={avatarUrl}
                                 alt={profileUser.name}
                                 className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    if (e.target.nextSibling) {
+                                        e.target.nextSibling.style.display = 'block';
+                                    }
+                                }}
                             />
-                        ) : (
-                            <span className="text-[#22C55E] text-6xl font-bold">
-                                {initials || '?'}
-                            </span>
-                        )}
+                        ) : null}
+                        <span style={{ display: avatarUrl ? 'none' : 'block' }} className="text-[#22C55E] text-6xl font-bold">
+                            {initials || '?'}
+                        </span>
                     </div>
                 </div>
             </Modal>

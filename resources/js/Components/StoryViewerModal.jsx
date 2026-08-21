@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { router, usePage } from '@inertiajs/react';
 import { getRankInfo } from '@/Utils/rankSystem';
+import { getAvatarUrl } from '@/Utils/avatar';
 
 export default function StoryViewerModal({ show, stories = [], initialIndex = 0, onClose, onStoryViewed }) {
     const pageProps = usePage().props;
@@ -269,13 +270,20 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                             <div className="w-9 h-9 rounded-full bg-[#131916] border border-[#22C55E] transition flex items-center justify-center text-[#22C55E] font-medium text-xs overflow-hidden shrink-0 shadow-lg group-hover:border-white">
                                 {currentStory.user_avatar ? (
                                     <img
-                                        src={`/storage/${currentStory.user_avatar}`}
+                                        src={getAvatarUrl(currentStory.user_avatar)}
                                         alt={currentStory.user_name}
                                         className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            if (e.target.nextSibling) {
+                                                e.target.nextSibling.style.display = 'block';
+                                            }
+                                        }}
                                     />
-                                ) : (
-                                    currentStory.user_name.slice(0, 2).toUpperCase()
-                                )}
+                                ) : null}
+                                <span style={{ display: currentStory.user_avatar ? 'none' : 'block' }}>
+                                    {currentStory.user_name.slice(0, 2).toUpperCase()}
+                                </span>
                             </div>
                             <div>
                                 <h4 className="text-[#F5F7F5] font-medium text-xs sm:text-sm drop-shadow-md transition group-hover:text-[#22C55E]">

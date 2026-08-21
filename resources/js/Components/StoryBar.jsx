@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { getAvatarUrl } from '@/Utils/avatar';
 import { usePage } from '@inertiajs/react';
 import StoryViewerModal from '@/Components/StoryViewerModal';
+import Modal from '@/Components/Modal';
 
 export default function StoryBar({ myStories = [], followingStoryGroups = [], isInline = false, isVertical = false }) {
     const authUser = usePage().props.auth.user;
@@ -39,9 +41,13 @@ export default function StoryBar({ myStories = [], followingStoryGroups = [], is
     const anyGroupUnviewed = followingStoryGroups.some((g) => g.stories.some((s) => !viewedIds.includes(s.id)));
     const totalUsersWithStories = (hasMyStories ? 1 : 0) + followingStoryGroups.length;
 
+    const [showGuideModal, setShowGuideModal] = useState(false);
+
     const openMyStories = () => {
         if (hasMyStories) {
             setViewerState({ show: true, stories: myStories, index: 0 });
+        } else {
+            setShowGuideModal(true);
         }
     };
 
@@ -62,11 +68,10 @@ export default function StoryBar({ myStories = [], followingStoryGroups = [], is
                         <button
                             type="button"
                             onClick={openMyStories}
-                            disabled={!hasMyStories}
                             title="My Story"
                             className={`relative ${circleSize} rounded-full transition shrink-0 ${
                                 !hasMyStories
-                                    ? 'border-2 border-dashed border-[#1F2923] cursor-default opacity-80'
+                                    ? 'border-2 border-dashed border-[#1F2923] cursor-pointer hover:border-[#22C55E]/60 opacity-80'
                                     : myHasUnviewed
                                     ? 'p-[2px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC] cursor-pointer hover:opacity-100'
                                     : 'border-2 border-[#1F2923] cursor-pointer opacity-75 hover:opacity-100 hover:border-white'
@@ -75,15 +80,23 @@ export default function StoryBar({ myStories = [], followingStoryGroups = [], is
                             <div className="w-full h-full rounded-full bg-[#0B0F0D] p-[2px] flex items-center justify-center overflow-hidden">
                                 {authUser.avatar ? (
                                     <img
-                                        src={`/storage/${authUser.avatar}`}
+                                        src={getAvatarUrl(authUser.avatar)}
                                         alt={authUser.name}
                                         className="w-full h-full object-cover rounded-full"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            if (e.target.nextSibling) {
+                                                e.target.nextSibling.style.display = 'block';
+                                            }
+                                        }}
                                     />
-                                ) : (
-                                    <span className={myHasUnviewed ? "text-[#22C55E] text-xs sm:text-sm font-bold" : "text-[#8B948F] text-xs sm:text-sm font-bold"}>
-                                        {initials}
-                                    </span>
-                                )}
+                                ) : null}
+                                <span
+                                    style={{ display: authUser.avatar ? 'none' : 'block' }}
+                                    className={myHasUnviewed ? "text-[#22C55E] text-xs sm:text-sm font-bold" : "text-[#8B948F] text-xs sm:text-sm font-bold"}
+                                >
+                                    {initials}
+                                </span>
                             </div>
 
                             {hasMyStories ? (
@@ -138,15 +151,23 @@ export default function StoryBar({ myStories = [], followingStoryGroups = [], is
                                     <div className="w-full h-full rounded-full bg-[#0B0F0D] p-[2px] flex items-center justify-center overflow-hidden">
                                         {group.user_avatar ? (
                                             <img
-                                                src={`/storage/${group.user_avatar}`}
+                                                src={getAvatarUrl(group.user_avatar)}
                                                 alt={group.user_name}
                                                 className="w-full h-full object-cover rounded-full"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    if (e.target.nextSibling) {
+                                                        e.target.nextSibling.style.display = 'block';
+                                                    }
+                                                }}
                                             />
-                                        ) : (
-                                            <span className={groupHasUnviewed ? "text-[#22C55E] text-xs sm:text-sm font-bold" : "text-[#8B948F] text-xs sm:text-sm font-bold"}>
-                                                {storyInitials}
-                                            </span>
-                                        )}
+                                        ) : null}
+                                        <span
+                                            style={{ display: group.user_avatar ? 'none' : 'block' }}
+                                            className={groupHasUnviewed ? "text-[#22C55E] text-xs sm:text-sm font-bold" : "text-[#8B948F] text-xs sm:text-sm font-bold"}
+                                        >
+                                            {storyInitials}
+                                        </span>
                                     </div>
                                     {group.stories.length > 0 && (
                                         <span className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-[#0B0F0D] flex items-center justify-center text-[9px] font-bold ${
@@ -190,10 +211,9 @@ export default function StoryBar({ myStories = [], followingStoryGroups = [], is
                         <button
                             type="button"
                             onClick={openMyStories}
-                            disabled={!hasMyStories}
                             className={`relative ${circleSize} rounded-full transition shrink-0 ${
                                 !hasMyStories
-                                    ? 'border-2 border-dashed border-[#1F2923] cursor-default opacity-80'
+                                    ? 'border-2 border-dashed border-[#1F2923] cursor-pointer hover:border-[#22C55E]/60 opacity-80'
                                     : myHasUnviewed
                                     ? 'p-[2px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC] cursor-pointer hover:scale-105'
                                     : 'border-2 border-[#1F2923] cursor-pointer opacity-75 hover:scale-105'
@@ -202,15 +222,23 @@ export default function StoryBar({ myStories = [], followingStoryGroups = [], is
                             <div className="w-full h-full rounded-full bg-[#0B0F0D] p-[2px] flex items-center justify-center overflow-hidden">
                                 {authUser.avatar ? (
                                     <img
-                                        src={`/storage/${authUser.avatar}`}
+                                        src={getAvatarUrl(authUser.avatar)}
                                         alt={authUser.name}
                                         className="w-full h-full object-cover rounded-full"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            if (e.target.nextSibling) {
+                                                e.target.nextSibling.style.display = 'block';
+                                            }
+                                        }}
                                     />
-                                ) : (
-                                    <span className={myHasUnviewed ? "text-[#22C55E] text-xs sm:text-sm font-bold" : "text-[#8B948F] text-xs sm:text-sm font-bold"}>
-                                        {initials}
-                                    </span>
-                                )}
+                                ) : null}
+                                <span
+                                    style={{ display: authUser.avatar ? 'none' : 'block' }}
+                                    className={myHasUnviewed ? "text-[#22C55E] text-xs sm:text-sm font-bold" : "text-[#8B948F] text-xs sm:text-sm font-bold"}
+                                >
+                                    {initials}
+                                </span>
                             </div>
 
                             {hasMyStories ? (
@@ -260,15 +288,23 @@ export default function StoryBar({ myStories = [], followingStoryGroups = [], is
                                     <div className="w-full h-full rounded-full bg-[#0B0F0D] p-[2px] flex items-center justify-center overflow-hidden">
                                         {group.user_avatar ? (
                                             <img
-                                                src={`/storage/${group.user_avatar}`}
+                                                src={getAvatarUrl(group.user_avatar)}
                                                 alt={group.user_name}
                                                 className="w-full h-full object-cover rounded-full"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    if (e.target.nextSibling) {
+                                                        e.target.nextSibling.style.display = 'block';
+                                                    }
+                                                }}
                                             />
-                                        ) : (
-                                            <span className={groupHasUnviewed ? "text-[#22C55E] text-xs sm:text-sm font-bold" : "text-[#8B948F] text-xs sm:text-sm font-bold"}>
-                                                {storyInitials}
-                                            </span>
-                                        )}
+                                        ) : null}
+                                        <span
+                                            style={{ display: group.user_avatar ? 'none' : 'block' }}
+                                            className={groupHasUnviewed ? "text-[#22C55E] text-xs sm:text-sm font-bold" : "text-[#8B948F] text-xs sm:text-sm font-bold"}
+                                        >
+                                            {storyInitials}
+                                        </span>
                                     </div>
                                     {group.stories.length > 0 && (
                                         <span className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-[#0B0F0D] flex items-center justify-center text-[9px] font-bold ${
@@ -339,10 +375,9 @@ export default function StoryBar({ myStories = [], followingStoryGroups = [], is
                                         setShowMobileModal(false);
                                         openMyStories();
                                     }}
-                                    disabled={!hasMyStories}
                                     className={`relative w-14 h-14 rounded-full transition shrink-0 ${
                                         !hasMyStories
-                                            ? 'border-2 border-dashed border-[#1F2923] opacity-80'
+                                            ? 'border-2 border-dashed border-[#1F2923] cursor-pointer opacity-80'
                                             : myHasUnviewed
                                             ? 'p-[2px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC]'
                                             : 'border-2 border-[#1F2923] opacity-75'
@@ -351,15 +386,23 @@ export default function StoryBar({ myStories = [], followingStoryGroups = [], is
                                     <div className="w-full h-full rounded-full bg-[#0B0F0D] p-[2px] flex items-center justify-center overflow-hidden">
                                         {authUser.avatar ? (
                                             <img
-                                                src={`/storage/${authUser.avatar}`}
+                                                src={getAvatarUrl(authUser.avatar)}
                                                 alt={authUser.name}
                                                 className="w-full h-full object-cover rounded-full"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    if (e.target.nextSibling) {
+                                                        e.target.nextSibling.style.display = 'block';
+                                                    }
+                                                }}
                                             />
-                                        ) : (
-                                            <span className={myHasUnviewed ? "text-[#22C55E] text-xs font-bold" : "text-[#8B948F] text-xs font-bold"}>
-                                                {initials}
-                                            </span>
-                                        )}
+                                        ) : null}
+                                        <span
+                                            style={{ display: authUser.avatar ? 'none' : 'block' }}
+                                            className={myHasUnviewed ? "text-[#22C55E] text-xs font-bold" : "text-[#8B948F] text-xs font-bold"}
+                                        >
+                                            {initials}
+                                        </span>
                                     </div>
                                     {hasMyStories ? (
                                         <span className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-[#0B0F0D] flex items-center justify-center text-[10px] font-bold ${
@@ -408,15 +451,23 @@ export default function StoryBar({ myStories = [], followingStoryGroups = [], is
                                             <div className="w-full h-full rounded-full bg-[#0B0F0D] p-[2px] flex items-center justify-center overflow-hidden">
                                                 {group.user_avatar ? (
                                                     <img
-                                                        src={`/storage/${group.user_avatar}`}
+                                                        src={getAvatarUrl(group.user_avatar)}
                                                         alt={group.user_name}
                                                         className="w-full h-full object-cover rounded-full"
+                                                        onError={(e) => {
+                                                            e.target.style.display = 'none';
+                                                            if (e.target.nextSibling) {
+                                                                e.target.nextSibling.style.display = 'block';
+                                                            }
+                                                        }}
                                                     />
-                                                ) : (
-                                                    <span className={groupHasUnviewed ? "text-[#22C55E] text-xs font-bold" : "text-[#8B948F] text-xs font-bold"}>
-                                                        {storyInitials}
-                                                    </span>
-                                                )}
+                                                ) : null}
+                                                <span
+                                                    style={{ display: group.user_avatar ? 'none' : 'block' }}
+                                                    className={groupHasUnviewed ? "text-[#22C55E] text-xs font-bold" : "text-[#8B948F] text-xs font-bold"}
+                                                >
+                                                    {storyInitials}
+                                                </span>
                                             </div>
                                             {group.stories.length > 0 && (
                                                 <span className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-[#0B0F0D] flex items-center justify-center text-[9px] font-bold ${
@@ -436,6 +487,29 @@ export default function StoryBar({ myStories = [], followingStoryGroups = [], is
                     </div>
                 </div>
             )}
+
+            {/* Story Guide Modal */}
+            <Modal show={showGuideModal} onClose={() => setShowGuideModal(false)} maxWidth="lg">
+                <div className="bg-[#131916] border border-[#1F2923] p-8 sm:p-10 rounded-2xl shadow-2xl text-center">
+                    <h3 className="text-[#F5F7F5] font-bold text-xl sm:text-2xl mb-3">
+                        How to Create Your Story
+                    </h3>
+
+                    <p className="text-[#8B948F] text-sm sm:text-base leading-relaxed mb-8 max-w-lg mx-auto">
+                        Stories are generated automatically! To publish a story, you need to <span className="text-[#22C55E] font-semibold">write a game review</span> or <span className="text-[#22C55E] font-semibold">rank up your profile</span> by engaging with the community.
+                    </p>
+
+                    <div className="pt-2 max-w-xs mx-auto">
+                        <button
+                            type="button"
+                            onClick={() => setShowGuideModal(false)}
+                            className="w-full py-3 px-6 rounded-xl bg-[#22C55E] text-[#0B0F0D] text-sm font-bold hover:bg-[#16A34A] transition shadow-lg tracking-wide"
+                        >
+                            Got It, Let's Game!
+                        </button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Story Viewer Modal */}
             <StoryViewerModal

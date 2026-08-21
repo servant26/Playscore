@@ -91,8 +91,8 @@ class SearchController extends Controller
         $recommendedUsers = collect();
 
         if ($authUser) {
-            $myInterestIds = $authUser->interests()->pluck('interests.id')->toArray();
-            $myGameListIds = $authUser->gameList()->pluck('games.id')->toArray();
+            $myInterestIds = $authUser->interests()->pluck('interests.id')->map(fn($id) => (int)$id)->toArray();
+            $myGameListIds = $authUser->gameList()->pluck('games.id')->map(fn($id) => (int)$id)->toArray();
             $myReviewMap = $authUser->reviews()->pluck('rating', 'game_id')->toArray();
             $myReviewedGameIds = array_keys($myReviewMap);
 
@@ -107,12 +107,12 @@ class SearchController extends Controller
 
             $scoredCandidates = $candidates->map(function ($u) use ($authUser, $myInterestIds, $myGameListIds, $myReviewMap, $myReviewedGameIds) {
                 // Shared interests
-                $theirInterestIds = $u->interests->pluck('id')->toArray();
+                $theirInterestIds = $u->interests->pluck('id')->map(fn($id) => (int)$id)->toArray();
                 $sharedInterests = array_intersect($myInterestIds, $theirInterestIds);
                 $sharedInterestsCount = count($sharedInterests);
 
                 // Shared game list
-                $theirGameListIds = $u->gameList->pluck('id')->toArray();
+                $theirGameListIds = $u->gameList->pluck('id')->map(fn($id) => (int)$id)->toArray();
                 $sharedGameList = array_intersect($myGameListIds, $theirGameListIds);
                 $sharedGameListCount = count($sharedGameList);
 

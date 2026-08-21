@@ -6,6 +6,7 @@ import ConfirmModal from '@/Components/ConfirmModal';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { getFallbackImage } from '@/Utils/imageFallback';
+import { getAvatarUrl } from '@/Utils/avatar';
 
 export default function Show({ game, userReview, reviews, moreLikeThis = [], isInList, myListIds, reviewsCount, averageRating }) {
     const { auth } = usePage().props;
@@ -343,13 +344,20 @@ export default function Show({ game, userReview, reviews, moreLikeThis = [], isI
                                         >
                                             {review.user.avatar ? (
                                                 <img
-                                                    src={`/storage/${review.user.avatar}`}
+                                                    src={getAvatarUrl(review.user.avatar)}
                                                     alt={review.user.name}
                                                     className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        if (e.target.nextSibling) {
+                                                            e.target.nextSibling.style.display = 'block';
+                                                        }
+                                                    }}
                                                 />
-                                            ) : (
-                                                review.user.name.slice(0, 2).toUpperCase()
-                                            )}
+                                            ) : null}
+                                            <span style={{ display: review.user.avatar ? 'none' : 'block' }}>
+                                                {review.user.name.slice(0, 2).toUpperCase()}
+                                            </span>
                                         </div>
 
                                         <div className="flex-1 min-w-0">
