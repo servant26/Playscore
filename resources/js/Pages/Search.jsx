@@ -3,17 +3,30 @@ import RawgGameCard from '@/Components/RawgGameCard';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 
+const ITEMS_PER_PAGE = 10;
+
 export default function Search({ query, games = [], users = [], recommendedUsers = [] }) {
     const [activeTab, setActiveTab] = useState(() => {
         if (games.length === 0 && users.length > 0) return 'users';
         return 'games';
     });
 
+    const [userPage, setUserPage] = useState(1);
+    const [recPage, setRecPage] = useState(1);
+
     const goToProfile = (userId) => {
         router.get(route('users.show', userId));
     };
 
     const hasResults = games.length > 0 || users.length > 0;
+
+    // Searched Users Pagination
+    const totalUserPages = Math.ceil(users.length / ITEMS_PER_PAGE);
+    const paginatedUsers = users.slice((userPage - 1) * ITEMS_PER_PAGE, userPage * ITEMS_PER_PAGE);
+
+    // Recommended Users Pagination
+    const totalRecPages = Math.ceil(recommendedUsers.length / ITEMS_PER_PAGE);
+    const paginatedRecUsers = recommendedUsers.slice((recPage - 1) * ITEMS_PER_PAGE, recPage * ITEMS_PER_PAGE);
 
     return (
         <AppLayout>
@@ -84,76 +97,106 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                                 No users matching "{query}".
                             </div>
                         ) : (
-                            <div className="space-y-3 w-full">
-                                {users.map((user) => (
-                                    <div
-                                        key={user.id}
-                                        onClick={() => goToProfile(user.id)}
-                                        className="group cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3.5 sm:p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 hover:border-[#2E3A32] transition"
-                                    >
-                                        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                                            {/* Avatar */}
-                                            <div
-                                                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-sm sm:text-base font-semibold overflow-hidden shrink-0"
-                                                style={{ minWidth: '48px', minHeight: '48px' }}
-                                            >
-                                                {user.avatar ? (
-                                                    <img
-                                                        src={`/storage/${user.avatar}`}
-                                                        alt={user.name}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                ) : (
-                                                    user.name.slice(0, 2).toUpperCase()
-                                                )}
-                                            </div>
-
-                                            {/* Details */}
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="text-[#F5F7F5] text-sm sm:text-base font-medium truncate mb-1 group-hover:text-[#22C55E] transition">
-                                                    {user.name}
-                                                </h3>
-
-                                                <div className="flex flex-wrap items-center gap-2 text-xs">
-                                                    <span className="text-[#22C55E] font-medium bg-[#22C55E]/10 px-2 py-0.5 rounded">
-                                                        {user.total_reviews} {user.total_reviews === 1 ? 'Review' : 'Reviews'}
-                                                    </span>
-
-                                                    {user.top_genres && user.top_genres.length > 0 && (
-                                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                                            {user.top_genres.slice(0, 3).map((genre) => (
-                                                                <span
-                                                                    key={genre}
-                                                                    className="bg-[#1F2923] text-[#8B948F] text-[10px] sm:text-xs px-2 py-0.5 rounded-md font-medium"
-                                                                >
-                                                                    {genre}
-                                                                </span>
-                                                            ))}
-                                                        </div>
+                            <div className="space-y-4 w-full">
+                                <div className="space-y-3 w-full">
+                                    {paginatedUsers.map((user) => (
+                                        <div
+                                            key={user.id}
+                                            onClick={() => goToProfile(user.id)}
+                                            className="group cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3.5 sm:p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 hover:border-[#2E3A32] transition"
+                                        >
+                                            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                                                {/* Avatar */}
+                                                <div
+                                                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-sm sm:text-base font-semibold overflow-hidden shrink-0"
+                                                    style={{ minWidth: '48px', minHeight: '48px' }}
+                                                >
+                                                    {user.avatar ? (
+                                                        <img
+                                                            src={`/storage/${user.avatar}`}
+                                                            alt={user.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        user.name.slice(0, 2).toUpperCase()
                                                     )}
                                                 </div>
-                                            </div>
-                                        </div>
 
-                                        {/* Action Button */}
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                goToProfile(user.id);
-                                            }}
-                                            className="w-full sm:w-auto shrink-0 rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 py-2 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] hover:text-[#22C55E] transition text-center"
-                                        >
-                                            View Profile
-                                        </button>
+                                                {/* Details */}
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-[#F5F7F5] text-sm sm:text-base font-medium truncate mb-1 group-hover:text-[#22C55E] transition">
+                                                        {user.name}
+                                                    </h3>
+
+                                                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                                                        <span className="text-[#22C55E] font-medium bg-[#22C55E]/10 px-2 py-0.5 rounded">
+                                                            {user.total_reviews} {user.total_reviews === 1 ? 'Review' : 'Reviews'}
+                                                        </span>
+
+                                                        {user.top_genres && user.top_genres.length > 0 && (
+                                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                                {user.top_genres.slice(0, 3).map((genre) => (
+                                                                    <span
+                                                                        key={genre}
+                                                                        className="bg-[#1F2923] text-[#8B948F] text-[10px] sm:text-xs px-2 py-0.5 rounded-md font-medium"
+                                                                    >
+                                                                        {genre}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Action Button */}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    goToProfile(user.id);
+                                                }}
+                                                className="w-full sm:w-auto shrink-0 rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 py-2 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] hover:text-[#22C55E] transition text-center"
+                                            >
+                                                View Profile
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Pagination for Searched Users */}
+                                {totalUserPages > 1 && (
+                                    <div className="flex items-center justify-between pt-2 text-xs text-[#8B948F]">
+                                        <span>
+                                            Showing {((userPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(userPage * ITEMS_PER_PAGE, users.length)} of {users.length} users
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => setUserPage((p) => Math.max(1, p - 1))}
+                                                disabled={userPage === 1}
+                                                className="px-3 py-1.5 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] disabled:opacity-40 hover:border-[#22C55E] transition font-medium"
+                                            >
+                                                Previous
+                                            </button>
+                                            <span className="font-semibold text-[#F5F7F5]">
+                                                {userPage} / {totalUserPages}
+                                            </span>
+                                            <button
+                                                onClick={() => setUserPage((p) => Math.min(totalUserPages, p + 1))}
+                                                disabled={userPage === totalUserPages}
+                                                className="px-3 py-1.5 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] disabled:opacity-40 hover:border-[#22C55E] transition font-medium"
+                                            >
+                                                Next
+                                            </button>
+                                        </div>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         )
                     )}
                 </>
             )}
 
-            {/* Recommendations Section */}
+            {/* Recommended Users Section (Always visible) */}
             {recommendedUsers && recommendedUsers.length > 0 && (
                 <div className="mt-12 pt-8 border-t border-[#1F2923]">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
@@ -161,7 +204,7 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                             <h3 className="text-[#F5F7F5] text-lg font-bold flex items-center gap-2.5">
                                 <span>Recommended Users For You</span>
                                 <span className="text-xs bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] px-2.5 py-0.5 rounded-full font-semibold">
-                                    Top 10 Closest Taste
+                                    Closest Taste
                                 </span>
                             </h3>
                             <p className="text-[#8B948F] text-xs mt-1">
@@ -170,73 +213,105 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                         </div>
                     </div>
 
-                    <div className="space-y-3 w-full">
-                        {recommendedUsers.map((recUser, idx) => (
-                            <div
-                                key={recUser.id}
-                                onClick={() => goToProfile(recUser.id)}
-                                className="group cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3.5 sm:p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 hover:border-[#2E3A32] transition"
-                            >
-                                <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                                    {/* Rank Badge + Avatar */}
-                                    <div className="relative shrink-0">
-                                        <div
-                                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-sm sm:text-base font-semibold overflow-hidden"
-                                            style={{ minWidth: '48px', minHeight: '48px' }}
+                    <div className="space-y-4 w-full">
+                        <div className="space-y-3 w-full">
+                            {paginatedRecUsers.map((recUser, idx) => {
+                                const globalRank = ((recPage - 1) * ITEMS_PER_PAGE) + idx + 1;
+                                return (
+                                    <div
+                                        key={recUser.id}
+                                        onClick={() => goToProfile(recUser.id)}
+                                        className="group cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3.5 sm:p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 hover:border-[#2E3A32] transition"
+                                    >
+                                        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                                            {/* Rank Badge + Avatar */}
+                                            <div className="relative shrink-0">
+                                                <div
+                                                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-sm sm:text-base font-semibold overflow-hidden"
+                                                    style={{ minWidth: '48px', minHeight: '48px' }}
+                                                >
+                                                    {recUser.avatar ? (
+                                                        <img
+                                                            src={`/storage/${recUser.avatar}`}
+                                                            alt={recUser.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        recUser.name.slice(0, 2).toUpperCase()
+                                                    )}
+                                                </div>
+                                                <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-[#22C55E] text-[#0B0F0D] font-bold text-[10px] flex items-center justify-center shadow">
+                                                    #{globalRank}
+                                                </span>
+                                            </div>
+
+                                            {/* Details */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 flex-wrap mb-1">
+                                                    <h4 className="text-[#F5F7F5] text-sm sm:text-base font-medium truncate group-hover:text-[#22C55E] transition">
+                                                        {recUser.name}
+                                                    </h4>
+
+                                                    {/* Taste Match Badge */}
+                                                    <span className="bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                                        <span>{recUser.match_percentage}% Similar Taste</span>
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex flex-wrap items-center gap-2 text-xs text-[#8B948F]">
+                                                    <span className="bg-[#1F2923] text-[#8B948F] text-[10px] sm:text-xs px-2.5 py-0.5 rounded-md font-medium">
+                                                        {recUser.shared_interests_count} Shared {recUser.shared_interests_count === 1 ? 'Interest' : 'Interests'}
+                                                    </span>
+
+                                                    <span className="bg-[#1F2923] text-[#8B948F] text-[10px] sm:text-xs px-2.5 py-0.5 rounded-md font-medium">
+                                                        {recUser.shared_reviews_count} Shared {recUser.shared_reviews_count === 1 ? 'Review' : 'Reviews'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Button */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                goToProfile(recUser.id);
+                                            }}
+                                            className="w-full sm:w-auto shrink-0 rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 py-2 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] hover:text-[#22C55E] transition text-center"
                                         >
-                                            {recUser.avatar ? (
-                                                <img
-                                                    src={`/storage/${recUser.avatar}`}
-                                                    alt={recUser.name}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                recUser.name.slice(0, 2).toUpperCase()
-                                            )}
-                                        </div>
-                                        <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-[#22C55E] text-[#0B0F0D] font-bold text-[10px] flex items-center justify-center shadow">
-                                            #{idx + 1}
-                                        </span>
+                                            View Profile
+                                        </button>
                                     </div>
+                                );
+                            })}
+                        </div>
 
-                                    {/* Details */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                                            <h4 className="text-[#F5F7F5] text-sm sm:text-base font-medium truncate group-hover:text-[#22C55E] transition">
-                                                {recUser.name}
-                                            </h4>
-
-                                            {/* Taste Match Badge */}
-                                            <span className="bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                                                <span>⚡</span>
-                                                <span>{recUser.match_percentage}% Similar Taste</span>
-                                            </span>
-                                        </div>
-
-                                        <div className="flex flex-wrap items-center gap-2 text-xs text-[#8B948F]">
-                                            <span className="bg-[#1F2923] text-[#8B948F] text-[10px] sm:text-xs px-2.5 py-0.5 rounded-md font-medium">
-                                                {recUser.shared_interests_count} Shared {recUser.shared_interests_count === 1 ? 'Interest' : 'Interests'}
-                                            </span>
-
-                                            <span className="bg-[#1F2923] text-[#8B948F] text-[10px] sm:text-xs px-2.5 py-0.5 rounded-md font-medium">
-                                                {recUser.shared_reviews_count} Shared {recUser.shared_reviews_count === 1 ? 'Review' : 'Reviews'}
-                                            </span>
-                                        </div>
-                                    </div>
+                        {/* Pagination for Recommended Users */}
+                        {totalRecPages > 1 && (
+                            <div className="flex items-center justify-between pt-2 text-xs text-[#8B948F]">
+                                <span>
+                                    Showing {((recPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(recPage * ITEMS_PER_PAGE, recommendedUsers.length)} of {recommendedUsers.length} recommendations
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setRecPage((p) => Math.max(1, p - 1))}
+                                        disabled={recPage === 1}
+                                        className="px-3 py-1.5 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] disabled:opacity-40 hover:border-[#22C55E] transition font-medium"
+                                    >
+                                        Previous
+                                    </button>
+                                    <span className="font-semibold text-[#F5F7F5]">
+                                        {recPage} / {totalRecPages}
+                                    </span>
+                                    <button
+                                        onClick={() => setRecPage((p) => Math.min(totalRecPages, p + 1))}
+                                        disabled={recPage === totalRecPages}
+                                        className="px-3 py-1.5 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] disabled:opacity-40 hover:border-[#22C55E] transition font-medium"
+                                    >
+                                        Next
+                                    </button>
                                 </div>
-
-                                {/* Action Button */}
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        goToProfile(recUser.id);
-                                    }}
-                                    className="w-full sm:w-auto shrink-0 rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 py-2 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] hover:text-[#22C55E] transition text-center"
-                                >
-                                    View Profile
-                                </button>
                             </div>
-                        ))}
+                        )}
                     </div>
                 </div>
             )}

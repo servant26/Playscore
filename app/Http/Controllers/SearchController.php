@@ -46,8 +46,10 @@ class SearchController extends Controller
                 $games = collect();
             }
 
-            // 2. Search Users in Database
-            $users = User::where('id', '!=', auth()->id())
+            // 2. Search Users in Database (Exclude Admin)
+            $users = User::where(function ($q) {
+                    $q->where('role', '!=', 'admin')->orWhereNull('role');
+                })
                 ->where(function ($q) use ($query) {
                     $q->where('name', 'like', "%{$query}%")
                       ->orWhere('email', 'like', "%{$query}%");
@@ -84,7 +86,7 @@ class SearchController extends Controller
                 ->values();
         }
 
-        // 3. Compute 10 Closest Recommended Users based on interests, game list, & reviews
+        // 3. Compute 10 Closest Recommended Users based on interests, game list, & reviews (Exclude Admin)
         $authUser = auth()->user();
         $recommendedUsers = collect();
 
@@ -94,10 +96,10 @@ class SearchController extends Controller
             $myReviewMap = $authUser->reviews()->pluck('rating', 'game_id')->toArray();
             $myReviewedGameIds = array_keys($myReviewMap);
 
-            $searchedUserIds = $users->pluck('id')->toArray();
-
             $candidates = User::where('id', '!=', $authUser->id)
-                ->whereNotIn('id', $searchedUserIds)
+                ->where(function ($q) {
+                    $q->where('role', '!=', 'admin')->orWhereNull('role');
+                })
                 ->where('name', 'not like', '%test%')
                 ->where('email', 'not like', '%test%')
                 ->with(['interests', 'gameList', 'reviews.game.interests'])

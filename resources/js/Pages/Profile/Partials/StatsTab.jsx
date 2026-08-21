@@ -392,6 +392,7 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
                         </button>
 
                         <button
+                            type="button"
                             onClick={handleDownloadStats}
                             className="flex-1 sm:flex-none justify-center rounded-lg bg-[#131916] border border-[#22C55E] text-[#F5F7F5] hover:bg-[#22C55E] hover:text-[#0B0F0D] font-bold px-3.5 sm:px-4 py-2 text-xs sm:text-sm flex items-center gap-1.5 transition shadow-sm shrink-0"
                         >

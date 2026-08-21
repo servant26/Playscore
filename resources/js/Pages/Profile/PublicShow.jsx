@@ -4,15 +4,18 @@ import Modal from '@/Components/Modal';
 import FollowListTab from './Partials/FollowListTab';
 import StatsTab from './Partials/StatsTab';
 import StoryViewerModal from '@/Components/StoryViewerModal';
+import HighlightSection from '@/Components/HighlightSection';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useMemo, useRef, useEffect } from 'react';
 
 const PER_PAGE = 10;
 
-export default function PublicShow({ profileUser, userStories = [], interests = [], myInterestIds = [], myReviewedGameIds = [], reviews, myListIds, stats }) {
+export default function PublicShow({ profileUser, userStories = [], highlights = [], interests = [], myInterestIds = [], myReviewedGameIds = [], reviews, myListIds, stats }) {
     const [selectedReview, setSelectedReview] = useState(null);
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [showStoryViewer, setShowStoryViewer] = useState(false);
+    const [showHighlightViewer, setShowHighlightViewer] = useState(false);
+    const [highlightViewerStories, setHighlightViewerStories] = useState([]);
     const [showUnfollowConfirm, setShowUnfollowConfirm] = useState(false);
     const [listIds, setListIds] = useState(myListIds || []);
     const [search, setSearch] = useState('');
@@ -246,6 +249,19 @@ export default function PublicShow({ profileUser, userStories = [], interests = 
                         )}
                     </div>
                 )}
+
+                {/* Highlights Section (Above Gamer Rank / Profile Tabs) */}
+                <div className="mb-2">
+                    <HighlightSection
+                        highlights={highlights}
+                        isOwner={isOwner}
+                        myStories={userStories}
+                        onSelectHighlight={(hl) => {
+                            setHighlightViewerStories(hl.stories || []);
+                            setShowHighlightViewer(true);
+                        }}
+                    />
+                </div>
 
                 {/* Profile Tabs Header Navigation */}
                 <div className="flex border-b border-[#1F2923] mb-6 overflow-x-auto scrollbar-none">
@@ -634,6 +650,14 @@ export default function PublicShow({ profileUser, userStories = [], interests = 
                 initialIndex={0}
                 onClose={() => setShowStoryViewer(false)}
                 onStoryViewed={handleStoryViewed}
+            />
+
+            {/* Highlight Story Viewer Modal */}
+            <StoryViewerModal
+                show={showHighlightViewer}
+                stories={highlightViewerStories}
+                initialIndex={0}
+                onClose={() => setShowHighlightViewer(false)}
             />
         </AppLayout>
     );
