@@ -42,7 +42,7 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
     const tickerList = [...displayedReviews, ...displayedReviews];
 
     return (
-        <div className="h-screen bg-[#0B0F0D] flex flex-col overflow-hidden">
+        <div className="min-h-screen lg:h-screen bg-[#0B0F0D] flex flex-col lg:overflow-hidden">
             <Head title="Community Reviews - Playscore" />
 
             {/* Custom CSS Keyframes & Smooth Dark Scrollbar Styling */}
@@ -55,11 +55,13 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
                         transform: translateY(-50%);
                     }
                 }
-                .animate-vertical-ticker {
-                    animation: verticalTicker 35s linear infinite;
-                }
-                .animate-vertical-ticker:hover {
-                    animation-play-state: paused;
+                @media (min-width: 1024px) {
+                    .animate-vertical-ticker {
+                        animation: verticalTicker 35s linear infinite !important;
+                    }
+                    .animate-vertical-ticker:hover {
+                        animation-play-state: paused !important;
+                    }
                 }
 
                 /* Custom Smooth Dark Scrollbar for Top Rated List */
@@ -86,35 +88,34 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
             {/* Dark Navbar */}
             <PublicNavbar currentRoute="reviews.index" variant="dark" />
 
-            {/* Cover Layout Setinggi Layar (100vh - 64px) */}
+            {/* Cover Layout (Exact 100vh - 64px height on PC desktop, responsive scroll on mobile/tablet) */}
             <main
-                className="flex-1 w-full max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 py-6 flex flex-col lg:flex-row gap-8 lg:gap-12 overflow-hidden"
-                style={{ height: 'calc(100vh - 64px)' }}
+                className="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 py-6 flex flex-col lg:flex-row gap-6 lg:gap-12 lg:h-[calc(100vh-64px)] lg:overflow-hidden"
             >
-                {/* KIRI: Deskripsi & Filter (Vertically Centered in Fixed Box) */}
-                <div className="lg:w-5/12 flex flex-col justify-center bg-[#0E1411] border border-[#1F2923] rounded-3xl p-8 sm:p-10 text-[#F5F7F5] shrink-0 h-full overflow-hidden">
-                    <div className="space-y-8">
+                {/* KIRI: Deskripsi & Filter (Vertically Centered on PC) */}
+                <div className="lg:w-5/12 flex flex-col justify-center bg-[#0E1411] border border-[#1F2923] rounded-3xl p-6 sm:p-8 lg:p-10 text-[#F5F7F5] shrink-0 lg:h-full overflow-hidden">
+                    <div className="space-y-6 sm:space-y-8">
                         <div>
-                            <span className="text-[#22C55E] text-xs font-semibold uppercase tracking-wider bg-[#22C55E]/10 px-3.5 py-1.5 rounded-full border border-[#22C55E]/20 inline-block mb-6">
+                            <span className="text-[#22C55E] text-xs font-semibold uppercase tracking-wider bg-[#22C55E]/10 px-3.5 py-1.5 rounded-full border border-[#22C55E]/20 inline-block mb-4 sm:mb-6">
                                 Community Critiques
                             </span>
-                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+                            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-3 sm:mb-6 leading-tight">
                                 Community Reviews
                             </h1>
-                            <p className="text-[#8B948F] text-base leading-relaxed">
+                            <p className="text-[#8B948F] text-xs sm:text-base leading-relaxed">
                                 Honest written reviews and 0–10 score ratings shared by real gamers in the community.
                             </p>
                         </div>
 
                         {/* Filter Switcher Buttons */}
-                        <div className="space-y-3 pt-6 border-t border-[#1F2923]">
+                        <div className="space-y-3 pt-4 sm:pt-6 border-t border-[#1F2923]">
                             <span className="text-xs font-semibold uppercase tracking-wider text-[#8B948F] block mb-2">
                                 Filter Reviews:
                             </span>
-                            <div className="flex flex-col gap-3">
+                            <div className="flex flex-row sm:flex-col gap-3">
                                 <button
                                     onClick={() => handleFilterChange('all')}
-                                    className={`w-full text-left px-5 py-3.5 rounded-xl text-xs sm:text-sm font-semibold transition ${
+                                    className={`flex-1 sm:w-full text-center sm:text-left px-4 sm:px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold transition ${
                                         filter === 'all'
                                             ? 'bg-[#22C55E] text-[#0B0F0D]'
                                             : 'bg-[#161F1A] text-[#8B948F] hover:text-[#F5F7F5] hover:bg-[#1F2923]'
@@ -124,7 +125,7 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
                                 </button>
                                 <button
                                     onClick={() => handleFilterChange('highest')}
-                                    className={`w-full text-left px-5 py-3.5 rounded-xl text-xs sm:text-sm font-semibold transition ${
+                                    className={`flex-1 sm:w-full text-center sm:text-left px-4 sm:px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold transition ${
                                         filter === 'highest'
                                             ? 'bg-[#22C55E] text-[#0B0F0D]'
                                             : 'bg-[#161F1A] text-[#8B948F] hover:text-[#F5F7F5] hover:bg-[#1F2923]'
@@ -138,24 +139,24 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
                 </div>
 
                 {/* KANAN: Content area */}
-                <div className="lg:w-7/12 h-full overflow-hidden relative">
+                <div className="lg:w-7/12 h-[550px] lg:h-full overflow-hidden relative rounded-3xl lg:rounded-none">
                     {filter === 'all' ? (
-                        /* Latest Reviews: Animated Ascending Ticker */
-                        <>
-                            <div className="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-[#0B0F0D] to-transparent z-10 pointer-events-none" />
-                            <div className="absolute bottom-0 inset-x-0 h-12 bg-gradient-to-t from-[#0B0F0D] to-transparent z-10 pointer-events-none" />
+                        /* Latest Reviews: Animated Ticker on PC Desktop, Normal Scroll on Mobile/Tablet */
+                        <div className="h-full overflow-y-auto lg:overflow-hidden relative scrollbar-none">
+                            <div className="hidden lg:block absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-[#0B0F0D] to-transparent z-20 pointer-events-none" />
+                            <div className="hidden lg:block absolute bottom-0 inset-x-0 h-12 bg-gradient-to-t from-[#0B0F0D] to-transparent z-20 pointer-events-none" />
 
                             <div className="animate-vertical-ticker space-y-4">
                                 {tickerList.map((rev, index) => (
                                     <div
                                         key={`${rev.id}-${index}`}
                                         onClick={() => handleCardClick(rev)}
-                                        className="bg-[#0E1411] border border-[#1F2923] rounded-2xl p-6 flex flex-col justify-between hover:border-[#22C55E]/60 hover:bg-[#161F1A] transition-all group cursor-pointer"
+                                        className="bg-[#0E1411] border border-[#1F2923] rounded-2xl p-5 sm:p-6 flex flex-col justify-between hover:border-[#22C55E]/60 hover:bg-[#161F1A] transition-all group cursor-pointer"
                                     >
                                         <div>
                                             {/* Header: Game Info & Score */}
-                                            <div className="flex items-start gap-4 mb-3">
-                                                <div className="w-16 h-20 rounded-xl overflow-hidden bg-[#161F1A] shrink-0 border border-[#1F2923]">
+                                            <div className="flex items-start gap-3 sm:gap-4 mb-3">
+                                                <div className="w-14 sm:w-16 h-18 sm:h-20 rounded-xl overflow-hidden bg-[#161F1A] shrink-0 border border-[#1F2923]">
                                                     <img
                                                         src={rev.game_cover}
                                                         alt={rev.game_title}
@@ -163,17 +164,17 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
                                                     />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <h3 className="font-bold text-lg text-[#F5F7F5] truncate group-hover:text-[#22C55E] transition-colors mb-1.5">
+                                                    <h3 className="font-bold text-base sm:text-lg text-[#F5F7F5] truncate group-hover:text-[#22C55E] transition-colors mb-1">
                                                         {rev.game_title}
                                                     </h3>
-                                                    <div className="inline-flex items-center gap-1.5 bg-[#22C55E]/10 border border-[#22C55E]/20 px-3 py-1 rounded-lg text-xs font-bold text-[#22C55E]">
+                                                    <div className="inline-flex items-center gap-1.5 bg-[#22C55E]/10 border border-[#22C55E]/20 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg text-xs font-bold text-[#22C55E]">
                                                         <span>Score: {rev.rating} / 10</span>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Review Body Truncated */}
-                                            <p className="text-sm text-[#8B948F] leading-relaxed italic mb-3 line-clamp-3">
+                                            <p className="text-xs sm:text-sm text-[#8B948F] leading-relaxed italic mb-3 line-clamp-3">
                                                 "{rev.body}"
                                             </p>
                                             <span className="text-xs text-[#22C55E] font-semibold hover:underline inline-block mb-3">
@@ -200,20 +201,20 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
                                     </div>
                                 ))}
                             </div>
-                        </>
+                        </div>
                     ) : (
                         /* Top Rated First: Custom Smooth Dark Scrollbar List */
-                        <div className="h-full overflow-y-auto pr-3 space-y-4 custom-smooth-scrollbar">
+                        <div className="h-full overflow-y-auto pr-2 sm:pr-3 space-y-4 custom-smooth-scrollbar">
                             {displayedReviews.map((rev) => (
                                 <div
                                     key={rev.id}
+                                    className="bg-[#0E1411] border border-[#1F2923] rounded-2xl p-5 sm:p-6 flex flex-col justify-between hover:border-[#22C55E]/60 hover:bg-[#161F1A] transition-all group cursor-pointer"
                                     onClick={() => handleCardClick(rev)}
-                                    className="bg-[#0E1411] border border-[#1F2923] rounded-2xl p-6 flex flex-col justify-between hover:border-[#22C55E]/60 hover:bg-[#161F1A] transition-all group cursor-pointer"
                                 >
                                     <div>
                                         {/* Header: Game Info & Score */}
-                                        <div className="flex items-start gap-4 mb-3">
-                                            <div className="w-16 h-20 rounded-xl overflow-hidden bg-[#161F1A] shrink-0 border border-[#1F2923]">
+                                        <div className="flex items-start gap-3 sm:gap-4 mb-3">
+                                            <div className="w-14 sm:w-16 h-18 sm:h-20 rounded-xl overflow-hidden bg-[#161F1A] shrink-0 border border-[#1F2923]">
                                                 <img
                                                     src={rev.game_cover}
                                                     alt={rev.game_title}
@@ -221,17 +222,17 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
                                                 />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="font-bold text-lg text-[#F5F7F5] truncate group-hover:text-[#22C55E] transition-colors mb-1.5">
+                                                <h3 className="font-bold text-base sm:text-lg text-[#F5F7F5] truncate group-hover:text-[#22C55E] transition-colors mb-1">
                                                     {rev.game_title}
                                                 </h3>
-                                                <div className="inline-flex items-center gap-1.5 bg-[#22C55E]/10 border border-[#22C55E]/20 px-3 py-1 rounded-lg text-xs font-bold text-[#22C55E]">
+                                                <div className="inline-flex items-center gap-1.5 bg-[#22C55E]/10 border border-[#22C55E]/20 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg text-xs font-bold text-[#22C55E]">
                                                     <span>Score: {rev.rating} / 10</span>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Review Body Truncated */}
-                                        <p className="text-sm text-[#8B948F] leading-relaxed italic mb-3 line-clamp-3">
+                                        <p className="text-xs sm:text-sm text-[#8B948F] leading-relaxed italic mb-3 line-clamp-3">
                                             "{rev.body}"
                                         </p>
                                         <span className="text-xs text-[#22C55E] font-semibold hover:underline inline-block mb-3">
