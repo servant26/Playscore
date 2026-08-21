@@ -12,4 +12,9 @@ class BlogController extends Controller
     {
         return Inertia::render('Blog');
     }
+
+    public function show(Request $request, $id): Response
+    {
+        return Inertia::render('BlogDetail', ['id' => $id]);
+    }
 }
