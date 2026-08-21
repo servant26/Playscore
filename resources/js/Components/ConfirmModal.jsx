@@ -4,11 +4,16 @@ export default function ConfirmModal({
     message,
     onConfirm,
     onCancel,
+    onClose,
     cancelLabel = 'Cancel',
-    confirmLabel = 'Remove',
+    confirmLabel,
+    confirmText,
     variant = 'danger',
 }) {
     if (!show) return null;
+
+    const handleClose = onCancel || onClose;
+    const finalConfirmText = confirmText || confirmLabel || 'Remove';
 
     const buttonClass =
         variant === 'success'
@@ -18,7 +23,7 @@ export default function ConfirmModal({
     return (
         <div
             className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4"
-            onClick={onCancel}
+            onClick={handleClose}
         >
             <div
                 className="bg-[#131916] border border-[#1F2923] rounded-xl p-6 max-w-sm w-full"
@@ -28,7 +33,7 @@ export default function ConfirmModal({
                 <p className="text-[#8B948F] text-sm mb-6">{message}</p>
                 <div className="flex justify-end gap-3">
                     <button
-                        onClick={onCancel}
+                        onClick={handleClose}
                         className="rounded-lg border border-[#1F2923] text-[#8B948F] px-4 py-2 text-sm hover:border-[#2E3A32] transition"
                     >
                         {cancelLabel}
@@ -37,7 +42,7 @@ export default function ConfirmModal({
                         onClick={onConfirm}
                         className={`rounded-lg font-semibold px-4 py-2 text-sm transition ${buttonClass}`}
                     >
-                        {confirmLabel}
+                        {finalConfirmText}
                     </button>
                 </div>
             </div>

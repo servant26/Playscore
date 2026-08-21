@@ -68,6 +68,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/requests/{passwordResetRequest}/approve', [App\Http\Controllers\AdminController::class, 'approveRequest'])->name('requests.approve');
     Route::post('/users/{user}/reset-password', [App\Http\Controllers\AdminController::class, 'resetUserPassword'])->name('users.reset-password');
     Route::delete('/users/{user}', [App\Http\Controllers\AdminController::class, 'deleteUser'])->name('users.delete');
+
+    // Article Management Routes
+    Route::resource('articles', App\Http\Controllers\Admin\AdminArticleController::class)->except(['show']);
+    Route::patch('/articles/{article}/toggle-status', [App\Http\Controllers\Admin\AdminArticleController::class, 'toggleStatus'])->name('articles.toggle-status');
 });
 
 require __DIR__.'/auth.php';

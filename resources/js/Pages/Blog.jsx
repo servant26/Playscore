@@ -1,8 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import PublicNavbar from '@/Components/PublicNavbar';
+import PublicFooter from '@/Components/PublicFooter';
 
-export default function Blog() {
+export default function Blog({ dbArticles = [] }) {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -10,178 +11,160 @@ export default function Blog() {
 
     const categories = ['All', 'PC', 'PlayStation', 'Xbox', 'Nintendo Switch'];
 
-    // Recommended Articles Mock Data
-    const heroArticle = {
-        id: 1,
-        title: "Valorant Twitch Streamers Are Gaming The System With 24/7 Streams That Back Up Viewers Desperate For Beta Keys",
-        description: "If you take a look at many of Twitch's top Valorant streams right now, you'll notice that they claim to be running 24/7...",
-        publisher: "KOTAKU",
-        publisherLogo: "K",
-        publisherBg: "bg-amber-500",
-        category: "PC",
-        image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
-        tagImage: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?auto=format&fit=crop&w=400&q=80",
-    };
-
-    const sideArticles = [
-        {
-            id: 2,
-            title: "Fortnite Features, And Facilities",
-            description: "Discover all the latest gameplay updates, island features, and competitive facilities added in the new season...",
-            publisher: "IGN",
-            category: "Nintendo Switch",
-            image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80",
-        },
-        {
-            id: 3,
-            title: "Guerrilla Games Work At Horizon Zero Dawn Sequel...",
-            description: "Guerrilla Games continues expanding Aloy's story with groundbreaking next-gen graphics and new machines...",
-            publisher: "USGAMER",
-            category: "PlayStation",
-            image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80",
-        },
-    ];
-
-    // Expanded What's New Articles Mock Data for Pagination & Search Testing
-    const whatsNewArticles = [
+    // 9 Real Curated Indonesian Gaming & Esports News Articles
+    const mockArticles = [
         {
             id: 101,
-            title: "Two Destiny 2 Exotics Disabled Due To Exploits--Again",
-            description: "If you've been enjoying the increased melee damage associated with certain Exotic gauntlets in Destiny 2, we have some very...",
-            publisher: "KOTAKU",
-            publisherBg: "bg-amber-500",
-            category: "PC",
-            image: "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?auto=format&fit=crop&w=600&q=80",
+            title: "Rockstar Siapkan 'GTA VI: An Extended Look' Tayang Perdana di Netflix Akhir Agustus 2026",
+            description: "Rockstar Games mengonfirmasi penayangan perdana trailer gameplay mendalam GTA 6 yang memperlihatkan peta Leonida dan aksi Lucia & Jason secara eksklusif...",
+            publisher: "Medcom.id",
+            publisherBg: "bg-red-600 text-white",
+            category: "PlayStation",
+            image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
+            tags: ["#GTA6", "#RockstarGames", "#BeritaGame", "#PS5"],
         },
         {
             id: 102,
-            title: "Fortnite Chapter 2: Season 2 Extended Until June",
-            description: "Epic has announced that Fortnite Chapter 2: Season 2 has been extended until June.",
-            publisher: "IGN",
-            publisherBg: "bg-red-500",
-            category: "Nintendo Switch",
-            image: "https://images.unsplash.com/photo-1580234811497-9df7fd2f357e?auto=format&fit=crop&w=600&q=80",
+            title: "MPL ID Season 18 Resmi Dimulai: Babak Playoffs Siap Digelar di Surabaya Jawa Timur",
+            description: "Kompetisi teratas Mobile Legends Indonesia resmi bergulir. Musim ini membawa pertarungan sengit antar tim pro menuju trofi juara di Surabaya...",
+            publisher: "Detik.com",
+            publisherBg: "bg-blue-600 text-white",
+            category: "PC",
+            image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80",
+            tags: ["#MPLID", "#MobileLegends", "#EsportsIndonesia", "#MLBB"],
         },
         {
             id: 103,
-            title: "Ghost Of Tsushima Won't Have Waypoints",
-            description: "You're just gonna have to figure it out.",
-            publisher: "USGAMER",
-            publisherBg: "bg-sky-500",
-            category: "PlayStation",
-            image: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=600&q=80",
+            title: "Monster Hunter Wilds Patch Update Ver.1.042 Hadirkan Optimalisasi Framerate Raid Multiplayer",
+            description: "Capcom merilis pembaruan performa besar untuk PC dan konsol guna mengatasi masalah performa saat berburu monster raksasa secara co-op...",
+            publisher: "Duniagames",
+            publisherBg: "bg-amber-500 text-black",
+            category: "PC",
+            image: "https://images.unsplash.com/photo-1580234811497-9df7fd2f357e?auto=format&fit=crop&w=600&q=80",
+            tags: ["#MonsterHunterWilds", "#Capcom", "#PCGaming"],
         },
         {
             id: 104,
-            title: "Industries Of Titan Lets You Build The Gloomy Cyberpunk City Of Your Dreams",
-            description: "Depending on what sort of mood you're in, Industries of Titan could be one to watch for or something to obsessively sink into...",
-            publisher: "DESTRUCTOID",
-            publisherBg: "bg-emerald-500",
+            title: "Game Lokal Indonesia 'Riftstorm' dan 'Montabi' Resmi Rilis Global di Steam",
+            description: "Developer game asal Indonesia kembali unjuk gigi di kancah internasional dengan meluncurkan game roguelite action dan petualangan terbaru di Steam...",
+            publisher: "Medcom.id",
+            publisherBg: "bg-red-600 text-white",
             category: "PC",
-            image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80",
+            image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80",
+            tags: ["#GameLokal", "#GameIndonesia", "#Steam", "#IndieGame"],
         },
         {
             id: 105,
-            title: "Infinity Ward Cracks Down On Cheaters In Modern Warfare And Warzone",
-            description: "Hackers will now be going head-to-head in Call of Duty: Modern Warfare and Warzone, according to new details Infinity Ward revealed about combating cheaters...",
-            publisher: "KOTAKU",
-            publisherBg: "bg-amber-500",
-            category: "Xbox",
-            image: "https://images.unsplash.com/photo-1542751110-97427bbecf20?auto=format&fit=crop&w=600&q=80",
+            title: "PMPL ID Fall 2026 Memasuki Minggu Penentuan Menuju Panggung PMGC Turki",
+            description: "Tim-tim esports PUBG Mobile terbaik Indonesia saling sikut memperebutkan tiket puncak menuju kejuaraan dunia PMGC 2026...",
+            publisher: "Detik.com",
+            publisherBg: "bg-blue-600 text-white",
+            category: "PC",
+            image: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=600&q=80",
+            tags: ["#PMPLID", "#PUBGMobile", "#Esports", "#PMGC2026"],
         },
         {
             id: 106,
-            title: "Cyberpunk 2077 Night City Wire Episode Revealed",
-            description: "CD Projekt Red announces a special broadcast event delving deeper into the lore and mechanics of Cyberpunk 2077...",
-            publisher: "IGN",
-            publisherBg: "bg-red-500",
-            category: "PC",
-            image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
+            title: "Elden Ring: Tarnished Edition Diumumkan untuk Peluncuran Nintendo Switch 2",
+            description: "FromSoftware menghadirkan paket komplit game RPG terbaiknya beserta ekspansi Shadow of the Erdtree untuk konsol handheld generasi terbaru...",
+            publisher: "Duniagames",
+            publisherBg: "bg-amber-500 text-black",
+            category: "Nintendo Switch",
+            image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80",
+            tags: ["#EldenRing", "#Switch2", "#FromSoftware", "#RPG"],
         },
         {
             id: 107,
-            title: "PlayStation 5 Showcase: Everything Announced",
-            description: "Sony revealed groundbreaking first-party titles, hardware details, and upcoming exclusive games for PS5...",
-            publisher: "USGAMER",
-            publisherBg: "bg-sky-500",
-            category: "PlayStation",
-            image: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=600&q=80",
+            title: "Valorant Season 2026 Act 5 Rilis Skin Bundle 'Aeris' dan Kembalinya Map Abyss",
+            description: "Riot Games memberikan pembaruan besar untuk skena kompetitif Valorant dengan rotasi map anyar serta jajaran skin eksklusif terbaru...",
+            publisher: "Medcom.id",
+            publisherBg: "bg-red-600 text-white",
+            category: "PC",
+            image: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=600&q=80",
+            tags: ["#VALORANT", "#RiotGames", "#TacticalShooter", "#Esports"],
         },
         {
             id: 108,
-            title: "Xbox Game Pass Adds Major AAA Franchises",
-            description: "Microsoft expands its subscription catalog with critically acclaimed titles available day one for console and PC members...",
-            publisher: "DESTRUCTOID",
-            publisherBg: "bg-emerald-500",
-            category: "Xbox",
+            title: "Metal Gear Solid: Master Collection Vol. 2 Rilis 27 Agustus, Bawa MGS4 dan Peace Walker",
+            description: "Konami memboyong seri legendaris Metal Gear Solid 4 dan Peace Walker HD ke platform konsol modern dan PC dengan peningkatan grafis...",
+            publisher: "Detik.com",
+            publisherBg: "bg-blue-600 text-white",
+            category: "PlayStation",
             image: "https://images.unsplash.com/photo-1621259182978-fbf93132d53d?auto=format&fit=crop&w=600&q=80",
+            tags: ["#MetalGearSolid", "#Konami", "#MGS4", "#PS5"],
         },
         {
             id: 109,
-            title: "The Legend of Zelda: Tears of the Kingdom Gameplay Breakdown",
-            description: "Nintendo shows off new building mechanics and sky island exploration features coming in the next Zelda installment...",
-            publisher: "IGN",
-            publisherBg: "bg-red-500",
-            category: "Nintendo Switch",
-            image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80",
-        },
-        {
-            id: 110,
-            title: "Elden Ring DLC Shadow of the Erdtree Teased",
-            description: "FromSoftware officially unveils expansion plans for its award-winning action RPG Elden Ring...",
-            publisher: "KOTAKU",
-            publisherBg: "bg-amber-500",
-            category: "PC",
-            image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80",
-        },
-        {
-            id: 111,
-            title: "Hollow Knight: Silksong New Gameplay Impressions",
-            description: "Team Cherry gives a fresh look at Hornet's agile moveset and intricate world design in Silksong...",
-            publisher: "DESTRUCTOID",
-            publisherBg: "bg-emerald-500",
-            category: "Nintendo Switch",
-            image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80",
-        },
-        {
-            id: 112,
-            title: "Starfield Constellation Edition Announced",
-            description: "Bethesda reveals collector details, ship customization preview, and release timeline for Starfield...",
-            publisher: "USGAMER",
-            publisherBg: "bg-sky-500",
+            title: "CD Projekt Red Umumkan Pembangunan Penuh Sekuel Cyberpunk 2077 'Codename Orion'",
+            description: "Studio CD Projekt Red resmi membuka studio pengembang di Boston untuk menggarap sekuel Cyberpunk berbasis Unreal Engine 5...",
+            publisher: "Duniagames",
+            publisherBg: "bg-amber-500 text-black",
             category: "Xbox",
-            image: "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?auto=format&fit=crop&w=600&q=80",
-        },
-        {
-            id: 113,
-            title: "Final Fantasy XVI Demo Released Worldwide",
-            description: "Square Enix releases the prologue demo for PS5 users, allowing players to carry save progress over...",
-            publisher: "IGN",
-            publisherBg: "bg-red-500",
-            category: "PlayStation",
-            image: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=600&q=80",
-        },
-        {
-            id: 114,
-            title: "Overwatch 2 Hero Reworks Detailed",
-            description: "Blizzard outlines massive balance shifts, new map layouts, and competitive ranked system overhauls...",
-            publisher: "KOTAKU",
-            publisherBg: "bg-amber-500",
-            category: "PC",
-            image: "https://images.unsplash.com/photo-1580234811497-9df7fd2f357e?auto=format&fit=crop&w=600&q=80",
-        },
-        {
-            id: 115,
-            title: "Metroid Prime Remastered Launches Digitally",
-            description: "Samus Aran's iconic GameCube adventure gets a stunning high-definition visual remaster on Nintendo Switch...",
-            publisher: "DESTRUCTOID",
-            publisherBg: "bg-emerald-500",
-            category: "Nintendo Switch",
             image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80",
+            tags: ["#CyberpunkOrion", "#CDPR", "#UnrealEngine5", "#GamingNews"],
         },
     ];
 
-    // Filter articles based on selected category & search query
+    // Formatted database articles with timestamp & tags
+    const formattedDbArticles = dbArticles.map((art) => ({
+        id: art.id,
+        title: art.title,
+        description: art.content ? art.content.replace(/<[^>]*>?/gm, '').substring(0, 120) + '...' : '',
+        category: art.category || 'PC',
+        publisher: art.publisher || 'Playscore',
+        publisherLogo: art.publisher_logo || art.publisher?.[0] || 'P',
+        publisherBg: art.publisher_bg || 'bg-[#22C55E]',
+        image: art.cover || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80',
+        created_at: art.created_at ? new Date(art.created_at) : new Date(),
+        tags: art.tags || ['#Gaming', '#News'],
+    }));
+
+    // Combined all available articles pool (Formatted DB articles first + mock articles)
+    const allPoolArticles = useMemo(() => {
+        const mockFormatted = mockArticles.map((m, idx) => ({
+            ...m,
+            publisherLogo: m.publisher?.[0] || 'P',
+            // Assign recent dates within last 30 days for mock items
+            created_at: new Date(Date.now() - (idx * 2 * 86400000)),
+            tags: ['#Gaming', '#News'],
+        }));
+        return [...formattedDbArticles, ...mockFormatted];
+    }, [dbArticles]);
+
+    // 1. Pick Recommended Articles (1 Hero + 2 Side) randomly from recent articles (within last 30 days)
+    const { heroArticle, sideArticles, recommendedIds } = useMemo(() => {
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        
+        // Filter articles created within last 30 days
+        let recentPool = allPoolArticles.filter(art => art.created_at >= thirtyDaysAgo);
+        
+        // Fallback to all articles if recent pool is too small
+        if (recentPool.length < 3) {
+            recentPool = [...allPoolArticles];
+        }
+
+        // Shuffle recent pool randomly
+        const shuffled = [...recentPool].sort(() => 0.5 - Math.random());
+
+        const hero = shuffled[0] || allPoolArticles[0];
+        const side = shuffled.slice(1, 3);
+        const recIds = new Set([hero.id, ...side.map(s => s.id)]);
+
+        return {
+            heroArticle: hero,
+            sideArticles: side,
+            recommendedIds: recIds,
+        };
+    }, [allPoolArticles]);
+
+    // 2. What's New Articles (Excluded articles in Recommended, sorted latest first)
+    const whatsNewArticles = useMemo(() => {
+        return allPoolArticles
+            .filter((art) => !recommendedIds.has(art.id))
+            .sort((a, b) => b.created_at - a.created_at);
+    }, [allPoolArticles, recommendedIds]);
+
+    // Filter What's New articles based on selected category & search query
     const filteredArticles = whatsNewArticles.filter(art => {
         const matchesCategory = selectedCategory === 'All' || art.category === selectedCategory;
         const matchesSearch = searchQuery === '' ||
@@ -355,10 +338,10 @@ export default function Blog() {
                                     <Link
                                         key={article.id}
                                         href={route('blog.show', article.id)}
-                                        className="group rounded-2xl bg-[#131916] hover:bg-[#161F1A] border border-[#1F2923] overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-[#22C55E]/30 flex flex-col sm:flex-row items-stretch sm:min-h-[180px]"
+                                        className="group rounded-2xl bg-[#131916] hover:bg-[#161F1A] border border-[#1F2923] overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-[#22C55E]/30 flex flex-col sm:flex-row items-center sm:min-h-[190px]"
                                     >
-                                        {/* Article Thumbnail (Flush) */}
-                                        <div className="w-full sm:w-56 h-48 sm:h-auto flex-shrink-0 relative overflow-hidden bg-[#0B0F0D]">
+                                        {/* Article Thumbnail (Fixed Height with padding/margins to match card cleanly) */}
+                                        <div className="w-full sm:w-56 h-48 sm:h-[190px] flex-shrink-0 relative overflow-hidden bg-[#0B0F0D]">
                                             <img
                                                 src={article.image}
                                                 alt={article.title}
@@ -367,7 +350,7 @@ export default function Blog() {
                                         </div>
 
                                         {/* Article Details */}
-                                        <div className="flex-1 p-5 sm:p-6 flex flex-col justify-between overflow-hidden">
+                                        <div className="flex-1 p-5 sm:p-6 flex flex-col justify-between overflow-hidden self-stretch">
                                             <div className="space-y-2 min-w-0">
                                                 {/* Category Tag */}
                                                 <div>
@@ -489,6 +472,8 @@ export default function Blog() {
                     </div>
                 </section>
             </main>
+
+            <PublicFooter />
         </div>
     );
 }
