@@ -55,12 +55,12 @@ function CoverSlideshow({ games = [] }) {
             ))}
 
             {/* Slide Indicators */}
-            <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-[#0B0F0D]/70 backdrop-blur-sm px-2.5 py-1.5 rounded-full border border-[#1F2923]">
+            <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex items-center gap-1 sm:gap-1.5 bg-[#0B0F0D]/70 backdrop-blur-sm px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-full border border-[#1F2923]">
                 {games.map((_, i) => (
                     <button
                         key={i}
                         onClick={() => setActiveSlide(i)}
-                        className={`w-2 h-2 rounded-full transition-all ${
+                        className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all ${
                             i === activeSlide ? 'bg-[#22C55E]' : 'bg-[#F5F7F5]/30 hover:bg-[#F5F7F5]/60'
                         }`}
                         aria-label={`Go to slide ${i + 1}`}
@@ -98,42 +98,44 @@ export default function About({ totalGamesCount = '870K+', trendingGames = [] })
             {/* Dark Navbar */}
             <PublicNavbar currentRoute="about" variant="dark" />
 
-            {/* Full Screen Height 2-Column Hero Header */}
+            {/* Responsive Full Screen Height Hero Header */}
             <section
-                className="relative overflow-hidden border-b border-[#1F2923] flex items-center bg-[#0B0F0D]"
+                className="relative overflow-hidden border-b border-[#1F2923] flex items-center bg-[#0B0F0D] py-6 sm:py-10 lg:py-0"
                 style={{ minHeight: 'calc(100vh - 64px)' }}
             >
-                <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 w-full py-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 w-full py-4 sm:py-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center">
                         
                         {/* LEFT COLUMN: Unique Slogan & Concise Description */}
-                        <div className="lg:col-span-6 space-y-5">
-                            <span className="text-[#22C55E] text-xs sm:text-sm font-semibold uppercase tracking-wider bg-[#22C55E]/10 px-3.5 py-1.5 rounded-full border border-[#22C55E]/20 inline-block">
-                                Platform Overview
-                            </span>
+                        <div className="lg:col-span-6 space-y-4 sm:space-y-5 text-left md:text-center lg:text-left">
+                            <div>
+                                <span className="text-[#22C55E] text-[10px] sm:text-xs lg:text-sm font-semibold uppercase tracking-wider bg-[#22C55E]/10 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full border border-[#22C55E]/20 inline-block">
+                                    Platform Overview
+                                </span>
+                            </div>
                             
-                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#F5F7F5] leading-tight">
+                            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold tracking-tight text-[#F5F7F5] leading-tight sm:leading-tight lg:leading-tight max-w-2xl md:mx-auto lg:mx-0">
                                 Your Ultimate Gaming Vault & Critique Hub.
                             </h1>
 
-                            <p className="text-[#8B948F] text-base sm:text-lg leading-relaxed">
+                            <p className="text-[#8B948F] text-xs sm:text-base lg:text-lg leading-relaxed max-w-2xl md:mx-auto lg:mx-0">
                                 Playscore is a modern gaming platform built for players to log their backlog, rate games on a precise 0–10 scale, and share authentic community reviews. Level up your reviewer rank as you track your journey.
                             </p>
 
-                            <div className="pt-4 border-t border-[#1F2923] grid grid-cols-2 gap-6 text-[#F5F7F5]">
+                            <div className="pt-3 sm:pt-4 border-t border-[#1F2923] grid grid-cols-2 gap-4 sm:gap-6 text-[#F5F7F5] max-w-xl md:mx-auto lg:mx-0">
                                 <div>
-                                    <p className="text-2xl sm:text-3xl font-extrabold text-[#22C55E]">{totalGamesCount}</p>
-                                    <p className="text-xs text-[#8B948F] mt-1 font-medium">Real-time Game Database</p>
+                                    <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#22C55E]">{totalGamesCount}</p>
+                                    <p className="text-[11px] sm:text-xs text-[#8B948F] mt-0.5 sm:mt-1 font-medium">Real-time Game Database</p>
                                 </div>
                                 <div>
-                                    <p className="text-2xl sm:text-3xl font-extrabold text-[#22C55E]">0.0 – 10.0</p>
-                                    <p className="text-xs text-[#8B948F] mt-1 font-medium">Decimal Rating Scale</p>
+                                    <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#22C55E]">0.0 – 10.0</p>
+                                    <p className="text-[11px] sm:text-xs text-[#8B948F] mt-0.5 sm:mt-1 font-medium">Decimal Rating Scale</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* RIGHT COLUMN: Dynamic Cover Slideshow of Trending Games */}
-                        <div className="lg:col-span-6 relative aspect-[16/10] max-h-[380px] rounded-3xl overflow-hidden border border-[#1F2923] shadow-2xl bg-[#0E1411]">
+                        <div className="lg:col-span-6 relative aspect-[16/10] w-full max-h-[260px] sm:max-h-[320px] lg:max-h-[380px] rounded-2xl sm:rounded-3xl overflow-hidden border border-[#1F2923] shadow-2xl bg-[#0E1411] md:mx-auto max-w-2xl lg:max-w-none">
                             <CoverSlideshow games={trendingGames} />
                         </div>
 
@@ -141,65 +143,65 @@ export default function About({ totalGamesCount = '870K+', trendingGames = [] })
                 </div>
             </section>
 
-            {/* Light Content Body with Compact Spacing */}
+            {/* Light Content Body with Responsive Padding & Grids */}
             <div className="bg-slate-50 text-slate-900">
-                <main className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 py-16 sm:py-20 space-y-8 sm:space-y-10">
+                <main className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 py-8 sm:py-12 lg:py-16 space-y-6 sm:space-y-8">
                     {/* Background & Purpose */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-                        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-3 flex flex-col justify-between">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8 items-stretch">
+                        <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-8 shadow-sm space-y-3 flex flex-col justify-between">
                             <div>
-                                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
+                                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 mb-3">
                                     Our Background & Purpose
                                 </h2>
-                                <p className="text-slate-600 text-sm sm:text-base leading-relaxed mb-3">
+                                <p className="text-slate-600 text-xs sm:text-sm lg:text-base leading-relaxed mb-3">
                                     Playscore was created to address a common problem among gaming enthusiasts: the lack of a modern, uncluttered space to log played games and express detailed opinions beyond simple 5-star ratings.
                                 </p>
-                                <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+                                <p className="text-slate-600 text-xs sm:text-sm lg:text-base leading-relaxed">
                                     Whether you are a casual player wanting to keep track of completed titles or a veteran reviewer crafting in-depth critiques, Playscore offers a streamlined environment designed specifically around your gaming habits.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-4 flex flex-col justify-between">
+                        <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-8 shadow-sm space-y-4 flex flex-col justify-between">
                             <div>
-                                <h3 className="text-xl font-bold text-slate-900 mb-2">
+                                <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">
                                     Why Gamers Choose Playscore
                                 </h3>
-                                <p className="text-slate-600 text-sm leading-relaxed mb-4">
+                                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
                                     Tailored features built for precision tracking and vibrant community interaction.
                                 </p>
                             </div>
-                            <div className="grid grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+                            <div className="grid grid-cols-2 gap-4 sm:gap-6 pt-4 border-t border-slate-100">
                                 <div>
-                                    <p className="text-2xl sm:text-3xl font-extrabold text-[#16A34A]">{totalGamesCount}</p>
-                                    <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">Real-time Game Database</p>
+                                    <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#16A34A]">{totalGamesCount}</p>
+                                    <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-1">Real-time Game Database</p>
                                 </div>
                                 <div>
-                                    <p className="text-2xl sm:text-3xl font-extrabold text-[#16A34A]">0.0 – 10.0</p>
-                                    <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">Decimal Rating Scale</p>
+                                    <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#16A34A]">0.0 – 10.0</p>
+                                    <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-1">Decimal Rating Scale</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Core Capabilities */}
-                    <div className="border-t border-slate-200 pt-8 sm:pt-10">
-                        <div className="mb-6">
-                            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
+                    <div className="border-t border-slate-200 pt-5 sm:pt-8">
+                        <div className="mb-4 sm:mb-6">
+                            <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold text-slate-900 mb-1.5">
                                 Core Platform Capabilities
                             </h2>
-                            <p className="text-sm text-slate-600">
+                            <p className="text-xs sm:text-sm text-slate-600">
                                 Everything you need to log, evaluate, and share your gaming journey.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             {featureItems.map((item, idx) => (
                                 <div
                                     key={idx}
-                                    className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-[#16A34A]/50 transition-all"
+                                    className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm hover:shadow-md hover:border-[#16A34A]/50 transition-all"
                                 >
-                                    <h3 className="font-bold text-base sm:text-lg text-slate-900 mb-2">
+                                    <h3 className="font-bold text-sm sm:text-base lg:text-lg text-slate-900 mb-2">
                                         {item.title}
                                     </h3>
                                     <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -212,20 +214,20 @@ export default function About({ totalGamesCount = '870K+', trendingGames = [] })
                 </main>
 
                 {/* Compact Full Width Dark Footer CTA */}
-                <section className="w-full bg-[#0B0F0D] border-t border-[#1F2923] py-8 sm:py-10 text-center text-[#F5F7F5]">
-                    <div className="max-w-xl mx-auto px-6">
-                        <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                <section className="w-full bg-[#0B0F0D] border-t border-[#1F2923] py-5 sm:py-8 text-center text-[#F5F7F5]">
+                    <div className="max-w-xl mx-auto px-6 space-y-1">
+                        <h2 className="text-base sm:text-lg lg:text-xl font-bold text-white">
                             Ready to build your gaming profile?
                         </h2>
-                        <p className="text-xs sm:text-sm text-[#8B948F] mb-4">
-                            Join Playscore today and start logging your gaming journey with precision.
+                        <p className="text-[9px] sm:text-xs text-[#8B948F] max-w-xs sm:max-w-sm mx-auto leading-tight sm:leading-relaxed">
+                            <Link
+                                href={route('login')}
+                                className="text-[#22C55E] hover:text-[#4ADE80] font-semibold transition-colors"
+                            >
+                                Join Playscore
+                            </Link>{' '}
+                            today and start logging your gaming journey with precision.
                         </p>
-                        <Link
-                            href={route('register')}
-                            className="inline-block rounded-lg bg-[#22C55E] text-[#0B0F0D] font-semibold px-5 py-2.5 text-xs sm:text-sm hover:bg-[#4ADE80] transition"
-                        >
-                            Create Account
-                        </Link>
                     </div>
                 </section>
             </div>
