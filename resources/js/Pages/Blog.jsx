@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import PublicNavbar from '@/Components/PublicNavbar';
 
@@ -212,7 +212,7 @@ export default function Blog() {
 
             <PublicNavbar currentRoute="blog" />
 
-            <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-8 lg:px-12 py-8 sm:py-10 space-y-7 sm:space-y-12">
+            <main className="flex-1 max-w-[1440px] w-full mx-auto px-5 sm:px-8 lg:px-12 py-8 sm:py-10 space-y-7 sm:space-y-12">
                 {/* ================= RECOMMENDED ARTICLES ================= */}
                 <section>
                     <div className="flex items-center justify-between mb-5 sm:mb-6">
@@ -224,7 +224,10 @@ export default function Blog() {
                     {/* Mobile Horizontal Scroll Slider / Desktop Grid */}
                     <div className="flex md:grid md:grid-cols-12 gap-5 lg:gap-6 overflow-x-auto md:overflow-visible pb-4 md:pb-0 scrollbar-none snap-x snap-mandatory">
                         {/* Featured Hero Card */}
-                        <div className="flex-shrink-0 w-[85vw] sm:w-[75vw] md:w-auto md:col-span-8 group relative rounded-2xl overflow-hidden bg-[#131916] border border-[#1F2923] shadow-2xl flex flex-col justify-end min-h-[390px] md:min-h-[380px] lg:min-h-[440px] snap-start">
+                        <Link
+                            href={route('blog.show', heroArticle.id)}
+                            className="flex-shrink-0 w-[85vw] sm:w-[75vw] md:w-auto md:col-span-8 group relative rounded-2xl overflow-hidden bg-[#131916] border border-[#1F2923] shadow-2xl flex flex-col justify-end min-h-[390px] md:min-h-[380px] lg:min-h-[440px] snap-start"
+                        >
                             {/* Background Image */}
                             <img
                                 src={heroArticle.image}
@@ -254,13 +257,14 @@ export default function Blog() {
                                     </p>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
 
                         {/* Side Stack Articles (Horizontal on Mobile, Vertical Stack on Desktop) */}
                         <div className="flex md:flex-col md:col-span-4 gap-5 lg:gap-6 flex-shrink-0 md:flex-shrink">
                             {sideArticles.map((article) => (
-                                <div
+                                <Link
                                     key={article.id}
+                                    href={route('blog.show', article.id)}
                                     className="flex-shrink-0 w-[80vw] sm:w-[70vw] md:w-auto group relative rounded-2xl overflow-hidden bg-[#131916] border border-[#1F2923] shadow-lg md:flex-1 min-h-[260px] md:min-h-[170px] lg:min-h-[190px] flex flex-col justify-end p-4 md:p-5 snap-start"
                                 >
                                     <img
@@ -283,7 +287,7 @@ export default function Blog() {
                                             {article.description}
                                         </p>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -348,12 +352,13 @@ export default function Blog() {
                         <div className="lg:col-span-8 space-y-6">
                             {paginatedArticles.length > 0 ? (
                                 paginatedArticles.map((article) => (
-                                    <div
+                                    <Link
                                         key={article.id}
-                                        className="group rounded-2xl bg-[#131916] hover:bg-[#161F1A] border border-[#1F2923] overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-[#22C55E]/30 flex flex-col sm:flex-row items-stretch sm:h-44"
+                                        href={route('blog.show', article.id)}
+                                        className="group rounded-2xl bg-[#131916] hover:bg-[#161F1A] border border-[#1F2923] overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-[#22C55E]/30 flex flex-col sm:flex-row items-stretch sm:min-h-[180px]"
                                     >
-                                        {/* Article Thumbnail (Fixed Height Flush) */}
-                                        <div className="w-full sm:w-52 h-44 sm:h-full flex-shrink-0 relative overflow-hidden bg-[#0B0F0D]">
+                                        {/* Article Thumbnail (Flush) */}
+                                        <div className="w-full sm:w-56 h-48 sm:h-auto flex-shrink-0 relative overflow-hidden bg-[#0B0F0D]">
                                             <img
                                                 src={article.image}
                                                 alt={article.title}
@@ -362,24 +367,26 @@ export default function Blog() {
                                         </div>
 
                                         {/* Article Details */}
-                                        <div className="flex-1 p-5 space-y-2 flex flex-col justify-center">
-                                            {/* Category Tag */}
-                                            <div>
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#161F1A] text-[#22C55E] border border-[#22C55E]/20">
-                                                    {article.category}
-                                                </span>
+                                        <div className="flex-1 p-5 sm:p-6 flex flex-col justify-between overflow-hidden">
+                                            <div className="space-y-2 min-w-0">
+                                                {/* Category Tag */}
+                                                <div>
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#161F1A] text-[#22C55E] border border-[#22C55E]/20">
+                                                        {article.category}
+                                                    </span>
+                                                </div>
+
+                                                <h3 className="text-base sm:text-lg font-bold text-[#F5F7F5] group-hover:text-[#22C55E] transition-colors leading-snug line-clamp-2">
+                                                    {article.title}
+                                                </h3>
+
+                                                <p className="text-xs text-[#8B948F] line-clamp-2 leading-relaxed">
+                                                    {article.description}
+                                                </p>
                                             </div>
 
-                                            <h3 className="text-base sm:text-lg font-bold text-[#F5F7F5] group-hover:text-[#22C55E] transition-colors leading-snug line-clamp-2">
-                                                {article.title}
-                                            </h3>
-
-                                            <p className="text-xs text-[#8B948F] line-clamp-2 leading-relaxed">
-                                                {article.description}
-                                            </p>
-
                                             {/* Publisher & Metadata */}
-                                            <div className="flex items-center gap-2 pt-1">
+                                            <div className="flex items-center gap-2 pt-3 border-t border-[#1F2923]/60 mt-3 shrink-0">
                                                 <span className={`w-4 h-4 rounded text-[9px] font-black text-[#0B0F0D] flex items-center justify-center ${article.publisherBg}`}>
                                                     {article.publisher[0]}
                                                 </span>
@@ -388,7 +395,7 @@ export default function Blog() {
                                                 </span>
                                             </div>
                                         </div>
-                                    </div>
+                                    </Link>
                                 ))
                             ) : (
                                 <div className="text-center py-12 bg-[#131916] rounded-2xl border border-[#1F2923] space-y-2">
@@ -446,39 +453,36 @@ export default function Blog() {
                             )}
                         </div>
 
-                        {/* Right Sidebar - Support Us Widget (Right - 4 cols) */}
-                        <div className="lg:col-span-4">
-                            <div className="sticky top-24 rounded-2xl bg-[#131916] border border-[#1F2923] p-6 sm:p-8 space-y-6 text-center shadow-xl">
-                                <div className="w-12 h-12 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/20 flex items-center justify-center mx-auto text-[#22C55E]">
-                                    <span className="text-xl">☕</span>
-                                </div>
+                        {/* Right Sidebar Widget: Popular Platforms (Visible only on PC Desktop lg+) */}
+                        <div className="hidden lg:block lg:col-span-4">
+                            <div className="sticky top-24 rounded-2xl bg-[#131916] border border-[#1F2923] p-6 space-y-4 shadow-xl">
+                                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8B948F]">
+                                    Popular Platforms
+                                </h3>
+                                <p className="text-xs text-[#8B948F] leading-relaxed">
+                                    Filter gaming news by your favorite hardware ecosystem:
+                                </p>
 
-                                <div className="space-y-2">
-                                    <h3 className="text-xl font-bold text-[#F5F7F5]">
-                                        Support Playscore
-                                    </h3>
-                                    <p className="text-xs text-[#8B948F] leading-relaxed max-w-xs mx-auto">
-                                        Enjoying our gaming news and articles? Help us keep independent gaming journalism alive and thriving.
-                                    </p>
-                                </div>
-
-                                <div className="space-y-3 pt-2">
-                                    <a
-                                        href="https://trakteer.id"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="w-full py-2.5 px-4 text-xs font-bold rounded-lg bg-[#C1272D] hover:bg-[#A81F24] text-white shadow-md transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <span>Support on Trakteer</span>
-                                    </a>
-                                    <a
-                                        href="https://saweria.co"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="w-full py-2.5 px-4 text-xs font-bold rounded-lg bg-[#E5A93C] hover:bg-[#D4982B] text-[#0B0F0D] shadow-md transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <span>Support on Saweria</span>
-                                    </a>
+                                <div className="space-y-2 pt-1">
+                                    {[
+                                        { name: 'PC Gaming', count: '142 Articles', color: 'bg-amber-500' },
+                                        { name: 'PlayStation', count: '98 Articles', color: 'bg-blue-600' },
+                                        { name: 'Xbox Series X', count: '76 Articles', color: 'bg-green-600' },
+                                        { name: 'Nintendo Switch', count: '54 Articles', color: 'bg-red-500' },
+                                    ].map((plat, i) => (
+                                        <div
+                                            key={i}
+                                            className="w-full flex items-center justify-between p-3 rounded-xl bg-[#161F1A] border border-[#1F2923] hover:border-[#22C55E]/60 text-xs font-semibold text-[#F5F7F5] hover:text-[#22C55E] transition-all group cursor-default"
+                                        >
+                                            <div className="flex items-center gap-2.5">
+                                                <span className={`w-2 h-2 rounded-full ${plat.color}`} />
+                                                <span>{plat.name}</span>
+                                            </div>
+                                            <span className="text-[10px] text-[#8B948F] group-hover:text-[#22C55E] font-medium transition-colors">
+                                                {plat.count}
+                                            </span>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>

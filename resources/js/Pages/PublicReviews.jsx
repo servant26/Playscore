@@ -38,33 +38,13 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
         ? [...reviews].sort((a, b) => b.rating - a.rating)
         : reviews;
 
-    // Duplicate list for smooth seamless infinite vertical ticker animation (only for Latest Reviews)
-    const tickerList = [...displayedReviews, ...displayedReviews];
-
     return (
         <div className="min-h-screen lg:h-screen bg-[#0B0F0D] flex flex-col lg:overflow-hidden">
             <Head title="Community Reviews - Playscore" />
 
-            {/* Custom CSS Keyframes & Smooth Dark Scrollbar Styling */}
+            {/* Custom Smooth Dark Scrollbar Styling */}
             <style>{`
-                @keyframes verticalTicker {
-                    0% {
-                        transform: translateY(0%);
-                    }
-                    100% {
-                        transform: translateY(-50%);
-                    }
-                }
-                @media (min-width: 1024px) {
-                    .animate-vertical-ticker {
-                        animation: verticalTicker 35s linear infinite !important;
-                    }
-                    .animate-vertical-ticker:hover {
-                        animation-play-state: paused !important;
-                    }
-                }
-
-                /* Custom Smooth Dark Scrollbar for Top Rated List */
+                /* Custom Smooth Dark Scrollbar */
                 .custom-smooth-scrollbar {
                     scroll-behavior: smooth;
                 }
@@ -72,8 +52,7 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
                     width: 6px;
                 }
                 .custom-smooth-scrollbar::-webkit-scrollbar-track {
-                    background: #0E1411;
-                    border-radius: 9999px;
+                    background: transparent;
                 }
                 .custom-smooth-scrollbar::-webkit-scrollbar-thumb {
                     background: #1F2923;
@@ -140,126 +119,62 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
 
                 {/* KANAN: Content area */}
                 <div className="lg:w-7/12 h-[550px] lg:h-full overflow-hidden relative rounded-3xl lg:rounded-none">
-                    {filter === 'all' ? (
-                        /* Latest Reviews: Animated Ticker on PC Desktop, Normal Scroll on Mobile/Tablet */
-                        <div className="h-full overflow-y-auto lg:overflow-hidden relative scrollbar-none">
-                            <div className="hidden lg:block absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-[#0B0F0D] to-transparent z-20 pointer-events-none" />
-                            <div className="hidden lg:block absolute bottom-0 inset-x-0 h-12 bg-gradient-to-t from-[#0B0F0D] to-transparent z-20 pointer-events-none" />
-
-                            <div className="animate-vertical-ticker space-y-4">
-                                {tickerList.map((rev, index) => (
-                                    <div
-                                        key={`${rev.id}-${index}`}
-                                        onClick={() => handleCardClick(rev)}
-                                        className="bg-[#0E1411] border border-[#1F2923] rounded-2xl p-5 sm:p-6 flex flex-col justify-between hover:border-[#22C55E]/60 hover:bg-[#161F1A] transition-all group cursor-pointer"
-                                    >
-                                        <div>
-                                            {/* Header: Game Info & Score */}
-                                            <div className="flex items-start gap-3 sm:gap-4 mb-3">
-                                                <div className="w-14 sm:w-16 h-18 sm:h-20 rounded-xl overflow-hidden bg-[#161F1A] shrink-0 border border-[#1F2923]">
-                                                    <img
-                                                        src={rev.game_cover}
-                                                        alt={rev.game_title}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                    />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <h3 className="font-bold text-base sm:text-lg text-[#F5F7F5] truncate group-hover:text-[#22C55E] transition-colors mb-1">
-                                                        {rev.game_title}
-                                                    </h3>
-                                                    <div className="inline-flex items-center gap-1.5 bg-[#22C55E]/10 border border-[#22C55E]/20 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg text-xs font-bold text-[#22C55E]">
-                                                        <span>Score: {rev.rating} / 10</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Review Body Truncated */}
-                                            <p className="text-xs sm:text-sm text-[#8B948F] leading-relaxed italic mb-3 line-clamp-3">
-                                                "{rev.body}"
-                                            </p>
-                                            <span className="text-xs text-[#22C55E] font-semibold hover:underline inline-block mb-3">
-                                                Read full review &rarr;
-                                            </span>
-                                        </div>
-
-                                        {/* Footer: Reviewer Info */}
-                                        <div className="pt-3 border-t border-[#1F2923] flex items-center justify-between">
-                                            <div className="flex items-center gap-2.5">
-                                                <img
-                                                    src={rev.user_avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${rev.user_name}`}
-                                                    alt={rev.user_name}
-                                                    className="w-7 h-7 rounded-full object-cover bg-[#161F1A] border border-[#1F2923]"
-                                                />
-                                                <span className="text-xs font-semibold text-[#F5F7F5]">
-                                                    {rev.user_name}
-                                                </span>
-                                            </div>
-                                            <span className="text-[11px] text-[#8B948F]">
-                                                {rev.created_at}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ) : (
-                        /* Top Rated First: Custom Smooth Dark Scrollbar List */
-                        <div className="h-full overflow-y-auto pr-2 sm:pr-3 space-y-4 custom-smooth-scrollbar">
-                            {displayedReviews.map((rev) => (
-                                <div
-                                    key={rev.id}
-                                    className="bg-[#0E1411] border border-[#1F2923] rounded-2xl p-5 sm:p-6 flex flex-col justify-between hover:border-[#22C55E]/60 hover:bg-[#161F1A] transition-all group cursor-pointer"
-                                    onClick={() => handleCardClick(rev)}
-                                >
-                                    <div>
-                                        {/* Header: Game Info & Score */}
-                                        <div className="flex items-start gap-3 sm:gap-4 mb-3">
-                                            <div className="w-14 sm:w-16 h-18 sm:h-20 rounded-xl overflow-hidden bg-[#161F1A] shrink-0 border border-[#1F2923]">
-                                                <img
-                                                    src={rev.game_cover}
-                                                    alt={rev.game_title}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="font-bold text-base sm:text-lg text-[#F5F7F5] truncate group-hover:text-[#22C55E] transition-colors mb-1">
-                                                    {rev.game_title}
-                                                </h3>
-                                                <div className="inline-flex items-center gap-1.5 bg-[#22C55E]/10 border border-[#22C55E]/20 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg text-xs font-bold text-[#22C55E]">
-                                                    <span>Score: {rev.rating} / 10</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Review Body Truncated */}
-                                        <p className="text-xs sm:text-sm text-[#8B948F] leading-relaxed italic mb-3 line-clamp-3">
-                                            "{rev.body}"
-                                        </p>
-                                        <span className="text-xs text-[#22C55E] font-semibold hover:underline inline-block mb-3">
-                                            Read full review &rarr;
-                                        </span>
-                                    </div>
-
-                                    {/* Footer: Reviewer Info */}
-                                    <div className="pt-3 border-t border-[#1F2923] flex items-center justify-between">
-                                        <div className="flex items-center gap-2.5">
+                    {/* Smooth Dark Scrollbar List for Reviews */}
+                    <div className="h-full overflow-y-auto pr-2 sm:pr-3 space-y-4 custom-smooth-scrollbar">
+                        {displayedReviews.map((rev) => (
+                            <div
+                                key={rev.id}
+                                className="bg-[#0E1411] border border-[#1F2923] rounded-2xl p-5 sm:p-6 flex flex-col justify-between hover:border-[#22C55E]/60 hover:bg-[#161F1A] transition-all group cursor-pointer"
+                                onClick={() => handleCardClick(rev)}
+                            >
+                                <div>
+                                    {/* Header: Game Info & Score */}
+                                    <div className="flex items-start gap-3 sm:gap-4 mb-3">
+                                        <div className="w-14 sm:w-16 h-18 sm:h-20 rounded-xl overflow-hidden bg-[#161F1A] shrink-0 border border-[#1F2923]">
                                             <img
-                                                src={rev.user_avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${rev.user_name}`}
-                                                alt={rev.user_name}
-                                                className="w-7 h-7 rounded-full object-cover bg-[#161F1A] border border-[#1F2923]"
+                                                src={rev.game_cover}
+                                                alt={rev.game_title}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                             />
-                                            <span className="text-xs font-semibold text-[#F5F7F5]">
-                                                {rev.user_name}
-                                            </span>
                                         </div>
-                                        <span className="text-[11px] text-[#8B948F]">
-                                            {rev.created_at}
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-base sm:text-lg text-[#F5F7F5] truncate group-hover:text-[#22C55E] transition-colors mb-1">
+                                                {rev.game_title}
+                                            </h3>
+                                            <div className="inline-flex items-center gap-1.5 bg-[#22C55E]/10 border border-[#22C55E]/20 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg text-xs font-bold text-[#22C55E]">
+                                                <span>Score: {rev.rating} / 10</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Review Body Truncated */}
+                                    <p className="text-xs sm:text-sm text-[#8B948F] leading-relaxed italic mb-3 line-clamp-3">
+                                        "{rev.body}"
+                                    </p>
+                                    <span className="text-xs text-[#22C55E] font-semibold hover:underline inline-block mb-3">
+                                        Read full review &rarr;
+                                    </span>
+                                </div>
+
+                                {/* Footer: Reviewer Info */}
+                                <div className="pt-3 border-t border-[#1F2923] flex items-center justify-between">
+                                    <div className="flex items-center gap-2.5">
+                                        <img
+                                            src={rev.user_avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${rev.user_name}`}
+                                            alt={rev.user_name}
+                                            className="w-7 h-7 rounded-full object-cover bg-[#161F1A] border border-[#1F2923]"
+                                        />
+                                        <span className="text-xs font-semibold text-[#F5F7F5]">
+                                            {rev.user_name}
                                         </span>
                                     </div>
+                                    <span className="text-[11px] text-[#8B948F]">
+                                        {rev.created_at}
+                                    </span>
                                 </div>
-                            ))}
-                        </div>
-                    )}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </main>
 
