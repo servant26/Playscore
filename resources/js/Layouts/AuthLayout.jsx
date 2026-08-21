@@ -68,14 +68,14 @@ export default function AuthLayout({ children, title, subtitle }) {
                         discover what to play next based on what you actually like.
                     </p>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                         {slideImages.map((_, i) => (
                             <button
                                 key={i}
                                 onClick={() => setActiveSlide(i)}
-                                className={`h-1.5 rounded-full transition-all ${i === activeSlide
-                                    ? 'w-6 bg-[#22C55E]'
-                                    : 'w-1.5 bg-[#F5F7F5]/30 hover:bg-[#F5F7F5]/50'
+                                className={`w-2 h-2 rounded-full transition-all ${i === activeSlide
+                                    ? 'bg-[#22C55E]'
+                                    : 'bg-[#F5F7F5]/30 hover:bg-[#F5F7F5]/50'
                                     }`}
                             />
                         ))}
