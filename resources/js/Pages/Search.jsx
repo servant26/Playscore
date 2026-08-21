@@ -28,41 +28,51 @@ export default function Search({ query, games = [], users = [], recommendedUsers
     const totalRecPages = Math.ceil(recommendedUsers.length / ITEMS_PER_PAGE);
     const paginatedRecUsers = recommendedUsers.slice((recPage - 1) * ITEMS_PER_PAGE, recPage * ITEMS_PER_PAGE);
 
+    const getAvatarUrl = (avatar) => {
+        if (!avatar) return null;
+        if (avatar.startsWith('http://') || avatar.startsWith('https://') || avatar.startsWith('data:')) {
+            return avatar;
+        }
+        return `/storage/${avatar}`;
+    };
+
     return (
         <AppLayout>
             <Head title={`Search: ${query}`} />
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <h2 className="text-[#F5F7F5] text-xl font-semibold">
-                    {query ? `Search results for "${query}"` : 'Discover Users & Games'}
-                </h2>
+            <div className="pb-16 sm:pb-24">
+                {/* Header Section */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <h2 className="text-[#F5F7F5] text-xl font-semibold">
+                        {query ? `Search results for "${query}"` : 'Discover Users & Games'}
+                    </h2>
 
-                {/* Filter Tabs */}
-                {hasResults && (
-                    <div className="flex items-center gap-2 bg-[#131916] border border-[#1F2923] p-1 rounded-lg shrink-0 self-start sm:self-auto">
-                        <button
-                            onClick={() => setActiveTab('games')}
-                            className={`px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition ${
-                                activeTab === 'games'
-                                    ? 'bg-[#22C55E] text-[#0B0F0D] font-semibold'
-                                    : 'text-[#8B948F] hover:text-[#F5F7F5]'
-                            }`}
-                        >
-                            Games ({games.length})
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('users')}
-                            className={`px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition ${
-                                activeTab === 'users'
-                                    ? 'bg-[#22C55E] text-[#0B0F0D] font-semibold'
-                                    : 'text-[#8B948F] hover:text-[#F5F7F5]'
-                            }`}
-                        >
-                            Users ({users.length})
-                        </button>
-                    </div>
-                )}
-            </div>
+                    {/* Filter Tabs */}
+                    {hasResults && (
+                        <div className="flex items-center gap-2 bg-[#131916] border border-[#1F2923] p-1 rounded-lg shrink-0 self-start sm:self-auto">
+                            <button
+                                onClick={() => setActiveTab('games')}
+                                className={`px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition ${
+                                    activeTab === 'games'
+                                        ? 'bg-[#22C55E] text-[#0B0F0D] font-semibold'
+                                        : 'text-[#8B948F] hover:text-[#F5F7F5]'
+                                }`}
+                            >
+                                Games ({games.length})
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('users')}
+                                className={`px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition ${
+                                    activeTab === 'users'
+                                        ? 'bg-[#22C55E] text-[#0B0F0D] font-semibold'
+                                        : 'text-[#8B948F] hover:text-[#F5F7F5]'
+                                }`}
+                            >
+                                Users ({users.length})
+                            </button>
+                        </div>
+                    )}
+                </div>
 
             {!hasResults ? (
                 <div className="bg-[#131916] border border-[#1F2923] rounded-xl p-12 sm:p-16 text-center mb-8">
@@ -113,13 +123,20 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                                                 >
                                                     {user.avatar ? (
                                                         <img
-                                                            src={`/storage/${user.avatar}`}
+                                                            src={getAvatarUrl(user.avatar)}
                                                             alt={user.name}
                                                             className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                                if (e.target.nextSibling) {
+                                                                    e.target.nextSibling.style.display = 'block';
+                                                                }
+                                                            }}
                                                         />
-                                                    ) : (
-                                                        user.name.slice(0, 2).toUpperCase()
-                                                    )}
+                                                    ) : null}
+                                                    <span style={{ display: user.avatar ? 'none' : 'block' }}>
+                                                        {user.name.charAt(0).toUpperCase()}
+                                                    </span>
                                                 </div>
 
                                                 {/* Details */}
@@ -232,13 +249,20 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                                                 >
                                                     {recUser.avatar ? (
                                                         <img
-                                                            src={`/storage/${recUser.avatar}`}
+                                                            src={getAvatarUrl(recUser.avatar)}
                                                             alt={recUser.name}
                                                             className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                                if (e.target.nextSibling) {
+                                                                    e.target.nextSibling.style.display = 'block';
+                                                                }
+                                                            }}
                                                         />
-                                                    ) : (
-                                                        recUser.name.slice(0, 2).toUpperCase()
-                                                    )}
+                                                    ) : null}
+                                                    <span style={{ display: recUser.avatar ? 'none' : 'block' }}>
+                                                        {recUser.name.charAt(0).toUpperCase()}
+                                                    </span>
                                                 </div>
                                                 <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-[#22C55E] text-[#0B0F0D] font-bold text-[10px] flex items-center justify-center shadow">
                                                     #{globalRank}
@@ -315,6 +339,7 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                     </div>
                 </div>
             )}
+            </div>
         </AppLayout>
     );
 }

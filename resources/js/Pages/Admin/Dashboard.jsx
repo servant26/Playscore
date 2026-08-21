@@ -463,9 +463,9 @@ export default function AdminDashboard({ resetRequests = [], users = [], article
                             {/* TAB 1: RESET REQUESTS */}
                             {activeTab === 'requests' && (
                                 <>
-                                    <div className="overflow-x-auto">
+                                    <div className="overflow-x-auto overflow-y-auto max-h-[310px] custom-scrollbar">
                                         <table className="w-full text-left text-sm text-[#8B948F]">
-                                            <thead className="bg-[#0B0F0D] text-[#F5F7F5] uppercase text-xs border-b border-[#1F2923]">
+                                            <thead className="bg-[#0B0F0D] text-[#F5F7F5] uppercase text-xs border-b border-[#1F2923] sticky top-0 z-10">
                                                 <tr>
                                                     <th className="px-6 py-4">User</th>
                                                     <th className="px-6 py-4">Email</th>
@@ -563,9 +563,9 @@ export default function AdminDashboard({ resetRequests = [], users = [], article
                             {/* TAB 2: USER MANAGEMENT */}
                             {activeTab === 'users' && (
                                 <>
-                                    <div className="overflow-x-auto">
+                                    <div className="overflow-x-auto overflow-y-auto max-h-[310px] custom-scrollbar">
                                         <table className="w-full text-left text-sm text-[#8B948F]">
-                                            <thead className="bg-[#0B0F0D] text-[#F5F7F5] uppercase text-xs border-b border-[#1F2923]">
+                                            <thead className="bg-[#0B0F0D] text-[#F5F7F5] uppercase text-xs border-b border-[#1F2923] sticky top-0 z-10">
                                                 <tr>
                                                     <th className="px-6 py-4">User</th>
                                                     <th className="px-6 py-4">Email</th>
@@ -655,9 +655,9 @@ export default function AdminDashboard({ resetRequests = [], users = [], article
                             {/* TAB 3: STREAMLINED ARTICLES DATATABLE (10 items/page, Archive instead of Delete) */}
                             {activeTab === 'blog' && (
                                 <>
-                                    <div className="overflow-x-auto">
+                                    <div className="overflow-x-auto overflow-y-auto max-h-[310px] custom-scrollbar">
                                         <table className="w-full text-left text-sm text-[#8B948F]">
-                                            <thead className="bg-[#0B0F0D] text-[#F5F7F5] uppercase text-xs border-b border-[#1F2923]">
+                                            <thead className="bg-[#0B0F0D] text-[#F5F7F5] uppercase text-xs border-b border-[#1F2923] sticky top-0 z-10">
                                                 <tr>
                                                     {/* Articles Column (Sortable & Widened with line-clamp) */}
                                                     <th

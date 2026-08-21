@@ -29,9 +29,15 @@ export default function ProfileTab({
 }) {
     const user = usePage().props.auth.user;
     const avatarInputRef = useRef();
-    const [avatarPreview, setAvatarPreview] = useState(
-        user.avatar ? `/storage/${user.avatar}` : null
-    );
+    const getAvatarUrl = (avatar) => {
+        if (!avatar) return null;
+        if (avatar.startsWith('http://') || avatar.startsWith('https://') || avatar.startsWith('data:')) {
+            return avatar;
+        }
+        return `/storage/${avatar}`;
+    };
+
+    const [avatarPreview, setAvatarPreview] = useState(getAvatarUrl(user.avatar));
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [showFollowModal, setShowFollowModal] = useState({ show: false, type: 'followers' });
 

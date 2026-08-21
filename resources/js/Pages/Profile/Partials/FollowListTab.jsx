@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { router, usePage } from '@inertiajs/react';
+import { getAvatarUrl } from '@/Utils/avatar';
 
 const PER_PAGE = 10;
 
@@ -125,13 +126,20 @@ export default function FollowListTab({ user, type = 'following' }) {
                                 <div className="w-12 h-12 rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-sm font-semibold overflow-hidden shrink-0 group-hover:border-[#22C55E] transition">
                                     {u.avatar ? (
                                         <img
-                                            src={`/storage/${u.avatar}`}
+                                            src={getAvatarUrl(u.avatar)}
                                             alt={u.name}
                                             className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                if (e.target.nextSibling) {
+                                                    e.target.nextSibling.style.display = 'block';
+                                                }
+                                            }}
                                         />
-                                    ) : (
-                                        u.name.slice(0, 2).toUpperCase()
-                                    )}
+                                    ) : null}
+                                    <span style={{ display: u.avatar ? 'none' : 'block' }}>
+                                        {u.name.slice(0, 2).toUpperCase()}
+                                    </span>
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <h4 className="text-[#F5F7F5] text-sm sm:text-base font-medium truncate group-hover:text-[#22C55E] transition flex items-center gap-2">
