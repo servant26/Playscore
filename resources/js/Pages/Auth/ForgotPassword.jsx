@@ -14,7 +14,7 @@ export default function ForgotPassword({ status }) {
     return (
         <AuthLayout
             title="Forgot your password?"
-            subtitle="No problem. Enter your email and we'll send you a reset link."
+            subtitle="Enter your email address to submit a password reset request to the Admin."
         >
             <Head title="Forgot Password" />
 
@@ -48,7 +48,7 @@ export default function ForgotPassword({ status }) {
                     disabled={processing}
                     className="w-full rounded-lg bg-[#22C55E] text-[#0B0F0D] font-medium py-2.5 text-sm hover:bg-[#4ADE80] transition disabled:opacity-50"
                 >
-                    {processing ? 'Sending...' : 'Email Password Reset Link'}
+                    {processing ? 'Submitting...' : 'Submit Reset Request to Admin'}
                 </button>
 
                 <p className="text-center text-sm text-[#8B948F]">

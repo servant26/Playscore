@@ -23,45 +23,22 @@ export default function AllGames({ games, currentPage, lastPage, myStories = [],
         <AppLayout>
             <Head title="All Games" />
 
-            {/* Mobile Only (< sm): StoryBar stays on top */}
-            <div className="block sm:hidden mb-6">
-                <StoryBar myStories={myStories} followingStoryGroups={followingStoryGroups} />
-            </div>
-
-            <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 items-start">
-                {/* PC Only (lg:): Unclipped full w-16 circles with 100% equal left & right gaps */}
-                <aside className="hidden lg:flex flex-col items-center w-16 shrink-0 sticky top-24 self-start lg:-ml-8">
-                    <span className="text-[10px] font-bold text-[#8B948F] uppercase tracking-wider mb-2 text-center whitespace-nowrap">
-                        Stories
+            <div className="w-full">
+                {/* Navigation Header Row: Tabs + Stories */}
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 w-full overflow-x-auto scrollbar-none py-0.5">
+                    <Link
+                        href={route('dashboard')}
+                        className="text-center rounded-xl border border-[#1F2923] text-[#8B948F] px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-medium hover:border-[#2E3A32] hover:text-[#F5F7F5] transition whitespace-nowrap shrink-0"
+                    >
+                        Top Hits & New Games
+                    </Link>
+                    <span className="text-center rounded-xl bg-[#22C55E] text-[#0B0F0D] px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-semibold transition cursor-default whitespace-nowrap shrink-0">
+                        All Games
                     </span>
-                    <StoryBar
-                        myStories={myStories}
-                        followingStoryGroups={followingStoryGroups}
-                        isVertical={true}
-                    />
-                </aside>
+                    <StoryBar myStories={myStories} followingStoryGroups={followingStoryGroups} isInline={true} />
+                </div>
 
-                {/* Main Content Area */}
-                <div className="flex-1 min-w-0 w-full">
-                    {/* Navigation Header Row */}
-                    <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8 w-full flex-wrap sm:flex-nowrap">
-                        <Link
-                            href={route('dashboard')}
-                            className="flex-1 sm:flex-initial text-center rounded-lg border border-[#1F2923] text-[#8B948F] px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-medium hover:border-[#2E3A32] hover:text-[#F5F7F5] transition whitespace-nowrap"
-                        >
-                            Top Hits & New Games
-                        </Link>
-                        <span className="flex-1 sm:flex-initial text-center rounded-lg bg-[#22C55E] text-[#0B0F0D] px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-semibold transition cursor-default whitespace-nowrap">
-                            All Games
-                        </span>
-
-                        {/* iPad / Tablet Only (sm: to lg:): Stories placed inline next to buttons */}
-                        <div className="hidden sm:flex lg:hidden items-center shrink-0">
-                            <StoryBar myStories={myStories} followingStoryGroups={followingStoryGroups} isInline={true} />
-                        </div>
-                    </div>
-
-                    <h2 className="text-[#F5F7F5] text-xl font-semibold mb-6">All Games</h2>
+                <h2 className="text-[#F5F7F5] text-lg sm:text-xl font-semibold mb-3">All Games</h2>
 
                     {/* PC Grid (lg:): Displays 9 games (3 columns x 3 rows) */}
                     <div className="hidden lg:grid lg:grid-cols-3 gap-6 mb-8">
@@ -117,7 +94,6 @@ export default function AllGames({ games, currentPage, lastPage, myStories = [],
                         </button>
                     </div>
                 </div>
-            </div>
         </AppLayout>
     );
 }
