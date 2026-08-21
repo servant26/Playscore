@@ -130,7 +130,7 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
             >
                 <HeroBackground images={previewGames.slice(0, 4).map((g) => g.cover_url)} />
 
-                <div className="relative z-10 max-w-[1440px] mx-auto px-5 sm:px-10 lg:px-12 w-full py-12 sm:py-0">
+                <div className="relative z-10 max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 w-full py-12 sm:py-0">
                     <div className="max-w-2xl text-center sm:text-left mx-auto sm:mx-0">
                         <h1 className="text-[#F5F7F5] text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6 tracking-tight">
                             Rate it. Review it.<br />Remember it.
@@ -171,7 +171,7 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
 
             {/* How it works (Interactive Card Slider) */}
             <section className="bg-[#F4F6F4] text-[#0B0F0D]">
-                <div className="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-24">
+                <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 py-16 sm:py-24">
                     <div className="text-center mb-10 sm:mb-14">
                         <h2 className="text-[#0B0F0D] text-2xl sm:text-4xl font-bold mb-2 sm:mb-3">How it works</h2>
                         <p className="text-[#4A5568] text-sm sm:text-base max-w-xl mx-auto">
@@ -244,7 +244,7 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
 
             {/* Features (Light mode) */}
             <section className="bg-[#FFFFFF] border-t border-[#E2E8F0] text-[#0B0F0D]">
-                <div className="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-24">
+                <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 py-16 sm:py-24">
                     <div className="text-center mb-10 sm:mb-14">
                         <h2 className="text-[#0B0F0D] text-2xl sm:text-3xl font-bold mb-2 sm:mb-3">
                             Everything you need
@@ -276,7 +276,7 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
             {/* Game preview (Light mode) */}
             {previewGames.length > 0 && (
                 <section className="bg-[#F4F6F4] border-t border-[#E2E8F0] text-[#0B0F0D]">
-                    <div className="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-24">
+                    <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 py-16 sm:py-24">
                         <div className="text-center mb-8 sm:mb-12">
                             <h2 className="text-[#0B0F0D] text-2xl sm:text-3xl font-bold mb-1.5 sm:mb-2">
                                 Trending Right Now
