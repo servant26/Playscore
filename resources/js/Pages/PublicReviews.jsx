@@ -91,17 +91,17 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
                 className="flex-1 w-full max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 py-6 flex flex-col lg:flex-row gap-8 lg:gap-12 overflow-hidden"
                 style={{ height: 'calc(100vh - 64px)' }}
             >
-                {/* KIRI: Deskripsi, Filter & Quick Action (Natural & Spacious Fit) */}
-                <div className="lg:w-5/12 flex flex-col justify-between bg-[#0E1411] border border-[#1F2923] rounded-3xl p-7 sm:p-8 text-[#F5F7F5] shrink-0 h-full overflow-hidden">
-                    <div className="space-y-6">
+                {/* KIRI: Deskripsi & Filter (Vertically Centered in Fixed Box) */}
+                <div className="lg:w-5/12 flex flex-col justify-center bg-[#0E1411] border border-[#1F2923] rounded-3xl p-8 sm:p-10 text-[#F5F7F5] shrink-0 h-full overflow-hidden">
+                    <div className="space-y-8">
                         <div>
-                            <span className="text-[#22C55E] text-xs font-semibold uppercase tracking-wider bg-[#22C55E]/10 px-3.5 py-1.5 rounded-full border border-[#22C55E]/20 inline-block mb-4">
+                            <span className="text-[#22C55E] text-xs font-semibold uppercase tracking-wider bg-[#22C55E]/10 px-3.5 py-1.5 rounded-full border border-[#22C55E]/20 inline-block mb-6">
                                 Community Critiques
                             </span>
-                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
+                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-6 leading-tight">
                                 Community Reviews
                             </h1>
-                            <p className="text-[#8B948F] text-sm sm:text-base leading-relaxed">
+                            <p className="text-[#8B948F] text-base leading-relaxed">
                                 Honest written reviews and 0–10 score ratings shared by real gamers in the community.
                             </p>
                         </div>
@@ -111,7 +111,7 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
                             <span className="text-xs font-semibold uppercase tracking-wider text-[#8B948F] block mb-2">
                                 Filter Reviews:
                             </span>
-                            <div className="flex flex-col gap-2.5">
+                            <div className="flex flex-col gap-3">
                                 <button
                                     onClick={() => handleFilterChange('all')}
                                     className={`w-full text-left px-5 py-3.5 rounded-xl text-xs sm:text-sm font-semibold transition ${
@@ -134,21 +134,6 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
                                 </button>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Clean Bottom CTA (Seamless without inner card BG) */}
-                    <div className="pt-6 border-t border-[#1F2923] mt-auto space-y-3">
-                        <h4 className="text-sm font-bold text-white">Want to post a review?</h4>
-                        <p className="text-xs text-[#8B948F] leading-relaxed">
-                            Join the community to log your played games, rate on a 0–10 scale, and unlock reviewer ranks.
-                        </p>
-                        <button
-                            onClick={() => setAuthModal(true)}
-                            className="w-full bg-[#22C55E] text-[#0B0F0D] font-bold text-xs sm:text-sm py-3 px-4 rounded-xl hover:bg-[#4ADE80] transition shadow-md shadow-[#22C55E]/15 flex items-center justify-center gap-1.5"
-                        >
-                            <span>Write a Review</span>
-                            <span>&rarr;</span>
-                        </button>
                     </div>
                 </div>
 
