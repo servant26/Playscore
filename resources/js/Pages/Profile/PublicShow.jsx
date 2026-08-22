@@ -30,6 +30,24 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
     const dropdownRef = useRef(null);
     const sortDropdownRef = useRef(null);
 
+    const [perPage, setPerPage] = useState(14);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 1024) {
+                setPerPage(14);
+            } else if (window.innerWidth >= 640) {
+                setPerPage(8);
+            } else {
+                setPerPage(10);
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     useEffect(() => {
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -174,8 +192,8 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
         return list;
     }, [search, reviews, reviewFilter, myReviewedGameIds, sortBy]);
 
-    const totalPages = Math.ceil(filtered.length / PER_PAGE) || 1;
-    const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+    const totalPages = Math.ceil(filtered.length / perPage) || 1;
+    const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
     const handleSearchChange = (value) => {
         setSearch(value);
@@ -589,7 +607,7 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                                 </div>
 
                                 {/* Desktop Grid View (>= sm) */}
-                                <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                <div className="hidden sm:grid sm:grid-cols-4 lg:grid-cols-7 gap-3.5 sm:gap-4">
                                     {paginated.map((review) => (
                                         <div key={review.id} className="relative">
                                             <div
