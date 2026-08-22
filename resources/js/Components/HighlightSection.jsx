@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 
 export default function HighlightSection({ highlights = [], isOwner = false, onSelectHighlight }) {
@@ -13,6 +13,93 @@ export default function HighlightSection({ highlights = [], isOwner = false, onS
     const [editCoverPreview, setEditCoverPreview] = useState(null);
     const [updating, setUpdating] = useState(false);
     const editFileInputRef = useRef(null);
+
+    // Dynamic Items Order State & Drag/Touch State
+    const [items, setItems] = useState(highlights);
+    const [draggedIndex, setDraggedIndex] = useState(null);
+    const [dragOverIndex, setDragOverIndex] = useState(null);
+
+    // Touch Swap state
+    const touchStartRef = useRef(null);
+    const activeTouchIdx = useRef(null);
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        setItems(highlights);
+    }, [highlights]);
+
+    // Save order to server
+    const saveNewOrder = (newItems) => {
+        const orderIds = newItems.map((i) => i.id);
+        router.post(
+            route('highlights.reorder'),
+            { order: orderIds },
+            { preserveScroll: true, preserveState: true }
+        );
+    };
+
+    // Swap items live in state
+    const handleSwapLive = (fromIdx, toIdx) => {
+        if (fromIdx === null || toIdx === null || fromIdx === toIdx || fromIdx < 0 || toIdx < 0 || fromIdx >= items.length || toIdx >= items.length) return;
+
+        const updated = [...items];
+        const [moved] = updated.splice(fromIdx, 1);
+        updated.splice(toIdx, 0, moved);
+        setItems(updated);
+        setDraggedIndex(toIdx);
+        setDragOverIndex(null);
+
+        saveNewOrder(updated);
+    };
+
+    // HTML5 Drag & Drop handlers (Mouse)
+    const handleDragStart = (idx) => {
+        setDraggedIndex(idx);
+    };
+
+    const handleDragEnter = (idx) => {
+        if (draggedIndex !== null && draggedIndex !== idx) {
+            setDragOverIndex(idx);
+            handleSwapLive(draggedIndex, idx);
+        }
+    };
+
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+
+    // Touch Event Handlers (Mobile App-like Hold & Drag Swap)
+    const handleTouchStart = (idx, e) => {
+        if (!isOwner) return;
+        const touch = e.touches[0];
+        touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+        activeTouchIdx.current = idx;
+        setDraggedIndex(idx);
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isOwner || activeTouchIdx.current === null) return;
+        const touch = e.touches[0];
+        const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+        const itemEl = elements.find((el) => el.getAttribute && el.getAttribute('data-highlight-idx') !== null);
+
+        if (itemEl) {
+            const targetIdx = parseInt(itemEl.getAttribute('data-highlight-idx'), 10);
+            if (!isNaN(targetIdx) && targetIdx !== activeTouchIdx.current) {
+                handleSwapLive(activeTouchIdx.current, targetIdx);
+                activeTouchIdx.current = targetIdx;
+            }
+        }
+    };
+
+    const handleTouchEnd = () => {
+        if (!isOwner) return;
+        activeTouchIdx.current = null;
+        touchStartRef.current = null;
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
 
     const openEditModal = (e, hl) => {
         e.stopPropagation();
@@ -80,30 +167,52 @@ export default function HighlightSection({ highlights = [], isOwner = false, onS
                 Highlights
             </h3>
 
-            {/* Horizontal Scrollable Highlights Row */}
-            <div className="flex items-center gap-5 overflow-x-auto py-2 px-2 -mx-2 hide-scrollbar scrollbar-none">
+            {/* Horizontal Scrollable Highlights Row with smooth transition */}
+            <div
+                ref={containerRef}
+                onTouchMove={handleTouchMove}
+                className="flex items-center gap-5 overflow-x-auto py-2 px-2 -mx-2 hide-scrollbar scrollbar-none transition-all duration-300"
+            >
                 {/* List of Highlights */}
-                {highlights.map((hl) => {
+                {items.map((hl, idx) => {
                     const hasStories = hl.stories && hl.stories.length > 0;
+                    const isBeingDragged = draggedIndex === idx;
 
                     return (
-                        <div key={hl.id} className="flex flex-col items-center gap-1 shrink-0 group">
-                            <div className="relative w-14 h-14 shrink-0">
+                        <div
+                            key={hl.id}
+                            data-highlight-idx={idx}
+                            draggable={isOwner}
+                            onDragStart={() => isOwner && handleDragStart(idx)}
+                            onDragEnter={() => isOwner && handleDragEnter(idx)}
+                            onDragEnd={() => isOwner && handleDragEnd()}
+                            onDragOver={(e) => isOwner && e.preventDefault()}
+                            onTouchStart={(e) => isOwner && handleTouchStart(idx, e)}
+                            onTouchEnd={() => isOwner && handleTouchEnd()}
+                            className={`flex flex-col items-center gap-1 shrink-0 group transition-all duration-300 transform select-none ${
+                                isOwner ? 'cursor-grab active:cursor-grabbing' : ''
+                            } ${
+                                isBeingDragged
+                                    ? 'scale-110 opacity-70 z-50 shadow-2xl rotate-2'
+                                    : 'hover:scale-105'
+                            }`}
+                        >
+                            <div className="relative w-14 h-14 shrink-0 pointer-events-none">
                                 <button
                                     type="button"
                                     onClick={() => hasStories && onSelectHighlight(hl)}
                                     disabled={!hasStories}
-                                    className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC] group-hover:scale-105 transition-transform duration-200 shrink-0"
+                                    className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC] shrink-0 pointer-events-auto transition-transform duration-200"
                                 >
                                     <div className="w-full h-full rounded-full bg-[#0B0F0D] p-[2px] flex items-center justify-center overflow-hidden">
                                         {hl.cover_url ? (
                                             <img
                                                 src={hl.cover_url}
                                                 alt={hl.title}
-                                                className="w-full h-full object-cover rounded-full"
+                                                className="w-full h-full object-cover rounded-full pointer-events-none"
                                             />
                                         ) : (
-                                            <span className="text-[#22C55E] text-xs font-bold uppercase">
+                                            <span className="text-[#22C55E] text-xs font-bold uppercase pointer-events-none">
                                                 {hl.title.slice(0, 2)}
                                             </span>
                                         )}
@@ -115,7 +224,7 @@ export default function HighlightSection({ highlights = [], isOwner = false, onS
 
                                 {/* Owner Controls: Edit & Delete Buttons */}
                                 {isOwner && (
-                                    <div className="absolute -top-2 -right-3 flex items-center gap-1 z-30 hidden group-hover:flex">
+                                    <div className="absolute -top-2 -right-3 flex items-center gap-1 z-30 hidden group-hover:flex pointer-events-auto">
                                         {/* Pencil Edit Icon */}
                                         <button
                                             type="button"
@@ -143,7 +252,7 @@ export default function HighlightSection({ highlights = [], isOwner = false, onS
                                 )}
                             </div>
 
-                            <span className="text-[11px] font-medium text-[#F5F7F5] truncate max-w-[64px] text-center">
+                            <span className="text-[11px] font-medium text-[#F5F7F5] truncate max-w-[64px] text-center pointer-events-none">
                                 {hl.title}
                             </span>
                         </div>

@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/{user}/following', [App\Http\Controllers\FollowController::class, 'following'])->name('users.following');
 
     Route::post('/highlights', [App\Http\Controllers\HighlightController::class, 'store'])->name('highlights.store');
+    Route::post('/highlights/reorder', [App\Http\Controllers\HighlightController::class, 'reorder'])->name('highlights.reorder');
     Route::post('/highlights/{highlight}/update', [App\Http\Controllers\HighlightController::class, 'update'])->name('highlights.update');
     Route::post('/highlights/{highlight}/stories', [App\Http\Controllers\HighlightController::class, 'addStory'])->name('highlights.add-story');
     Route::delete('/highlights/{highlight}', [App\Http\Controllers\HighlightController::class, 'destroy'])->name('highlights.destroy');
