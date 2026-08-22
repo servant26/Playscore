@@ -294,7 +294,7 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                 <div className="mb-2">
                     <HighlightSection
                         highlights={highlights}
-                        isOwner={isOwner}
+                        isOwner={false}
                         myStories={userStories}
                         onSelectHighlight={(hl) => {
                             setHighlightViewerStories(hl.stories || []);
