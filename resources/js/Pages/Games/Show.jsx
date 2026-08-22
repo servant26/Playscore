@@ -174,6 +174,10 @@ export default function Show({ game, userReview, reviews, moreLikeThis = [], isI
                         onError={() => setCoverSrc(getFallbackImage(game.title))}
                         className="w-full h-full object-cover"
                     />
+                    {/* Share Button (Mobile Only - Positioned bottom right over cover image) */}
+                    <div className="absolute bottom-3 right-3 sm:hidden z-10">
+                        <ShareButton url={window.location.href} />
+                    </div>
                 </div>
 
                 {/* Info Header */}
@@ -199,7 +203,8 @@ export default function Show({ game, userReview, reviews, moreLikeThis = [], isI
                         </div>
                     </div>
 
-                    <div className="self-end sm:self-start shrink-0">
+                    {/* Share Button (Desktop Only) */}
+                    <div className="hidden sm:block self-start shrink-0">
                         <ShareButton url={window.location.href} />
                     </div>
                 </div>

@@ -12,12 +12,12 @@ export default function ShareButton({ url }) {
     return (
         <button
             onClick={copyLink}
-            className="rounded-lg bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F0D] font-semibold px-3.5 sm:px-4 py-2 text-xs sm:text-sm flex items-center gap-1.5 transition shadow-sm"
+            className="rounded-lg bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F0D] font-semibold px-2.5 py-1 text-[11px] sm:px-4 sm:py-2 sm:text-sm flex items-center gap-1 transition shadow-md"
         >
             <span>{copied ? 'Copied!' : 'Share'}</span>
             <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="w-4 h-4 shrink-0"
+                className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0"
                 fill="currentColor"
                 viewBox="0 0 24 24"
             >

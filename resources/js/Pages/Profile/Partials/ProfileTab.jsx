@@ -25,6 +25,7 @@ export default function ProfileTab({
     adminSubTab = null,
     highlights = [],
     myStories = [],
+    myArchivedStories = [],
     onSelectHighlight,
 }) {
     const user = usePage().props.auth.user;
@@ -199,6 +200,7 @@ export default function ProfileTab({
                         highlights={highlights}
                         isOwner={true}
                         myStories={myStories}
+                        myArchivedStories={myArchivedStories}
                         onSelectHighlight={onSelectHighlight}
                     />
                     <UserRankCard reviewCount={myReviews ? myReviews.length : 0} />
