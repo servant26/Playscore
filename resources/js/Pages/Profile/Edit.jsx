@@ -21,6 +21,8 @@ export default function Edit({
     gameList = [],
     myReviews = [],
     myStories = [],
+    myArchivedStories = [],
+    allUserStories = [],
     followingStoryGroups = [],
     highlights = [],
     stats,
@@ -320,8 +322,12 @@ export default function Edit({
                             myReviews={myReviews}
                             highlights={highlights}
                             myStories={myStories}
+                            myArchivedStories={myArchivedStories}
+                            allUserStories={allUserStories}
                             onSelectHighlight={(hl) => {
-                                setViewerStories(hl.stories || []);
+                                const storiesWithHl = (hl.stories || []).map((s) => ({ ...s, highlightId: hl.highlightId || hl.id }));
+                                storiesWithHl.highlightId = hl.highlightId || hl.id;
+                                setViewerStories(storiesWithHl);
                                 setShowViewer(true);
                             }}
                         />

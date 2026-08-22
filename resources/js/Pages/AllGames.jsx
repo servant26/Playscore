@@ -3,9 +3,21 @@ import RawgGameCard from '@/Components/RawgGameCard';
 import StoryBar from '@/Components/StoryBar';
 import { Head, Link, router } from '@inertiajs/react';
 
-export default function AllGames({ games, currentPage, lastPage, myStories = [], followingStoryGroups = [], myListIds = [], myListExternalIds = [] }) {
+export default function AllGames({
+    games,
+    currentPage,
+    lastPage,
+    myStories = [],
+    followingStoryGroups = [],
+    myListIds = [],
+    myListExternalIds = [],
+    userReviewCount = 0,
+}) {
     const pcGames = games;
     const tabletAndMobileGames = games.slice(0, 8);
+
+    const hasReviews = userReviewCount > 0;
+    const homeTabTitle = hasReviews ? 'Recommended for You' : 'Top Hits & New Games';
 
     const goToPage = (page) => {
         router.get(route('all-games'), { page }, { preserveScroll: true });
@@ -30,7 +42,7 @@ export default function AllGames({ games, currentPage, lastPage, myStories = [],
                         href={route('dashboard')}
                         className="text-center rounded-xl border border-[#1F2923] text-[#8B948F] px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-medium hover:border-[#2E3A32] hover:text-[#F5F7F5] transition whitespace-nowrap shrink-0"
                     >
-                        Top Hits & New Games
+                        {homeTabTitle}
                     </Link>
                     <span className="text-center rounded-xl bg-[#22C55E] text-[#0B0F0D] px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-semibold transition cursor-default whitespace-nowrap shrink-0">
                         All Games

@@ -124,6 +124,24 @@ class ProfileController extends Controller
             ->filter()
             ->values();
 
+        // Archived Stories (All stories created by the user, saved permanently)
+        $myArchivedStories = \App\Models\Story::where('user_id', $user->id)
+            ->with(['review.game', 'user'])
+            ->latest()
+            ->get()
+            ->map($formatStory)
+            ->filter()
+            ->values();
+
+        // All User Stories (Active + Archived combined for highlights creation & viewing)
+        $allUserStories = \App\Models\Story::where('user_id', $user->id)
+            ->with(['review.game', 'user'])
+            ->latest()
+            ->get()
+            ->map($formatStory)
+            ->filter()
+            ->values();
+
         $followingIds = $user->following()->pluck('users.id')->toArray();
         $followingStoryModels = \App\Models\Story::active()
             ->whereIn('user_id', $followingIds)
@@ -183,6 +201,8 @@ class ProfileController extends Controller
             'gameList' => $user->gameList()->with('interests')->get(),
             'myReviews' => $myReviewsWithGame,
             'myStories' => $myStories,
+            'myArchivedStories' => $myArchivedStories,
+            'allUserStories' => $allUserStories,
             'followingStoryGroups' => $followingStoryGroups,
             'highlights' => $highlights,
             'stats' => [

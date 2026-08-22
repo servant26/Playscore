@@ -158,17 +158,33 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
         );
     };
 
+    const activeHighlightId = stories.highlightId || currentStory?.highlightId;
+
     const handleDeleteStory = () => {
         if (!currentStory?.id) return;
         setDeleting(true);
-        router.delete(route('stories.destroy', currentStory.id), {
-            onSuccess: () => {
-                setDeleting(false);
-                setShowConfirmDelete(false);
-                onClose();
-            },
-            onError: () => setDeleting(false),
-        });
+
+        if (activeHighlightId) {
+            // Remove story from this specific highlight
+            router.delete(route('highlights.remove-story', [activeHighlightId, currentStory.id]), {
+                onSuccess: () => {
+                    setDeleting(false);
+                    setShowConfirmDelete(false);
+                    onClose();
+                },
+                onError: () => setDeleting(false),
+            });
+        } else {
+            // Permanent delete of the story
+            router.delete(route('stories.destroy', currentStory.id), {
+                onSuccess: () => {
+                    setDeleting(false);
+                    setShowConfirmDelete(false);
+                    onClose();
+                },
+                onError: () => setDeleting(false),
+            });
+        }
     };
 
     const handleSendCongratulations = (e) => {
@@ -341,7 +357,7 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                                                 <svg className="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
-                                                <span>Delete Story</span>
+                                                <span>{activeHighlightId ? 'Remove from Highlight' : 'Delete Story'}</span>
                                             </button>
                                         </div>
                                     )}
@@ -552,9 +568,13 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                         className="bg-[#131916] border border-[#1F2923] rounded-2xl p-6 max-w-xs w-full text-center shadow-2xl text-[#F5F7F5]"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h4 className="text-base font-bold text-[#F5F7F5]">Delete Story?</h4>
+                        <h4 className="text-base font-bold text-[#F5F7F5]">
+                            {activeHighlightId ? 'Remove from Highlight?' : 'Delete Story?'}
+                        </h4>
                         <p className="text-xs text-[#8B948F] mt-2 mb-6 leading-relaxed">
-                            Are you sure you want to delete this story? It will be permanently removed for all followers.
+                            {activeHighlightId
+                                ? 'Are you sure you want to remove this story from the highlight? The story will remain in your Story Archive.'
+                                : 'Are you sure you want to delete this story? It will be permanently removed for all followers.'}
                         </p>
 
                         <div className="flex gap-3">
@@ -574,7 +594,7 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                                 disabled={deleting}
                                 className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition disabled:opacity-50"
                             >
-                                {deleting ? 'Deleting...' : 'Delete'}
+                                {deleting ? (activeHighlightId ? 'Removing...' : 'Deleting...') : (activeHighlightId ? 'Remove' : 'Delete')}
                             </button>
                         </div>
                     </div>
@@ -623,7 +643,7 @@ export default function StoryViewerModal({ show, stories = [], initialIndex = 0,
                                         <label className="block text-xs font-semibold text-[#8B948F]">
                                             Select Existing Highlight:
                                         </label>
-                                        <div className="max-h-44 overflow-y-auto space-y-2 pr-1">
+                                        <div className="max-h-44 overflow-y-auto space-y-2 custom-scrollbar pr-1.5">
                                             {availableHighlights.map((hl) => (
                                                 <div
                                                     key={hl.id}

@@ -110,6 +110,41 @@ class HomeController extends Controller
         $myListIds = $user ? $user->gameList()->pluck('games.id')->toArray() : [];
         $myListExternalIds = $user ? $user->gameList()->whereNotNull('external_id')->pluck('games.external_id')->toArray() : [];
 
+        $userReviewCount = $user ? $user->reviews()->count() : 0;
+        $recommendedGames = collect([]);
+
+        if ($userReviewCount > 0) {
+            // Find genres from games the user has reviewed with high ratings or interests
+            $userReviewedGameIds = $user->reviews()->pluck('game_id')->toArray();
+
+            $userReviewedGenreIds = \App\Models\Interest::whereHas('games', function ($q) use ($userReviewedGameIds) {
+                $q->whereIn('games.id', $userReviewedGameIds);
+            })->pluck('id')->toArray();
+
+            $userInterestIds = $user->interests()->pluck('interests.id')->toArray();
+            $targetGenreIds = array_unique(array_merge($userReviewedGenreIds, $userInterestIds));
+
+            $dbRecommendations = \App\Models\Game::with('interests')
+                ->whereHas('interests', function ($q) use ($targetGenreIds) {
+                    if (!empty($targetGenreIds)) {
+                        $q->whereIn('interests.id', $targetGenreIds);
+                    }
+                })
+                ->whereNotIn('id', $userReviewedGameIds)
+                ->inRandomOrder()
+                ->limit(10)
+                ->get()
+                ->map(fn ($g) => [
+                    'external_id' => $g->external_id ?? $g->id,
+                    'title' => $g->title,
+                    'cover_url' => $g->cover_url,
+                    'rawg_rating' => $g->rawg_rating ? (float)$g->rawg_rating : null,
+                    'genres' => $g->interests->pluck('name')->implode(', '),
+                ]);
+
+            $recommendedGames = $dbRecommendations;
+        }
+
         return Inertia::render('Home', [
             'topHits' => $topHits,
             'newGames' => $newGames,
@@ -117,6 +152,8 @@ class HomeController extends Controller
             'followingStoryGroups' => $followingStoryGroups,
             'myListIds' => $myListIds,
             'myListExternalIds' => $myListExternalIds,
+            'userReviewCount' => $userReviewCount,
+            'recommendedGames' => $recommendedGames,
         ]);
     }
 

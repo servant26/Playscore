@@ -108,6 +108,7 @@ class AllGamesController extends Controller
 
         $myListIds = $user ? $user->gameList()->pluck('games.id')->toArray() : [];
         $myListExternalIds = $user ? $user->gameList()->whereNotNull('external_id')->pluck('games.external_id')->toArray() : [];
+        $userReviewCount = $user ? $user->reviews()->count() : 0;
 
         return Inertia::render('AllGames', [
             'games' => $games,
@@ -117,6 +118,7 @@ class AllGamesController extends Controller
             'followingStoryGroups' => $followingStoryGroups,
             'myListIds' => $myListIds,
             'myListExternalIds' => $myListExternalIds,
+            'userReviewCount' => $userReviewCount,
         ]);
     }
 }

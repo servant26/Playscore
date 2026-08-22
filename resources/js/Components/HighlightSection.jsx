@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 
-export default function HighlightSection({ highlights = [], isOwner = false, onSelectHighlight }) {
-    // Delete Highlight Confirmation Modal State
+export default function HighlightSection({ highlights = [], isOwner = false, myArchivedStories = [], onSelectHighlight }) {
+    // Archive Modal State
+    const [showArchiveModal, setShowArchiveModal] = useState(false);
     const [highlightToDelete, setHighlightToDelete] = useState(null);
     const [deleting, setDeleting] = useState(false);
 
@@ -157,15 +158,47 @@ export default function HighlightSection({ highlights = [], isOwner = false, onS
         });
     };
 
-    if (!highlights || highlights.length === 0) {
+    const [archivePage, setArchivePage] = useState(1);
+    const [archivePerPage, setArchivePerPage] = useState(9);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 640) {
+                setArchivePerPage(10);
+            } else {
+                setArchivePerPage(9);
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    if ((!highlights || highlights.length === 0) && !isOwner) {
         return null;
     }
 
     return (
         <div className="w-full mb-0">
-            <h3 className="text-[#8B948F] text-xs font-semibold uppercase tracking-wider mb-1">
-                Highlights
-            </h3>
+            <div className="flex items-center justify-between mb-1">
+                <h3 className="text-[#8B948F] text-xs font-semibold uppercase tracking-wider">
+                    Highlights
+                </h3>
+
+                {isOwner && (
+                    <button
+                        type="button"
+                        onClick={() => setShowArchiveModal(true)}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#131916] border border-[#1F2923] hover:border-[#22C55E]/50 text-xs font-semibold text-[#22C55E] hover:text-[#4ADE80] transition shadow-sm"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 012-2h10a2 2 0 012 2M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        </svg>
+                        <span>Archive {myArchivedStories && myArchivedStories.length > 0 ? `(${myArchivedStories.length})` : ''}</span>
+                    </button>
+                )}
+            </div>
 
             {/* Horizontal Scrollable Highlights Row with smooth transition */}
             <div
@@ -200,7 +233,7 @@ export default function HighlightSection({ highlights = [], isOwner = false, onS
                             <div className="relative w-14 h-14 shrink-0 pointer-events-none">
                                 <button
                                     type="button"
-                                    onClick={() => hasStories && onSelectHighlight(hl)}
+                                    onClick={() => hasStories && onSelectHighlight({ ...hl, highlightId: hl.id })}
                                     disabled={!hasStories}
                                     className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC] shrink-0 pointer-events-auto transition-transform duration-200"
                                 >
@@ -384,6 +417,130 @@ export default function HighlightSection({ highlights = [], isOwner = false, onS
                                 {deleting ? 'Deleting...' : 'Delete'}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Story Archive Modal */}
+            {showArchiveModal && (
+                <div
+                    className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100000] flex items-center justify-center p-4"
+                    onClick={() => setShowArchiveModal(false)}
+                >
+                    <div
+                        className="bg-[#131916] border border-[#1F2923] rounded-3xl p-5 sm:p-6 max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl text-[#F5F7F5] space-y-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between border-b border-[#1F2923] pb-3 shrink-0">
+                            <div>
+                                <h4 className="text-base font-bold text-[#F5F7F5]">Story Archive</h4>
+                                <p className="text-xs text-[#8B948F] mt-0.5">
+                                    All your past and present stories are safely stored here.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setShowArchiveModal(false)}
+                                className="text-[#8B948F] hover:text-[#F5F7F5] transition"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {!myArchivedStories || myArchivedStories.length === 0 ? (
+                            <div className="py-10 text-center">
+                                <p className="text-[#8B948F] text-xs">No archived stories found yet.</p>
+                                <p className="text-[#5A625D] text-[11px] mt-1">Stories you post will automatically appear in your archive.</p>
+                            </div>
+                        ) : (
+                            (() => {
+                                const totalPages = Math.ceil(myArchivedStories.length / archivePerPage) || 1;
+                                const paginatedStories = myArchivedStories.slice(
+                                    (archivePage - 1) * archivePerPage,
+                                    archivePage * archivePerPage
+                                );
+
+                                return (
+                                    <div className="flex flex-col min-h-0 flex-1">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1 pt-1">
+                                            {paginatedStories.map((story) => {
+                                                const cover = story.review?.game_cover;
+                                                const title = story.review?.game_title || story.rank_name || 'Story';
+                                                const rating = story.review?.rating;
+
+                                                return (
+                                                    <div
+                                                        key={story.id}
+                                                        onClick={() => {
+                                                            setShowArchiveModal(false);
+                                                            onSelectHighlight({ title: 'Archived Story', stories: [story] });
+                                                        }}
+                                                        className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-[#1F2923] bg-[#0B0F0D] group cursor-pointer hover:border-[#22C55E]/50 transition shadow-lg flex flex-col justify-between p-3"
+                                                    >
+                                                        {/* Background Image / Gradient */}
+                                                        {cover ? (
+                                                            <img
+                                                                src={cover}
+                                                                alt={title}
+                                                                className="absolute inset-0 w-full h-full object-cover filter brightness-75 group-hover:scale-105 transition duration-300"
+                                                            />
+                                                        ) : (
+                                                            <div className="absolute inset-0 bg-gradient-to-b from-[#131916] to-[#0B0F0D]" />
+                                                        )}
+
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/40" />
+
+                                                        {/* Top Date Badge */}
+                                                        <div className="absolute top-1.5 left-1.5 z-10">
+                                                            <span className="bg-black/70 backdrop-blur-md border border-white/10 text-[#A0AABA] text-[9px] font-semibold px-1.5 py-0.5 rounded-md shadow">
+                                                                {story.created_at}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Bottom Title & Rating (Fixed at bottom) */}
+                                                        <div className="relative z-10 text-left mt-auto">
+                                                            <h5 className="text-white text-xs font-bold truncate drop-shadow">
+                                                                {title}
+                                                            </h5>
+                                                            {rating && (
+                                                                <p className="text-[#22C55E] text-[11px] font-extrabold mt-0.5">
+                                                                    ★ {Number(rating).toFixed(1)}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* Pagination Controls */}
+                                        {totalPages > 1 && (
+                                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#1F2923] shrink-0">
+                                                <p className="text-xs text-[#8B948F]">
+                                                    Page {archivePage} of {totalPages}
+                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => setArchivePage((p) => Math.max(1, p - 1))}
+                                                        disabled={archivePage === 1}
+                                                        className="px-3 py-1.5 rounded-lg border border-[#1F2923] text-xs text-[#8B948F] hover:border-[#2E3A32] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                                    >
+                                                        Previous
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setArchivePage((p) => Math.min(totalPages, p + 1))}
+                                                        disabled={archivePage === totalPages}
+                                                        className="px-3 py-1.5 rounded-lg border border-[#1F2923] text-xs text-[#8B948F] hover:border-[#2E3A32] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                                    >
+                                                        Next
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()
+                        )}
                     </div>
                 </div>
             )}

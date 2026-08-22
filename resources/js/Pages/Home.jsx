@@ -3,9 +3,24 @@ import RawgGameCard from '@/Components/RawgGameCard';
 import StoryBar from '@/Components/StoryBar';
 import { Head, Link } from '@inertiajs/react';
 
-export default function Dashboard({ topHits = [], newGames = [], myStories = [], followingStoryGroups = [], myListIds = [], myListExternalIds = [] }) {
-    // Combine topHits and newGames into a single pool of unique games
-    const combinedGames = [...topHits, ...newGames]
+export default function Dashboard({
+    topHits = [],
+    newGames = [],
+    myStories = [],
+    followingStoryGroups = [],
+    myListIds = [],
+    myListExternalIds = [],
+    userReviewCount = 0,
+    recommendedGames = [],
+}) {
+    const hasReviews = userReviewCount > 0;
+    const tabTitle = hasReviews ? 'Recommended for You' : 'Top Hits & New Games';
+
+    // Choose display games based on whether user has reviews
+    const sourceGames = hasReviews && recommendedGames.length > 0 ? recommendedGames : [...topHits, ...newGames];
+
+    // Combine into a single pool of unique games
+    const combinedGames = sourceGames
         .reduce((acc, current) => {
             const exists = acc.some((item) => item.external_id === current.external_id);
             if (!exists) acc.push(current);
@@ -23,7 +38,7 @@ export default function Dashboard({ topHits = [], newGames = [], myStories = [],
                 {/* Navigation Header Row: Tabs + Stories */}
                 <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 w-full overflow-x-auto scrollbar-none py-0.5">
                     <span className="text-center rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F0D] px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-semibold transition cursor-default whitespace-nowrap shrink-0">
-                        Top Hits & New Games
+                        {tabTitle}
                     </span>
                     <Link
                         href={route('all-games')}
@@ -35,7 +50,7 @@ export default function Dashboard({ topHits = [], newGames = [], myStories = [],
                 </div>
 
                 <section className="mb-8">
-                    <h2 className="text-[#F5F7F5] text-lg sm:text-xl font-semibold mb-3">Top Hits & New Games</h2>
+                    <h2 className="text-[#F5F7F5] text-lg sm:text-xl font-semibold mb-3">{tabTitle}</h2>
                         
                         {/* PC Grid (lg:): Displays 9 games (3 columns x 3 rows) */}
                         <div className="hidden lg:grid lg:grid-cols-3 gap-6">
