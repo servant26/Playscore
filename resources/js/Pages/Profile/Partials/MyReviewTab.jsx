@@ -8,6 +8,8 @@ export default function MyReviewTab({ myReviews }) {
     const [showEditModal, setShowEditModal] = useState(false);
     const [reviewToDelete, setReviewToDelete] = useState(null);
     const [search, setSearch] = useState('');
+    const [sortBy, setSortBy] = useState('rating_desc'); // rating_desc, latest_review, rating_asc, title_asc, title_desc, date_desc, date_asc
+    const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
 
@@ -40,14 +42,34 @@ export default function MyReviewTab({ myReviews }) {
     };
 
     const filtered = useMemo(() => {
-        if (!search.trim()) return myReviews;
-        const q = search.toLowerCase();
-        return myReviews.filter(
-            (r) =>
-                r.game.title.toLowerCase().includes(q) ||
-                (r.body && r.body.toLowerCase().includes(q))
-        );
-    }, [search, myReviews]);
+        let list = [...myReviews];
+        if (search.trim()) {
+            const q = search.toLowerCase();
+            list = list.filter(
+                (r) =>
+                    r.game.title.toLowerCase().includes(q) ||
+                    (r.body && r.body.toLowerCase().includes(q))
+            );
+        }
+
+        if (sortBy === 'title_asc') {
+            list.sort((a, b) => a.game.title.localeCompare(b.game.title));
+        } else if (sortBy === 'title_desc') {
+            list.sort((a, b) => b.game.title.localeCompare(a.game.title));
+        } else if (sortBy === 'rating_desc') {
+            list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        } else if (sortBy === 'rating_asc') {
+            list.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+        } else if (sortBy === 'date_desc') {
+            list.sort((a, b) => new Date(b.game.release_date || 0) - new Date(a.game.release_date || 0));
+        } else if (sortBy === 'date_asc') {
+            list.sort((a, b) => new Date(a.game.release_date || 0) - new Date(b.game.release_date || 0));
+        } else if (sortBy === 'latest_review') {
+            list.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        }
+
+        return list;
+    }, [search, myReviews, sortBy]);
 
     const totalPages = Math.ceil(filtered.length / perPage) || 1;
     const paginated = filtered.slice((page - 1) * perPage, page * perPage);
@@ -69,16 +91,91 @@ export default function MyReviewTab({ myReviews }) {
 
     return (
         <div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                <h2 className="text-[#F5F7F5] text-base sm:text-lg font-semibold">
-                    My Reviews ({filtered.length})
-                </h2>
+            <div className="space-y-2.5 mb-4">
+                <div className="flex items-center justify-between gap-2">
+                    <h2 className="text-[#F5F7F5] text-sm sm:text-lg font-semibold">
+                        My Reviews ({filtered.length})
+                    </h2>
+
+                    {/* Custom Styled Sort Dropdown */}
+                    <div className="relative">
+                        <button
+                            type="button"
+                            onClick={() => setIsSortDropdownOpen((prev) => !prev)}
+                            className="flex items-center gap-1.5 bg-[#131916] border border-[#1F2923] hover:border-[#22C55E]/50 text-[#F5F7F5] text-[11px] sm:text-sm font-medium px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition shadow-sm"
+                        >
+                            <span>
+                                {sortBy === 'latest_review' && 'Latest Review'}
+                                {sortBy === 'title_asc' && 'Alphabet (A - Z)'}
+                                {sortBy === 'title_desc' && 'Alphabet (Z - A)'}
+                                {sortBy === 'rating_desc' && 'Rating (Highest)'}
+                                {sortBy === 'rating_asc' && 'Rating (Lowest)'}
+                                {sortBy === 'date_desc' && 'Release Date (Newest)'}
+                                {sortBy === 'date_asc' && 'Release Date (Oldest)'}
+                            </span>
+                            <svg
+                                className={`w-3.5 h-3.5 text-[#8B948F] transition-transform duration-200 ${
+                                    isSortDropdownOpen ? 'rotate-180 text-[#22C55E]' : ''
+                                }`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        {isSortDropdownOpen && (
+                            <>
+                                <div
+                                    className="fixed inset-0 z-20"
+                                    onClick={() => setIsSortDropdownOpen(false)}
+                                />
+                                <div className="absolute right-0 mt-1.5 w-52 bg-[#131916] border border-[#1F2923] rounded-xl shadow-2xl py-1.5 z-30 overflow-hidden">
+                                    <div className="px-3 py-1.5 text-[11px] font-bold text-[#8B948F] uppercase tracking-wider border-b border-[#1F2923]">
+                                        Sort Reviews By
+                                    </div>
+                                    {[
+                                        { id: 'rating_desc', label: 'Rating (Highest)' },
+                                        { id: 'rating_asc', label: 'Rating (Lowest)' },
+                                        { id: 'latest_review', label: 'Latest Review' },
+                                        { id: 'title_asc', label: 'Alphabet (A - Z)' },
+                                        { id: 'title_desc', label: 'Alphabet (Z - A)' },
+                                        { id: 'date_desc', label: 'Release Date (Newest)' },
+                                        { id: 'date_asc', label: 'Release Date (Oldest)' },
+                                    ].map((opt) => (
+                                        <button
+                                            key={opt.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setSortBy(opt.id);
+                                                setPage(1);
+                                                setIsSortDropdownOpen(false);
+                                            }}
+                                            className={`w-full text-left px-3.5 py-2 text-xs sm:text-sm font-medium flex items-center justify-between transition ${
+                                                sortBy === opt.id
+                                                    ? 'bg-[#22C55E]/15 text-[#22C55E]'
+                                                    : 'text-[#8B948F] hover:bg-[#1F2923] hover:text-[#F5F7F5]'
+                                            }`}
+                                        >
+                                            <span>{opt.label}</span>
+                                            {sortBy === opt.id && (
+                                                <span className="text-[#22C55E] font-bold">✓</span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+
                 <input
                     type="text"
                     value={search}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     placeholder="Search reviews..."
-                    className="w-full sm:w-64 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
+                    className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-3.5 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
                 />
             </div>
 

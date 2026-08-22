@@ -17,7 +17,18 @@ class SearchController extends Controller
         $games = collect();
         $users = collect();
 
+        $authUser = auth()->user();
+
         if ($query) {
+            // Get user's existing reviews mapped by game's external_id or game_id
+            $userReviewsMap = [];
+            if ($authUser) {
+                $userReviewsMap = \App\Models\Review::where('user_id', $authUser->id)
+                    ->join('games', 'reviews.game_id', '=', 'games.id')
+                    ->pluck('reviews.rating', 'games.external_id')
+                    ->toArray();
+            }
+
             // 1. Search Games from RAWG API
             try {
                 $response = $rawg->search($query);
@@ -28,17 +39,22 @@ class SearchController extends Controller
                         strtolower($item['name']),
                         strtolower($query)
                     ))
-                    ->map(function ($item) {
+                    ->map(function ($item) use ($userReviewsMap) {
                         $cover = $item['background_image']
                             ?? $item['background_image_additional']
                             ?? ($item['short_screenshots'][0]['image'] ?? null);
 
+                        $extId = $item['id'];
+                        $userRating = $userReviewsMap[$extId] ?? null;
+
                         return [
-                            'external_id' => $item['id'],
+                            'external_id' => $extId,
                             'title' => $item['name'],
                             'cover_url' => $cover,
                             'rawg_rating' => $item['rating'] ?? null,
+                            'release_date' => $item['released'] ?? null,
                             'genres' => collect($item['genres'] ?? [])->pluck('name')->implode(', '),
+                            'user_rating' => $userRating ? number_format($userRating, 1) : null,
                         ];
                     })
                     ->values();

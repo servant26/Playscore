@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import Modal from '@/Components/Modal';
 import { toBlob } from 'html-to-image';
 import { getRankInfo } from '@/Utils/rankSystem';
@@ -20,13 +20,53 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
     const rankInfo = getRankInfo(totalReviews);
     const cRank = rankInfo.currentRank;
 
-    // Calculate Top Genre
-    const topGenre = Object.entries(reviewsByGenre).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Gamer';
+    // Calculate Top 5 Genres
+    const top5Genres = Object.entries(reviewsByGenre)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([genre]) => genre);
 
     // Top Rated Game
     const topGame = reviews && reviews.length > 0
         ? [...reviews].sort((a, b) => Number(b.rating) - Number(a.rating))[0]
         : null;
+
+    // Most Played Franchise/Series
+    const mostPlayedSeries = useMemo(() => {
+        if (!reviews || reviews.length === 0) return null;
+
+        const seriesCounts = {};
+        const seriesCovers = {};
+
+        reviews.forEach((r) => {
+            if (!r.game || !r.game.title) return;
+            let title = r.game.title.trim();
+            // Extract series root name (e.g., "Tekken 5" -> "Tekken", "God of War II" -> "God of War")
+            let rootName = title
+                .replace(/\s*:\s*.*/, '') // Remove subtitle after colon
+                .replace(/\s+\d+.*$/, '') // Remove trailing numbers (e.g. 5, 2, 3)
+                .replace(/\s+(I|II|III|IV|V|VI|VII|VIII|IX|X)+$/i, '') // Remove Roman numerals
+                .replace(/\s+\(.*?\)/g, '') // Remove parentheses (2005)
+                .trim();
+
+            if (rootName.length < 3) rootName = title;
+
+            seriesCounts[rootName] = (seriesCounts[rootName] || 0) + 1;
+            if (!seriesCovers[rootName]) {
+                seriesCovers[rootName] = r.game.cover_url;
+            }
+        });
+
+        const sortedSeries = Object.entries(seriesCounts).sort((a, b) => b[1] - a[1]);
+        if (sortedSeries.length === 0) return null;
+
+        const [topSeriesName, count] = sortedSeries[0];
+        return {
+            name: topSeriesName,
+            count,
+            cover_url: seriesCovers[topSeriesName],
+        };
+    }, [reviews]);
 
     const avatarUrl = user?.avatar
         ? (user.avatar.startsWith('http://') || user.avatar.startsWith('https://') || user.avatar.startsWith('data:')
@@ -203,32 +243,32 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
-            <div className="p-4 sm:p-6 bg-[#0B0F0D] text-[#F5F7F5] rounded-2xl max-h-[92vh] overflow-y-auto custom-scrollbar flex flex-col items-center">
+            <div className="p-3.5 sm:p-4 bg-[#0B0F0D] text-[#F5F7F5] rounded-2xl max-h-[90vh] flex flex-col items-center">
                 {/* Modal Header */}
-                <div className="w-full flex items-center justify-between mb-3 border-b border-[#1F2923] pb-3 shrink-0">
+                <div className="w-full flex items-center justify-between mb-2 border-b border-[#1F2923] pb-2 shrink-0">
                     <div>
-                        <h2 className="text-base sm:text-lg font-bold">
+                        <h2 className="text-sm sm:text-base font-bold">
                             PlayScore Stats Card
                         </h2>
-                        <p className="text-[#8B948F] text-xs mt-1">
+                        <p className="text-[#8B948F] text-[11px] mt-0.5">
                             Share your gaming achievements and PlayScore statistics to your Instagram Story!
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-[#8B948F] hover:text-white text-lg font-bold px-2 py-1 transition"
+                        className="text-[#8B948F] hover:text-white text-base font-bold px-2 py-0.5 transition"
                     >
                         ✕
                     </button>
                 </div>
 
-                {/* Theme Selector Controls (3 top, 3 bottom) */}
-                <div className="grid grid-cols-3 gap-2 mb-3 w-full max-w-[360px] justify-center shrink-0">
+                {/* Theme Selector Controls */}
+                <div className="grid grid-cols-3 gap-1.5 mb-2 w-full max-w-[360px] justify-center shrink-0">
                     {Object.keys(themes).map((tKey) => (
                         <button
                             key={tKey}
                             onClick={() => setTheme(tKey)}
-                            className={`px-2 py-1.5 rounded-xl text-[11px] font-bold border transition text-center truncate ${theme === tKey
+                            className={`px-2 py-1 rounded-lg text-[10px] font-bold border transition text-center truncate ${theme === tKey
                                 ? `${themes[tKey].accentBg} text-black font-extrabold shadow-md`
                                 : 'bg-[#131916] text-[#8B948F] border-[#1F2923] hover:text-white'
                                 }`}
@@ -239,7 +279,7 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
                 </div>
 
                 {/* --- 9:16 STORY CARD SCROLLABLE PREVIEW CONTAINER --- */}
-                <div className="w-full max-h-[380px] sm:max-h-[420px] overflow-y-auto custom-scrollbar border border-[#1F2923] rounded-2xl p-3 bg-[#070A08] mb-4 shadow-inner">
+                <div className="w-full max-h-[290px] sm:max-h-[330px] overflow-y-auto custom-scrollbar border border-[#1F2923] rounded-xl p-2 bg-[#070A08] mb-2.5 shadow-inner">
                     <div className="flex justify-center items-start min-h-max py-1">
                         <div className="relative shadow-2xl rounded-2xl overflow-hidden shrink-0">
                             <div
@@ -289,9 +329,35 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
                                         <span className={`font-semibold ${currentTheme.accent}`}>{cRank.name}</span> with {cRank.min}+ Reviews
                                     </p>
 
-                                    <p className="text-[9px] text-white/50 font-normal mt-0.5">
-                                        Top Genre: <span className="font-medium text-white/80">{topGenre}</span>
-                                    </p>
+                                    {/* Top 5 Genres Pills (Gray Badges: 3 on row 1, 2 on row 2) */}
+                                    {top5Genres.length > 0 && (
+                                        <div className="mt-2 w-full flex flex-col items-center gap-1.5 max-w-[260px]">
+                                            {/* Row 1: Max 3 Badges */}
+                                            <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                                                {top5Genres.slice(0, 3).map((genre, idx) => (
+                                                    <span
+                                                        key={idx}
+                                                        className="text-[9px] font-medium px-2.5 py-0.5 rounded-md bg-[#19221D]/80 text-[#9DA8A2] border border-[#2A3730]"
+                                                    >
+                                                        {genre}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            {/* Row 2: Remaining 2 Badges */}
+                                            {top5Genres.length > 3 && (
+                                                <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                                                    {top5Genres.slice(3, 5).map((genre, idx) => (
+                                                        <span
+                                                            key={idx}
+                                                            className="text-[9px] font-medium px-2.5 py-0.5 rounded-md bg-[#19221D]/80 text-[#9DA8A2] border border-[#2A3730]"
+                                                        >
+                                                            {genre}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Middle: Big Stats Grid */}
@@ -316,25 +382,46 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
                                     </div>
                                 </div>
 
-                                {/* Highest Rated Game Highlight */}
-                                {topGame && (
-                                    <div className={`p-2.5 sm:p-3 rounded-xl border backdrop-blur-md flex items-center gap-2.5 sm:gap-3 z-10 mb-2 sm:mb-3 ${currentTheme.cardBg}`}>
-                                        <img
-                                            src={topGame.game?.cover_url}
-                                            alt={topGame.game?.title}
-                                            className="w-10 h-12 sm:w-12 sm:h-14 rounded-lg object-cover shrink-0 border border-white/10"
-                                        />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-[8px] sm:text-[9px] text-white/50 font-bold uppercase tracking-wider">Top Rated Game</p>
-                                            <h4 className="text-xs font-bold text-white truncate mt-0.5">
-                                                {topGame.game?.title}
-                                            </h4>
-                                            <p className={`text-xs font-black mt-0.5 ${currentTheme.accent}`}>
-                                                Score: {topGame.rating} / 10 <span className="text-[10px] font-normal">★</span>
-                                            </p>
+                                {/* Highlights Section: Top Rated Game & Most Played Series */}
+                                <div className="space-y-1.5 z-10 mb-2 sm:mb-3">
+                                    {topGame && (
+                                        <div className={`p-2 rounded-xl border backdrop-blur-md flex items-center gap-2.5 ${currentTheme.cardBg}`}>
+                                            <img
+                                                src={topGame.game?.cover_url}
+                                                alt={topGame.game?.title}
+                                                className="w-9 h-11 rounded-lg object-cover shrink-0 border border-white/10"
+                                            />
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-[8px] text-white/50 font-bold uppercase tracking-wider">Top Rated Game</p>
+                                                <h4 className="text-[11px] font-bold text-white truncate mt-0.5">
+                                                    {topGame.game?.title}
+                                                </h4>
+                                                <p className={`text-[11px] font-black mt-0.5 ${currentTheme.accent}`}>
+                                                    Score: {topGame.rating} / 10 <span className="text-[9px] font-normal">★</span>
+                                                </p>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+
+                                    {mostPlayedSeries && (
+                                        <div className={`p-2 rounded-xl border backdrop-blur-md flex items-center gap-2.5 ${currentTheme.cardBg}`}>
+                                            <img
+                                                src={mostPlayedSeries.cover_url}
+                                                alt={mostPlayedSeries.name}
+                                                className="w-9 h-11 rounded-lg object-cover shrink-0 border border-white/10"
+                                            />
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-[8px] text-white/50 font-bold uppercase tracking-wider">Most Played Series</p>
+                                                <h4 className="text-[11px] font-bold text-white truncate mt-0.5">
+                                                    {mostPlayedSeries.name} Series
+                                                </h4>
+                                                <p className={`text-[11px] font-black mt-0.5 ${currentTheme.accent}`}>
+                                                    {mostPlayedSeries.count} {mostPlayedSeries.count === 1 ? 'Game' : 'Games Played'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* Footer Card Info */}
                                 <div className="pt-2 border-t border-white/10 flex items-center justify-between z-10 text-[10px] text-white/60 font-semibold">
@@ -354,11 +441,11 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
                 )}
 
                 {/* Action Buttons - Pure text, no icons */}
-                <div className="w-full space-y-2 shrink-0">
+                <div className="w-full space-y-1.5 shrink-0">
                     <button
                         onClick={handleShareIgStory}
                         disabled={isGenerating}
-                        className={`w-full py-3 px-4 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 transition shadow-lg ${currentTheme.button} disabled:opacity-50`}
+                        className={`w-full py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-lg ${currentTheme.button} disabled:opacity-50`}
                     >
                         {isGenerating ? 'Generating Image...' : 'Share to IG Story'}
                     </button>
@@ -367,14 +454,14 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
                         <button
                             onClick={handleSavePng}
                             disabled={isGenerating}
-                            className="flex-1 py-2.5 px-3 rounded-xl bg-[#131916] border border-[#1F2923] text-xs font-semibold text-[#8B948F] hover:text-white hover:border-[#2E3A32] transition flex items-center justify-center disabled:opacity-50"
+                            className="flex-1 py-2 px-2.5 rounded-xl bg-[#131916] border border-[#1F2923] text-[11px] sm:text-xs font-semibold text-[#8B948F] hover:text-white hover:border-[#2E3A32] transition flex items-center justify-center disabled:opacity-50"
                         >
                             Save PNG
                         </button>
 
                         <button
                             onClick={handleCopyProfileLink}
-                            className="flex-1 py-2.5 px-3 rounded-xl bg-[#131916] border border-[#1F2923] text-xs font-semibold text-[#8B948F] hover:text-white hover:border-[#2E3A32] transition flex items-center justify-center"
+                            className="flex-1 py-2 px-2.5 rounded-xl bg-[#131916] border border-[#1F2923] text-[11px] sm:text-xs font-semibold text-[#8B948F] hover:text-[#F5F7F5] hover:border-[#2E3A32] transition flex items-center justify-center"
                         >
                             {copied ? 'Link Copied!' : 'Copy Profile Link'}
                         </button>

@@ -65,7 +65,7 @@ export default function RatingModal({ show, onClose, gameSlug, existingReview })
                         onChange={(e) => setData('body', e.target.value)}
                         rows={4}
                         placeholder="Share your thoughts about this game (optional)..."
-                        className="w-full rounded-lg bg-[#0B0F0D] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent resize-none mb-4"
+                        className="w-full rounded-lg bg-[#0B0F0D] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent resize-none mb-4 custom-scrollbar"
                     />
 
                     <label className="flex items-center gap-2.5 mb-5 cursor-pointer select-none">
