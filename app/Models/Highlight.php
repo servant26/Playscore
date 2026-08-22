@@ -15,6 +15,7 @@ class Highlight extends Model
         'user_id',
         'title',
         'cover_image',
+        'order',
     ];
 
     public function user(): BelongsTo

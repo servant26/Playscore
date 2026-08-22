@@ -138,11 +138,11 @@ export default function MyReviewTab({ myReviews }) {
                                     {[
                                         { id: 'rating_desc', label: 'Rating (Highest)' },
                                         { id: 'rating_asc', label: 'Rating (Lowest)' },
-                                        { id: 'latest_review', label: 'Latest Review' },
                                         { id: 'title_asc', label: 'Alphabet (A - Z)' },
                                         { id: 'title_desc', label: 'Alphabet (Z - A)' },
                                         { id: 'date_desc', label: 'Release Date (Newest)' },
                                         { id: 'date_asc', label: 'Release Date (Oldest)' },
+                                        { id: 'latest_review', label: 'Latest Review' },
                                     ].map((opt) => (
                                         <button
                                             key={opt.id}

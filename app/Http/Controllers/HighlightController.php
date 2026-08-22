@@ -98,4 +98,20 @@ class HighlightController extends Controller
 
         return back()->with('success', 'Story removed from highlight.');
     }
+
+    public function reorder(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'order' => 'required|array',
+            'order.*' => 'integer|exists:highlights,id',
+        ]);
+
+        foreach ($validated['order'] as $index => $id) {
+            Highlight::where('id', $id)
+                ->where('user_id', auth()->id())
+                ->update(['order' => $index]);
+        }
+
+        return back()->with('success', 'Highlights reordered successfully.');
+    }
 }

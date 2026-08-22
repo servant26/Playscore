@@ -33,24 +33,24 @@ export default function Edit({
         ? [{ key: 'profile', label: 'Profile' }]
         : [
             { key: 'profile', label: 'Profile' },
-            { key: 'gamelist_review', label: 'Gamelist & Review' },
+            { key: 'gamelist_review', label: 'Review & Gamelist' },
             { key: 'stats', label: 'Stats' },
             { key: 'follow', label: 'Following & Followers' },
         ];
 
     const getInitialState = () => {
         let tab = 'profile';
-        let gamesSub = 'gamelist';
+        let gamesSub = 'myreview';
         let followSub = 'following';
 
         if (typeof window !== 'undefined') {
             const hash = window.location.hash.replace('#', '');
-            if (hash === 'myreview') {
-                tab = 'gamelist_review';
-                gamesSub = 'myreview';
-            } else if (hash === 'gamelist' || hash === 'gamelist_review') {
+            if (hash === 'gamelist') {
                 tab = 'gamelist_review';
                 gamesSub = 'gamelist';
+            } else if (hash === 'myreview' || hash === 'gamelist_review') {
+                tab = 'gamelist_review';
+                gamesSub = 'myreview';
             } else if (hash === 'followers') {
                 tab = 'follow';
                 followSub = 'followers';
@@ -65,7 +65,7 @@ export default function Edit({
                 const stored = localStorage.getItem('playscore_profile_tab');
                 if (stored === 'gamelist' || stored === 'myreview' || stored === 'gamelist_review') {
                     tab = 'gamelist_review';
-                    gamesSub = stored === 'myreview' ? 'myreview' : 'gamelist';
+                    gamesSub = stored === 'gamelist' ? 'gamelist' : 'myreview';
                 } else if (stored === 'following' || stored === 'followers' || stored === 'follow') {
                     tab = 'follow';
                     followSub = stored === 'followers' ? 'followers' : 'following';
@@ -331,15 +331,6 @@ export default function Edit({
                         <div>
                             <div className="flex border-b border-[#1F2923] mb-6 overflow-x-auto scrollbar-none">
                                 <button
-                                    onClick={() => setGamesSubTab('gamelist')}
-                                    className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${gamesSubTab === 'gamelist'
-                                        ? 'border-[#22C55E] text-[#22C55E]'
-                                        : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
-                                        }`}
-                                >
-                                    Gamelist
-                                </button>
-                                <button
                                     onClick={() => setGamesSubTab('myreview')}
                                     className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${gamesSubTab === 'myreview'
                                         ? 'border-[#22C55E] text-[#22C55E]'
@@ -348,12 +339,21 @@ export default function Edit({
                                 >
                                     My Review
                                 </button>
+                                <button
+                                    onClick={() => setGamesSubTab('gamelist')}
+                                    className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${gamesSubTab === 'gamelist'
+                                        ? 'border-[#22C55E] text-[#22C55E]'
+                                        : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
+                                        }`}
+                                >
+                                    Gamelist
+                                </button>
                             </div>
 
-                            {gamesSubTab === 'gamelist' ? (
-                                <GameListTab gameList={gameList} />
-                            ) : (
+                            {gamesSubTab === 'myreview' ? (
                                 <MyReviewTab myReviews={myReviews} />
+                            ) : (
+                                <GameListTab gameList={gameList} />
                             )}
                         </div>
                     )}

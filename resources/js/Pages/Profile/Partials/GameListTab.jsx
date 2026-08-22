@@ -137,9 +137,9 @@ export default function GameListTab({ gameList }) {
                                     {[
                                         { id: 'rating_desc', label: 'Rating (Highest)' },
                                         { id: 'rating_asc', label: 'Rating (Lowest)' },
-                                        { id: 'latest', label: 'Recently Added' },
                                         { id: 'title_asc', label: 'Alphabet (A - Z)' },
                                         { id: 'title_desc', label: 'Alphabet (Z - A)' },
+                                        { id: 'latest', label: 'Recently Added' },
                                     ].map((opt) => (
                                         <button
                                             key={opt.id}

@@ -7,8 +7,10 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
     const pageUser = usePage().props.auth?.user;
     const currentUser = user || pageUser;
     const [showStoryModal, setShowStoryModal] = useState(false);
-    const [yearModalData, setYearModalData] = useState(null); // { year: '2005', reviews: [...] }
+    const [yearModalData, setYearModalData] = useState(null); // { title: '...', reviews: [...] }
     const [yearModalPage, setYearModalPage] = useState(1);
+    const [statsModalData, setStatsModalData] = useState(null); // { title: '...', reviews: [...] }
+    const [statsModalPage, setStatsModalPage] = useState(1);
     const {
         totalReviews = 0,
         totalGamesInList = 0,
@@ -293,12 +295,20 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
                 : paddingLeft + idx * pointSpacing;
             const y = height - 25 - (count / maxCount) * (height - 45);
 
-            // Collect reviews for games released in this year
-            const yearReviews = (myReviews || []).filter((r) => {
-                if (!r.game || !r.game.release_date) return false;
-                const rYear = new Date(r.game.release_date).getFullYear().toString();
-                return rYear === year;
-            });
+            // Collect reviews for games released in this year sorted by rating highest first
+            const yearReviews = (myReviews || [])
+                .filter((r) => {
+                    if (!r.game || !r.game.release_date) return false;
+                    const rYear = new Date(r.game.release_date).getFullYear().toString();
+                    return rYear === year;
+                })
+                .sort((a, b) => {
+                    const diff = Number(b.rating || 0) - Number(a.rating || 0);
+                    if (diff !== 0) return diff;
+                    const titleA = a.game?.title || '';
+                    const titleB = b.game?.title || '';
+                    return titleA.localeCompare(titleB);
+                });
 
             return { year, count, x, y, reviews: yearReviews };
         });
@@ -509,67 +519,98 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
                             <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-6 my-auto h-full">
                                 <div className="relative w-36 h-36 sm:w-44 sm:h-44 shrink-0 my-2 sm:my-0">
                                     <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90 drop-shadow-lg overflow-visible">
-                                        {genreChartData.slices.map((slice, idx) => (
-                                            <g key={idx}>
-                                                <path
-                                                    d={slice.pathData}
-                                                    fill={slice.color}
-                                                    onMouseEnter={() => setHoveredGenreIndex(idx)}
-                                                    onMouseLeave={() => setHoveredGenreIndex(null)}
-                                                    className={`transition duration-300 cursor-pointer ${hoveredGenreIndex === idx ? 'opacity-100 filter drop-shadow-md' : 'opacity-90 hover:opacity-100'
-                                                        }`}
-                                                />
-                                                {/* Outer Pointer Line & Callout Label on Hover */}
-                                                {hoveredGenreIndex === idx && (
-                                                    <g className="pointer-events-none">
-                                                        <line
-                                                            x1={slice.lineX1}
-                                                            y1={slice.lineY1}
-                                                            x2={slice.lineX2}
-                                                            y2={slice.lineY2}
-                                                            stroke={slice.color}
-                                                            strokeWidth="1.5"
-                                                            strokeLinecap="round"
-                                                        />
-                                                        <circle cx={slice.lineX2} cy={slice.lineY2} r="1.5" fill={slice.color} />
-                                                        <text
-                                                            x={slice.textX}
-                                                            y={slice.textY}
-                                                            textAnchor={slice.textX >= 50 ? 'start' : 'end'}
-                                                            dominantBaseline="central"
-                                                            className="transform rotate-90 text-[6.5px] font-extrabold fill-white drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.95)]"
-                                                            style={{ transformOrigin: `${slice.textX}px ${slice.textY}px` }}
-                                                        >
-                                                            {slice.genre} ({slice.percentage}%)
-                                                        </text>
-                                                    </g>
-                                                )}
-                                            </g>
-                                        ))}
+                                        {genreChartData.slices.map((slice, idx) => {
+                                            const genreReviews = (myReviews || [])
+                                                .filter((r) => r.game && r.game.interests && r.game.interests.some((i) => i.name === slice.genre))
+                                                .sort((a, b) => {
+                                                    const diff = Number(b.rating || 0) - Number(a.rating || 0);
+                                                    if (diff !== 0) return diff;
+                                                    const titleA = a.game?.title || '';
+                                                    const titleB = b.game?.title || '';
+                                                    return titleA.localeCompare(titleB);
+                                                });
+
+                                            return (
+                                                <g key={idx} onClick={() => {
+                                                    setStatsModalData({ title: `Genre: ${slice.genre}`, reviews: genreReviews });
+                                                    setStatsModalPage(1);
+                                                }}>
+                                                    <path
+                                                        d={slice.pathData}
+                                                        fill={slice.color}
+                                                        onMouseEnter={() => setHoveredGenreIndex(idx)}
+                                                        onMouseLeave={() => setHoveredGenreIndex(null)}
+                                                        className={`transition duration-300 cursor-pointer ${hoveredGenreIndex === idx ? 'opacity-100 filter drop-shadow-md scale-105' : 'opacity-90 hover:opacity-100'
+                                                            }`}
+                                                    />
+                                                    {/* Outer Pointer Line & Callout Label on Hover */}
+                                                    {hoveredGenreIndex === idx && (
+                                                        <g className="pointer-events-none">
+                                                            <line
+                                                                x1={slice.lineX1}
+                                                                y1={slice.lineY1}
+                                                                x2={slice.lineX2}
+                                                                y2={slice.lineY2}
+                                                                stroke={slice.color}
+                                                                strokeWidth="1.5"
+                                                                strokeLinecap="round"
+                                                            />
+                                                            <circle cx={slice.lineX2} cy={slice.lineY2} r="1.5" fill={slice.color} />
+                                                            <text
+                                                                x={slice.textX}
+                                                                y={slice.textY}
+                                                                textAnchor={slice.textX >= 50 ? 'start' : 'end'}
+                                                                dominantBaseline="central"
+                                                                className="transform rotate-90 text-[6.5px] font-extrabold fill-white drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.95)]"
+                                                                style={{ transformOrigin: `${slice.textX}px ${slice.textY}px` }}
+                                                            >
+                                                                {slice.genre} ({slice.percentage}%)
+                                                            </text>
+                                                        </g>
+                                                    )}
+                                                </g>
+                                            );
+                                        })}
                                     </svg>
                                 </div>
 
                                 <div className="flex-1 space-y-2 w-full max-h-56 sm:max-h-48 overflow-y-auto pr-1.5 custom-scrollbar my-auto">
-                                    {genreChartData.slices.map((slice, idx) => (
-                                        <div
-                                            key={idx}
-                                            onMouseEnter={() => setHoveredGenreIndex(idx)}
-                                            onMouseLeave={() => setHoveredGenreIndex(null)}
-                                            className={`flex items-center justify-between text-xs p-1.5 rounded-md transition cursor-pointer ${hoveredGenreIndex === idx ? 'bg-[#1F2923]' : 'hover:bg-[#19211d]'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-2 truncate pr-2">
-                                                <span
-                                                    className="w-3 h-3 rounded-full shrink-0"
-                                                    style={{ backgroundColor: slice.color }}
-                                                />
-                                                <span className="text-[#F5F7F5] truncate font-medium">{slice.genre}</span>
+                                    {genreChartData.slices.map((slice, idx) => {
+                                        const genreReviews = (myReviews || [])
+                                            .filter((r) => r.game && r.game.interests && r.game.interests.some((i) => i.name === slice.genre))
+                                            .sort((a, b) => {
+                                                const diff = Number(b.rating || 0) - Number(a.rating || 0);
+                                                if (diff !== 0) return diff;
+                                                const titleA = a.game?.title || '';
+                                                const titleB = b.game?.title || '';
+                                                return titleA.localeCompare(titleB);
+                                            });
+
+                                        return (
+                                            <div
+                                                key={idx}
+                                                onClick={() => {
+                                                    setStatsModalData({ title: `Genre: ${slice.genre}`, reviews: genreReviews });
+                                                    setStatsModalPage(1);
+                                                }}
+                                                onMouseEnter={() => setHoveredGenreIndex(idx)}
+                                                onMouseLeave={() => setHoveredGenreIndex(null)}
+                                                className={`flex items-center justify-between text-xs p-1.5 rounded-md transition cursor-pointer ${hoveredGenreIndex === idx ? 'bg-[#1F2923]' : 'hover:bg-[#19211d]'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-2 truncate pr-2">
+                                                    <span
+                                                        className="w-3 h-3 rounded-full shrink-0"
+                                                        style={{ backgroundColor: slice.color }}
+                                                    />
+                                                    <span className="text-[#F5F7F5] truncate font-medium">{slice.genre}</span>
+                                                </div>
+                                                <span className="text-[#8B948F] font-medium shrink-0">
+                                                    {slice.count} ({slice.percentage}%)
+                                                </span>
                                             </div>
-                                            <span className="text-[#8B948F] font-medium shrink-0">
-                                                {slice.count} ({slice.percentage}%)
-                                            </span>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ) : (
@@ -577,13 +618,30 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
                             <div className="space-y-3 max-h-64 sm:max-h-56 overflow-y-auto pr-1.5 custom-scrollbar my-auto">
                                 {genreChartData.slices.map((slice, idx) => {
                                     const percent = (slice.count / genreChartData.maxCount) * 100;
+                                    const genreReviews = (myReviews || [])
+                                        .filter((r) => r.game && r.game.interests && r.game.interests.some((i) => i.name === slice.genre))
+                                        .sort((a, b) => {
+                                            const diff = Number(b.rating || 0) - Number(a.rating || 0);
+                                            if (diff !== 0) return diff;
+                                            const titleA = a.game?.title || '';
+                                            const titleB = b.game?.title || '';
+                                            return titleA.localeCompare(titleB);
+                                        });
+
                                     return (
-                                        <div key={idx} className="space-y-1">
+                                        <div
+                                            key={idx}
+                                            onClick={() => {
+                                                setStatsModalData({ title: `Genre: ${slice.genre}`, reviews: genreReviews });
+                                                setStatsModalPage(1);
+                                            }}
+                                            className="space-y-1 cursor-pointer group"
+                                        >
                                             <div className="flex justify-between text-xs">
-                                                <span className="text-[#F5F7F5] font-medium">{slice.genre}</span>
+                                                <span className="text-[#F5F7F5] font-medium group-hover:text-[#22C55E] transition">{slice.genre}</span>
                                                 <span className="text-[#8B948F] font-semibold">{slice.count} games</span>
                                             </div>
-                                            <div className="w-full bg-[#0B0F0D] h-2.5 rounded-full overflow-hidden border border-[#1F2923]">
+                                            <div className="w-full bg-[#0B0F0D] h-2.5 rounded-full overflow-hidden border border-[#1F2923] group-hover:border-[#22C55E]/50 transition">
                                                 <div
                                                     className="h-full rounded-full transition-all duration-500"
                                                     style={{
@@ -640,13 +698,37 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
                             <div className="space-y-4 max-h-64 sm:max-h-56 overflow-y-auto pr-1.5 custom-scrollbar my-auto">
                                 {ratingChartData.entries.map((item, idx) => {
                                     const percent = (item.count / ratingChartData.maxCount) * 100;
+                                    const ratingReviews = (myReviews || [])
+                                        .filter((r) => {
+                                            const score = Number(r.rating || 0);
+                                            if (item.label.includes('1 - 3')) return score >= 1 && score <= 3.9;
+                                            if (item.label.includes('4 - 6')) return score >= 4 && score <= 6.9;
+                                            if (item.label.includes('7 - 8')) return score >= 7 && score <= 8.9;
+                                            if (item.label.includes('9 - 10')) return score >= 9 && score <= 10;
+                                            return false;
+                                        })
+                                        .sort((a, b) => {
+                                            const diff = Number(b.rating || 0) - Number(a.rating || 0);
+                                            if (diff !== 0) return diff;
+                                            const titleA = a.game?.title || '';
+                                            const titleB = b.game?.title || '';
+                                            return titleA.localeCompare(titleB);
+                                        });
+
                                     return (
-                                        <div key={idx} className="space-y-1">
+                                        <div
+                                            key={idx}
+                                            onClick={() => {
+                                                setStatsModalData({ title: `Rating: ${item.label}`, reviews: ratingReviews });
+                                                setStatsModalPage(1);
+                                            }}
+                                            className="space-y-1 cursor-pointer group"
+                                        >
                                             <div className="flex justify-between text-xs">
-                                                <span className="text-[#F5F7F5] font-medium">{item.label}</span>
+                                                <span className="text-[#F5F7F5] font-medium group-hover:text-[#22C55E] transition">{item.label}</span>
                                                 <span className="text-[#8B948F] font-semibold">{item.count} games</span>
                                             </div>
-                                            <div className="w-full bg-[#0B0F0D] h-3 rounded-full overflow-hidden border border-[#1F2923]">
+                                            <div className="w-full bg-[#0B0F0D] h-3 rounded-full overflow-hidden border border-[#1F2923] group-hover:border-[#22C55E]/50 transition">
                                                 <div
                                                     className="h-full rounded-full transition-all duration-500"
                                                     style={{
@@ -664,67 +746,112 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
                             <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-6 my-auto h-full">
                                 <div className="relative w-36 h-36 sm:w-44 sm:h-44 shrink-0 my-2 sm:my-0">
                                     <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90 drop-shadow-lg overflow-visible">
-                                        {ratingChartData.slices.map((slice, idx) => (
-                                            <g key={idx}>
-                                                <path
-                                                    d={slice.pathData}
-                                                    fill={slice.color}
-                                                    onMouseEnter={() => setHoveredRatingIndex(idx)}
-                                                    onMouseLeave={() => setHoveredRatingIndex(null)}
-                                                    className={`transition duration-300 cursor-pointer ${hoveredRatingIndex === idx ? 'opacity-100 filter drop-shadow-md' : 'opacity-90 hover:opacity-100'
-                                                        }`}
-                                                />
-                                                {/* Outer Pointer Line & Callout Label on Hover */}
-                                                {hoveredRatingIndex === idx && (
-                                                    <g className="pointer-events-none">
-                                                        <line
-                                                            x1={slice.lineX1}
-                                                            y1={slice.lineY1}
-                                                            x2={slice.lineX2}
-                                                            y2={slice.lineY2}
-                                                            stroke={slice.color}
-                                                            strokeWidth="1.5"
-                                                            strokeLinecap="round"
-                                                        />
-                                                        <circle cx={slice.lineX2} cy={slice.lineY2} r="1.5" fill={slice.color} />
-                                                        <text
-                                                            x={slice.textX}
-                                                            y={slice.textY}
-                                                            textAnchor={slice.textX >= 50 ? 'start' : 'end'}
-                                                            dominantBaseline="central"
-                                                            className="transform rotate-90 text-[6.5px] font-extrabold fill-white drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.95)]"
-                                                            style={{ transformOrigin: `${slice.textX}px ${slice.textY}px` }}
-                                                        >
-                                                            {slice.label} ({slice.percentage}%)
-                                                        </text>
-                                                    </g>
-                                                )}
-                                            </g>
-                                        ))}
+                                        {ratingChartData.slices.map((slice, idx) => {
+                                            const ratingReviews = (myReviews || [])
+                                                .filter((r) => {
+                                                    const score = Number(r.rating || 0);
+                                                    if (slice.label.includes('1 - 3')) return score >= 1 && score <= 3.9;
+                                                    if (slice.label.includes('4 - 6')) return score >= 4 && score <= 6.9;
+                                                    if (slice.label.includes('7 - 8')) return score >= 7 && score <= 8.9;
+                                                    if (slice.label.includes('9 - 10')) return score >= 9 && score <= 10;
+                                                    return false;
+                                                })
+                                                .sort((a, b) => {
+                                                    const diff = Number(b.rating || 0) - Number(a.rating || 0);
+                                                    if (diff !== 0) return diff;
+                                                    const titleA = a.game?.title || '';
+                                                    const titleB = b.game?.title || '';
+                                                    return titleA.localeCompare(titleB);
+                                                });
+
+                                            return (
+                                                <g key={idx} onClick={() => {
+                                                    setStatsModalData({ title: `Rating: ${slice.label}`, reviews: ratingReviews });
+                                                    setStatsModalPage(1);
+                                                }}>
+                                                    <path
+                                                        d={slice.pathData}
+                                                        fill={slice.color}
+                                                        onMouseEnter={() => setHoveredRatingIndex(idx)}
+                                                        onMouseLeave={() => setHoveredRatingIndex(null)}
+                                                        className={`transition duration-300 cursor-pointer ${hoveredRatingIndex === idx ? 'opacity-100 filter drop-shadow-md scale-105' : 'opacity-90 hover:opacity-100'
+                                                            }`}
+                                                    />
+                                                    {/* Outer Pointer Line & Callout Label on Hover */}
+                                                    {hoveredRatingIndex === idx && (
+                                                        <g className="pointer-events-none">
+                                                            <line
+                                                                x1={slice.lineX1}
+                                                                y1={slice.lineY1}
+                                                                x2={slice.lineX2}
+                                                                y2={slice.lineY2}
+                                                                stroke={slice.color}
+                                                                strokeWidth="1.5"
+                                                                strokeLinecap="round"
+                                                            />
+                                                            <circle cx={slice.lineX2} cy={slice.lineY2} r="1.5" fill={slice.color} />
+                                                            <text
+                                                                x={slice.textX}
+                                                                y={slice.textY}
+                                                                textAnchor={slice.textX >= 50 ? 'start' : 'end'}
+                                                                dominantBaseline="central"
+                                                                className="transform rotate-90 text-[6.5px] font-extrabold fill-white drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.95)]"
+                                                                style={{ transformOrigin: `${slice.textX}px ${slice.textY}px` }}
+                                                            >
+                                                                {slice.label} ({slice.percentage}%)
+                                                            </text>
+                                                        </g>
+                                                    )}
+                                                </g>
+                                            );
+                                        })}
                                     </svg>
                                 </div>
 
                                 <div className="flex-1 space-y-2 w-full max-h-56 sm:max-h-48 overflow-y-auto pr-1.5 custom-scrollbar my-auto">
-                                    {ratingChartData.slices.map((slice, idx) => (
-                                        <div
-                                            key={idx}
-                                            onMouseEnter={() => setHoveredRatingIndex(idx)}
-                                            onMouseLeave={() => setHoveredRatingIndex(null)}
-                                            className={`flex items-center justify-between text-xs p-1.5 rounded-md transition cursor-pointer ${hoveredRatingIndex === idx ? 'bg-[#1F2923]' : 'hover:bg-[#19211d]'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-2 truncate pr-2">
-                                                <span
-                                                    className="w-3 h-3 rounded-full shrink-0"
-                                                    style={{ backgroundColor: slice.color }}
-                                                />
-                                                <span className="text-[#F5F7F5] truncate font-medium">{slice.label}</span>
+                                    {ratingChartData.slices.map((slice, idx) => {
+                                        const ratingReviews = (myReviews || [])
+                                            .filter((r) => {
+                                                const score = Number(r.rating || 0);
+                                                if (slice.label.includes('1 - 3')) return score >= 1 && score <= 3.9;
+                                                if (slice.label.includes('4 - 6')) return score >= 4 && score <= 6.9;
+                                                if (slice.label.includes('7 - 8')) return score >= 7 && score <= 8.9;
+                                                if (slice.label.includes('9 - 10')) return score >= 9 && score <= 10;
+                                                return false;
+                                            })
+                                            .sort((a, b) => {
+                                                const diff = Number(b.rating || 0) - Number(a.rating || 0);
+                                                if (diff !== 0) return diff;
+                                                const titleA = a.game?.title || '';
+                                                const titleB = b.game?.title || '';
+                                                return titleA.localeCompare(titleB);
+                                            });
+
+                                        return (
+                                            <div
+                                                key={idx}
+                                                onClick={() => {
+                                                    setStatsModalData({ title: `Rating: ${slice.label}`, reviews: ratingReviews });
+                                                    setStatsModalPage(1);
+                                                }}
+                                                onMouseEnter={() => setHoveredRatingIndex(idx)}
+                                                onMouseLeave={() => setHoveredRatingIndex(null)}
+                                                className={`flex items-center justify-between text-xs p-1.5 rounded-md transition cursor-pointer ${hoveredRatingIndex === idx ? 'bg-[#1F2923]' : 'hover:bg-[#19211d]'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-2 truncate pr-2">
+                                                    <span
+                                                        className="w-3 h-3 rounded-full shrink-0"
+                                                        style={{ backgroundColor: slice.color }}
+                                                    />
+                                                    <span className="text-[#F5F7F5] truncate font-medium">{slice.label}</span>
+                                                </div>
+                                                <span className="text-[#8B948F] font-medium shrink-0">
+                                                    {slice.count} ({slice.percentage}%)
+                                                </span>
                                             </div>
-                                            <span className="text-[#8B948F] font-medium shrink-0">
-                                                {slice.count} ({slice.percentage}%)
-                                            </span>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
@@ -840,9 +967,9 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
                             </button>
                         </div>
 
-                        {/* Paginated 10 items per page */}
+                        {/* Paginated 5 items per page */}
                         {(() => {
-                            const perPage = 10;
+                            const perPage = 5;
                             const totalPages = Math.ceil(yearModalData.reviews.length / perPage) || 1;
                             const currentReviews = yearModalData.reviews.slice(
                                 (yearModalPage - 1) * perPage,
@@ -851,7 +978,7 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
 
                             return (
                                 <div>
-                                    <div className="space-y-2.5 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">
+                                    <div className="space-y-2.5">
                                         {currentReviews.map((rev, idx) => {
                                             const itemNumber = (yearModalPage - 1) * perPage + idx + 1;
                                             return (
@@ -909,6 +1036,120 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
                                                 </button>
                                             </div>
                                         </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
+                    </div>
+                )}
+            </Modal>
+
+            {/* Click Modal for Genre Breakdown & Rating Distribution */}
+            <Modal
+                show={!!statsModalData}
+                onClose={() => setStatsModalData(null)}
+                maxWidth="lg"
+            >
+                {statsModalData && (
+                    <div className="bg-[#131916] border border-[#1F2923] rounded-2xl p-5 sm:p-6 text-left">
+                        <div className="flex items-center justify-between border-b border-[#1F2923] pb-4 mb-4">
+                            <div>
+                                <h3 className="text-[#F5F7F5] text-lg font-bold">
+                                    {statsModalData.title}
+                                </h3>
+                                <p className="text-[#8B948F] text-xs mt-0.5">
+                                    Total {statsModalData.reviews.length} {statsModalData.reviews.length === 1 ? 'game' : 'games'}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setStatsModalData(null)}
+                                className="w-8 h-8 rounded-lg bg-[#0B0F0D] border border-[#1F2923] text-[#8B948F] hover:text-white flex items-center justify-center transition"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Paginated 5 items per page */}
+                        {(() => {
+                            const perPage = 5;
+                            const totalPages = Math.ceil(statsModalData.reviews.length / perPage) || 1;
+                            const currentReviews = statsModalData.reviews.slice(
+                                (statsModalPage - 1) * perPage,
+                                statsModalPage * perPage
+                            );
+
+                            return (
+                                <div>
+                                    {statsModalData.reviews.length === 0 ? (
+                                        <p className="text-[#5A625D] text-xs text-center py-6">
+                                            No games found for this category.
+                                        </p>
+                                    ) : (
+                                        <>
+                                            <div className="space-y-2.5">
+                                                {currentReviews.map((rev, idx) => {
+                                                    const itemNumber = (statsModalPage - 1) * perPage + idx + 1;
+                                                    return (
+                                                        <div
+                                                            key={rev.id}
+                                                            onClick={() => {
+                                                                setStatsModalData(null);
+                                                                if (rev.game) {
+                                                                    router.get(route('games.show', rev.game.slug));
+                                                                }
+                                                            }}
+                                                            className="bg-[#0B0F0D] border border-[#1F2923] hover:border-[#22C55E]/50 rounded-xl p-3 flex items-center gap-3.5 cursor-pointer transition"
+                                                        >
+                                                            <span className="text-[#8B948F] text-xs font-bold w-6 text-center shrink-0">
+                                                                {itemNumber}.
+                                                            </span>
+
+                                                            {rev.game?.cover_url && (
+                                                                <img
+                                                                    src={rev.game.cover_url}
+                                                                    alt={rev.game.title}
+                                                                    className="w-11 h-11 rounded-lg object-cover shrink-0 bg-[#131916]"
+                                                                />
+                                                            )}
+
+                                                            <div className="flex-1 min-w-0">
+                                                                <h4 className="text-[#F5F7F5] text-xs sm:text-sm font-semibold truncate group-hover:text-[#22C55E] transition">
+                                                                    {rev.game?.title || 'Unknown Game'}
+                                                                </h4>
+                                                                <p className="text-[#8B948F] text-[11px] mt-0.5">
+                                                                    Rating: <span className="text-[#22C55E] font-bold">★ {Number(rev.rating).toFixed(1)}</span>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            {/* Pagination Controls */}
+                                            {totalPages > 1 && (
+                                                <div className="flex items-center justify-between mt-5 pt-3 border-t border-[#1F2923]">
+                                                    <p className="text-xs text-[#8B948F]">
+                                                        Page {statsModalPage} of {totalPages}
+                                                    </p>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => setStatsModalPage((p) => Math.max(1, p - 1))}
+                                                            disabled={statsModalPage === 1}
+                                                            className="px-3 py-1.5 rounded-lg border border-[#1F2923] text-xs text-[#8B948F] hover:border-[#2E3A32] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                                        >
+                                                            Previous
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setStatsModalPage((p) => Math.min(totalPages, p + 1))}
+                                                            disabled={statsModalPage === totalPages}
+                                                            className="px-3 py-1.5 rounded-lg border border-[#1F2923] text-xs text-[#8B948F] hover:border-[#2E3A32] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                                        >
+                                                            Next
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             );

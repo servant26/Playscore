@@ -148,6 +148,7 @@ class ProfileController extends Controller
         $highlights = $user->highlights()
             ->has('stories')
             ->with(['stories.review.game', 'stories.user'])
+            ->orderBy('order', 'asc')
             ->latest()
             ->get()
             ->map(function ($hl) use ($formatStory) {
