@@ -294,7 +294,7 @@ export default function Show({ game, userReview, reviews, moreLikeThis = [], isI
                             className="flex gap-3 sm:gap-4 overflow-x-auto pb-3.5 custom-scrollbar snap-x snap-mandatory scroll-smooth"
                         >
                             {moreLikeThis.map((g) => (
-                                <div key={g.id} className="w-36 sm:w-44 lg:w-48 shrink-0 snap-start">
+                                <div key={g.id} className="w-32 sm:w-44 lg:w-48 shrink-0 snap-start">
                                     <GameCard
                                         game={g}
                                         isInList={moreListIds.includes(g.id)}
