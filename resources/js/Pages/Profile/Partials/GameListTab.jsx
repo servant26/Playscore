@@ -5,6 +5,8 @@ export default function GameListTab({ gameList }) {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
+    const [sortBy, setSortBy] = useState('rating_desc');
+    const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
@@ -37,14 +39,41 @@ export default function GameListTab({ gameList }) {
         router.get(route('games.show', slug));
     };
 
-    const filtered = useMemo(() => {
-        if (!search.trim()) return gameList;
-        const q = search.toLowerCase();
-        return gameList.filter((g) => g.title.toLowerCase().includes(q));
-    }, [search, gameList]);
+    const sortedAndFiltered = useMemo(() => {
+        let result = [...gameList];
 
-    const totalPages = Math.ceil(filtered.length / perPage) || 1;
-    const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+        if (search.trim()) {
+            const q = search.toLowerCase();
+            result = result.filter((g) => g.title.toLowerCase().includes(q));
+        }
+
+        result.sort((a, b) => {
+            const ratingA = Number(a.rawg_rating || 0);
+            const ratingB = Number(b.rawg_rating || 0);
+            const titleA = (a.title || '').toLowerCase();
+            const titleB = (b.title || '').toLowerCase();
+
+            switch (sortBy) {
+                case 'rating_desc':
+                    return ratingB - ratingA;
+                case 'rating_asc':
+                    return ratingA - ratingB;
+                case 'title_asc':
+                    return titleA.localeCompare(titleB);
+                case 'title_desc':
+                    return titleB.localeCompare(titleA);
+                case 'latest':
+                    return (b.id || 0) - (a.id || 0);
+                default:
+                    return ratingB - ratingA;
+            }
+        });
+
+        return result;
+    }, [search, gameList, sortBy]);
+
+    const totalPages = Math.ceil(sortedAndFiltered.length / perPage) || 1;
+    const paginated = sortedAndFiltered.slice((page - 1) * perPage, page * perPage);
 
     const handleSearchChange = (value) => {
         setSearch(value);
@@ -63,16 +92,88 @@ export default function GameListTab({ gameList }) {
 
     return (
         <div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                <h2 className="text-[#F5F7F5] text-base sm:text-lg font-semibold">
-                    My Game List ({filtered.length})
-                </h2>
+            <div className="space-y-2.5 mb-4">
+                <div className="flex items-center justify-between gap-2">
+                    <h2 className="text-[#F5F7F5] text-sm sm:text-lg font-semibold">
+                        My Game List ({sortedAndFiltered.length})
+                    </h2>
+
+                    {/* Custom Styled Sort Dropdown */}
+                    <div className="relative">
+                        <button
+                            type="button"
+                            onClick={() => setIsSortDropdownOpen((prev) => !prev)}
+                            className="flex items-center gap-1.5 bg-[#131916] border border-[#1F2923] hover:border-[#22C55E]/50 text-[#F5F7F5] text-[11px] sm:text-sm font-medium px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition shadow-sm"
+                        >
+                            <span>
+                                {sortBy === 'rating_desc' && 'Rating (Highest)'}
+                                {sortBy === 'rating_asc' && 'Rating (Lowest)'}
+                                {sortBy === 'latest' && 'Recently Added'}
+                                {sortBy === 'title_asc' && 'Alphabet (A - Z)'}
+                                {sortBy === 'title_desc' && 'Alphabet (Z - A)'}
+                            </span>
+                            <svg
+                                className={`w-3.5 h-3.5 text-[#8B948F] transition-transform duration-200 ${
+                                    isSortDropdownOpen ? 'rotate-180 text-[#22C55E]' : ''
+                                }`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        {isSortDropdownOpen && (
+                            <>
+                                <div
+                                    className="fixed inset-0 z-20"
+                                    onClick={() => setIsSortDropdownOpen(false)}
+                                />
+                                <div className="absolute right-0 mt-1.5 w-52 bg-[#131916] border border-[#1F2923] rounded-xl shadow-2xl py-1.5 z-30 overflow-hidden">
+                                    <div className="px-3 py-1.5 text-[11px] font-bold text-[#8B948F] uppercase tracking-wider border-b border-[#1F2923]">
+                                        Sort Games By
+                                    </div>
+                                    {[
+                                        { id: 'rating_desc', label: 'Rating (Highest)' },
+                                        { id: 'rating_asc', label: 'Rating (Lowest)' },
+                                        { id: 'latest', label: 'Recently Added' },
+                                        { id: 'title_asc', label: 'Alphabet (A - Z)' },
+                                        { id: 'title_desc', label: 'Alphabet (Z - A)' },
+                                    ].map((opt) => (
+                                        <button
+                                            key={opt.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setSortBy(opt.id);
+                                                setPage(1);
+                                                setIsSortDropdownOpen(false);
+                                            }}
+                                            className={`w-full text-left px-3.5 py-2 text-xs sm:text-sm font-medium flex items-center justify-between transition ${
+                                                sortBy === opt.id
+                                                    ? 'bg-[#22C55E]/15 text-[#22C55E]'
+                                                    : 'text-[#8B948F] hover:bg-[#1F2923] hover:text-[#F5F7F5]'
+                                            }`}
+                                        >
+                                            <span>{opt.label}</span>
+                                            {sortBy === opt.id && (
+                                                <span className="text-[#22C55E] font-bold">✓</span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+
                 <input
                     type="text"
+                    autoFocus
                     value={search}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     placeholder="Search your list..."
-                    className="w-full sm:w-64 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
+                    className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-3.5 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
                 />
             </div>
 

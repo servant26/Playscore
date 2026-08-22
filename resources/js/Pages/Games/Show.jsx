@@ -18,6 +18,8 @@ export default function Show({ game, userReview, reviews, moreLikeThis = [], isI
     const [showLeaveWarning, setShowLeaveWarning] = useState(false);
     const [pendingUrl, setPendingUrl] = useState(null);
     const [coverSrc, setCoverSrc] = useState(game.cover_url || getFallbackImage(game.title));
+    const [reviewPage, setReviewPage] = useState(1);
+    const reviewsPerPage = 5;
 
     const scrollContainerRef = useRef(null);
 
@@ -321,7 +323,7 @@ export default function Show({ game, userReview, reviews, moreLikeThis = [], isI
                 )}
 
                 {/* Reviews */}
-                <section>
+                <section id="game-reviews-section">
                     <h2 className="text-[#F5F7F5] text-lg font-semibold mb-4">
                         Reviews ({reviews.length})
                     </h2>
@@ -331,80 +333,133 @@ export default function Show({ game, userReview, reviews, moreLikeThis = [], isI
                             No reviews yet. Be the first to review this game!
                         </p>
                     ) : (
-                        <div className="space-y-4">
-                            {reviews.map((review) => (
-                                <div
-                                    key={review.id}
-                                    className="relative bg-[#131916] border border-[#1F2923] rounded-xl p-4"
-                                >
-                                    <div className="flex items-start gap-3">
-                                        <div
-                                            className="w-11 h-11 aspect-square rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-sm font-semibold overflow-hidden shrink-0"
-                                            style={{ minWidth: '44px', minHeight: '44px' }}
-                                        >
-                                            {review.user.avatar ? (
-                                                <img
-                                                    src={getAvatarUrl(review.user.avatar)}
-                                                    alt={review.user.name}
-                                                    className="w-full h-full object-cover"
-                                                    onError={(e) => {
-                                                        e.target.style.display = 'none';
-                                                        if (e.target.nextSibling) {
-                                                            e.target.nextSibling.style.display = 'block';
-                                                        }
-                                                    }}
-                                                />
-                                            ) : null}
-                                            <span style={{ display: review.user.avatar ? 'none' : 'block' }}>
-                                                {review.user.name.slice(0, 2).toUpperCase()}
-                                            </span>
-                                        </div>
+                        (() => {
+                            const totalPages = Math.ceil(reviews.length / reviewsPerPage) || 1;
+                            const paginatedReviews = reviews.slice(
+                                (reviewPage - 1) * reviewsPerPage,
+                                reviewPage * reviewsPerPage
+                            );
 
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-[#F5F7F5] text-sm font-medium">
-                                                    {review.user.name}
-                                                </p>
-                                                <span className="text-[#22C55E] text-sm font-semibold">
-                                                    {Number(review.rating).toFixed(1)} / 10
-                                                </span>
-                                            </div>
+                            const scrollToReviews = () => {
+                                const el = document.getElementById('game-reviews-section');
+                                if (el) {
+                                    el.scrollIntoView({ behavior: 'smooth' });
+                                }
+                            };
 
-                                            {review.user.id === auth.user.id && (
-                                                <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                                                    <button
-                                                        onClick={() => setShowRatingModal(true)}
-                                                        className="text-[#8B948F] hover:text-[#22C55E] transition"
-                                                        title="Edit review"
+                            return (
+                                <div className="space-y-4">
+                                    <div className="space-y-4">
+                                        {paginatedReviews.map((review) => (
+                                            <div
+                                                key={review.id}
+                                                className="relative bg-[#131916] border border-[#1F2923] rounded-xl p-4"
+                                            >
+                                                <div className="flex items-start gap-3">
+                                                    <div
+                                                        className="w-11 h-11 aspect-square rounded-full bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-center text-[#22C55E] text-sm font-semibold overflow-hidden shrink-0"
+                                                        style={{ minWidth: '44px', minHeight: '44px' }}
                                                     >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                                        </svg>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setReviewToDelete(review.id)}
-                                                        className="text-[#8B948F] hover:text-red-400 transition"
-                                                        title="Delete review"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                                        </svg>
-                                                    </button>
+                                                        {review.user.avatar ? (
+                                                            <img
+                                                                src={getAvatarUrl(review.user.avatar)}
+                                                                alt={review.user.name}
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => {
+                                                                    e.target.style.display = 'none';
+                                                                    if (e.target.nextSibling) {
+                                                                        e.target.nextSibling.style.display = 'block';
+                                                                    }
+                                                                }}
+                                                            />
+                                                        ) : null}
+                                                        <span style={{ display: review.user.avatar ? 'none' : 'block' }}>
+                                                            {review.user.name.slice(0, 2).toUpperCase()}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center justify-between">
+                                                            <p className="text-[#F5F7F5] text-sm font-medium">
+                                                                {review.user.name}
+                                                            </p>
+                                                            <span className="text-[#22C55E] text-sm font-semibold">
+                                                                {Number(review.rating).toFixed(1)} / 10
+                                                            </span>
+                                                        </div>
+
+                                                        {review.user.id === auth.user.id && (
+                                                            <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                                                                <button
+                                                                    onClick={() => setShowRatingModal(true)}
+                                                                    className="text-[#8B948F] hover:text-[#22C55E] transition"
+                                                                    title="Edit review"
+                                                                >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                                                    </svg>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setReviewToDelete(review.id)}
+                                                                    className="text-[#8B948F] hover:text-red-400 transition"
+                                                                    title="Delete review"
+                                                                >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                        <p className="text-[#5A625D] text-xs mt-1">
+                                                            {new Date(review.created_at).toLocaleString('en-US', {
+                                                                day: 'numeric',
+                                                                month: 'short',
+                                                                year: 'numeric',
+                                                            })}
+                                                        </p>
+                                                        <p className="text-[#8B948F] text-sm mt-2">{review.body}</p>
+                                                    </div>
                                                 </div>
-                                            )}
-                                            <p className="text-[#5A625D] text-xs mt-1">
-                                                {new Date(review.created_at).toLocaleString('en-US', {
-                                                    day: 'numeric',
-                                                    month: 'short',
-                                                    year: 'numeric',
-                                                })}
-                                            </p>
-                                            <p className="text-[#8B948F] text-sm mt-2">{review.body}</p>
-                                        </div>
+                                            </div>
+                                        ))}
                                     </div>
+
+                                    {/* Pagination Controls */}
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#1F2923]">
+                                            <p className="text-xs text-[#8B948F]">
+                                                Showing {((reviewPage - 1) * reviewsPerPage) + 1} - {Math.min(reviewPage * reviewsPerPage, reviews.length)} of {reviews.length} ulasan
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setReviewPage((p) => Math.max(1, p - 1));
+                                                        scrollToReviews();
+                                                    }}
+                                                    disabled={reviewPage === 1}
+                                                    className="px-3.5 py-1.5 rounded-lg bg-[#131916] border border-[#1F2923] text-xs font-medium text-[#8B948F] hover:border-[#22C55E]/50 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                                >
+                                                    Previous
+                                                </button>
+                                                <span className="text-xs text-[#F5F7F5] font-semibold px-2">
+                                                    {reviewPage} / {totalPages}
+                                                </span>
+                                                <button
+                                                    onClick={() => {
+                                                        setReviewPage((p) => Math.min(totalPages, p + 1));
+                                                        scrollToReviews();
+                                                    }}
+                                                    disabled={reviewPage === totalPages}
+                                                    className="px-3.5 py-1.5 rounded-lg bg-[#131916] border border-[#1F2923] text-xs font-medium text-[#8B948F] hover:border-[#22C55E]/50 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                                >
+                                                    Next
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            ))}
-                        </div>
+                            );
+                        })()
                     )}
                 </section>
             </div>

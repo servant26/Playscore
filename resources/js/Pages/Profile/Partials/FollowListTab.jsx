@@ -94,6 +94,7 @@ export default function FollowListTab({ user, type = 'following' }) {
                 </h3>
                 <input
                     type="text"
+                    autoFocus
                     value={search}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     placeholder={`Search ${type}...`}

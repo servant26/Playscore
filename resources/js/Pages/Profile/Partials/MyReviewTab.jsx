@@ -172,6 +172,7 @@ export default function MyReviewTab({ myReviews }) {
 
                 <input
                     type="text"
+                    autoFocus
                     value={search}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     placeholder="Search reviews..."
