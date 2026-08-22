@@ -1,7 +1,8 @@
 import AppLayout from '@/Layouts/AppLayout';
 import RawgGameCard from '@/Components/RawgGameCard';
+import RatingModal from '@/Components/RatingModal';
 import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -11,14 +12,42 @@ export default function Search({ query, games = [], users = [], recommendedUsers
         return 'games';
     });
 
+    const [gamePage, setGamePage] = useState(1);
     const [userPage, setUserPage] = useState(1);
     const [recPage, setRecPage] = useState(1);
+
+    const [ratingModal, setRatingModal] = useState({ show: false, gameSlug: '', existingReview: null });
+    const [sortBy, setSortBy] = useState('relevance'); // relevance, title_asc, title_desc, date_desc, date_asc, rating_desc, rating_asc
+    const [showSortDropdown, setShowSortDropdown] = useState(false);
 
     const goToProfile = (userId) => {
         router.get(route('users.show', userId));
     };
 
     const hasResults = games.length > 0 || users.length > 0;
+
+    // Sorting logic for games
+    const sortedGames = useMemo(() => {
+        let list = [...games];
+        if (sortBy === 'title_asc') {
+            list.sort((a, b) => a.title.localeCompare(b.title));
+        } else if (sortBy === 'title_desc') {
+            list.sort((a, b) => b.title.localeCompare(a.title));
+        } else if (sortBy === 'date_desc') {
+            list.sort((a, b) => new Date(b.release_date || 0) - new Date(a.release_date || 0));
+        } else if (sortBy === 'date_asc') {
+            list.sort((a, b) => new Date(a.release_date || 0) - new Date(b.release_date || 0));
+        } else if (sortBy === 'rating_desc') {
+            list.sort((a, b) => (b.rawg_rating || 0) - (a.rawg_rating || 0));
+        } else if (sortBy === 'rating_asc') {
+            list.sort((a, b) => (a.rawg_rating || 0) - (b.rawg_rating || 0));
+        }
+        return list;
+    }, [games, sortBy]);
+
+    // Searched Games Pagination
+    const totalGamePages = Math.ceil(sortedGames.length / ITEMS_PER_PAGE);
+    const paginatedGames = sortedGames.slice((gamePage - 1) * ITEMS_PER_PAGE, gamePage * ITEMS_PER_PAGE);
 
     // Searched Users Pagination
     const totalUserPages = Math.ceil(users.length / ITEMS_PER_PAGE);
@@ -47,29 +76,99 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                         {query ? `Search results for "${query}"` : 'Discover Users & Games'}
                     </h2>
 
-                    {/* Filter Tabs */}
+                    {/* Filter & Sort Bar: 1 block on mobile */}
                     {hasResults && (
-                        <div className="flex items-center gap-2 bg-[#131916] border border-[#1F2923] p-1 rounded-lg shrink-0 self-start sm:self-auto">
-                            <button
-                                onClick={() => setActiveTab('games')}
-                                className={`px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition ${
-                                    activeTab === 'games'
-                                        ? 'bg-[#22C55E] text-[#0B0F0D] font-semibold'
-                                        : 'text-[#8B948F] hover:text-[#F5F7F5]'
-                                }`}
-                            >
-                                Games ({games.length})
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('users')}
-                                className={`px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition ${
-                                    activeTab === 'users'
-                                        ? 'bg-[#22C55E] text-[#0B0F0D] font-semibold'
-                                        : 'text-[#8B948F] hover:text-[#F5F7F5]'
-                                }`}
-                            >
-                                Users ({users.length})
-                            </button>
+                        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto w-full sm:w-auto">
+                            {/* Sorting Dropdown (Only visible on Games tab) */}
+                            {activeTab === 'games' && games.length > 0 && (
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowSortDropdown(!showSortDropdown)}
+                                        className="flex items-center justify-between gap-1.5 bg-[#131916] border border-[#1F2923] text-[#F5F7F5] px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium hover:border-[#22C55E]/50 transition h-full"
+                                    >
+                                        <span>
+                                            {sortBy === 'relevance' && 'Default Relevance'}
+                                            {sortBy === 'title_asc' && 'Alphabet (A - Z)'}
+                                            {sortBy === 'title_desc' && 'Alphabet (Z - A)'}
+                                            {sortBy === 'date_desc' && 'Release Date (Newest)'}
+                                            {sortBy === 'date_asc' && 'Release Date (Oldest)'}
+                                            {sortBy === 'rating_desc' && 'Rating (Highest)'}
+                                            {sortBy === 'rating_asc' && 'Rating (Lowest)'}
+                                        </span>
+                                        <svg className="w-3.5 h-3.5 text-[#8B948F] ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+
+                                    {showSortDropdown && (
+                                        <>
+                                            <div
+                                                className="fixed inset-0 z-20"
+                                                onClick={() => setShowSortDropdown(false)}
+                                            />
+                                            <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-56 bg-[#131916] border border-[#1F2923] rounded-xl shadow-2xl z-30 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                                                <div className="px-3 py-1.5 text-[11px] font-bold text-[#8B948F] uppercase tracking-wider border-b border-[#1F2923]">
+                                                    Sort Games By
+                                                </div>
+                                                {[
+                                                    { id: 'relevance', label: 'Default Relevance' },
+                                                    { id: 'title_asc', label: 'Alphabet (A - Z)' },
+                                                    { id: 'title_desc', label: 'Alphabet (Z - A)' },
+                                                    { id: 'date_desc', label: 'Release Date (Newest)' },
+                                                    { id: 'date_asc', label: 'Release Date (Oldest)' },
+                                                    { id: 'rating_desc', label: 'Rating (Highest)' },
+                                                    { id: 'rating_asc', label: 'Rating (Lowest)' },
+                                                ].map((opt) => (
+                                                    <button
+                                                        key={opt.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setSortBy(opt.id);
+                                                            setGamePage(1);
+                                                            setShowSortDropdown(false);
+                                                        }}
+                                                        className={`w-full text-left px-4 py-2 text-xs sm:text-sm flex items-center justify-between transition ${
+                                                            sortBy === opt.id
+                                                                ? 'bg-[#1F2923] text-[#22C55E] font-semibold'
+                                                                : 'text-[#F5F7F5] hover:bg-[#161F1A]'
+                                                        }`}
+                                                    >
+                                                        <span>{opt.label}</span>
+                                                        {sortBy === opt.id && (
+                                                            <span className="text-[#22C55E] font-bold">✓</span>
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Filter Tabs */}
+                            <div className="flex items-center gap-1 bg-[#131916] border border-[#1F2923] p-1 rounded-lg shrink-0">
+                                <button
+                                    onClick={() => setActiveTab('games')}
+                                    className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition ${
+                                        activeTab === 'games'
+                                            ? 'bg-[#22C55E] text-[#0B0F0D] font-semibold'
+                                            : 'text-[#8B948F] hover:text-[#F5F7F5]'
+                                    }`}
+                                >
+                                    Games ({games.length})
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('users')}
+                                    className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition ${
+                                        activeTab === 'users'
+                                            ? 'bg-[#22C55E] text-[#0B0F0D] font-semibold'
+                                            : 'text-[#8B948F] hover:text-[#F5F7F5]'
+                                    }`}
+                                >
+                                    Users ({users.length})
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -85,17 +184,115 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                 </div>
             ) : (
                 <>
-                    {/* Games Tab */}
+                    {/* Games Tab: Horizontal List View */}
                     {activeTab === 'games' && (
                         games.length === 0 ? (
                             <div className="bg-[#131916] border border-[#1F2923] rounded-xl p-12 text-center text-[#8B948F] text-sm">
                                 No games matching "{query}".
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {games.map((game) => (
-                                    <RawgGameCard key={game.external_id} game={game} />
-                                ))}
+                            <div className="space-y-4 w-full">
+                                <div className="space-y-3 w-full">
+                                    {paginatedGames.map((game) => (
+                                        <div
+                                            key={game.external_id}
+                                            onClick={() => router.get(route('games.import-and-show', game.external_id))}
+                                            className="group cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3.5 sm:p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 hover:border-[#2E3A32] transition"
+                                        >
+                                            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                                                {/* Game Cover */}
+                                                <div className="w-16 h-20 sm:w-20 sm:h-24 rounded-lg bg-[#0B0F0D] border border-[#1F2923] overflow-hidden shrink-0">
+                                                    <img
+                                                        src={game.cover_url || getFallbackImage(game.title)}
+                                                        alt={game.title}
+                                                        onError={(e) => { e.target.src = getFallbackImage(game.title); }}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                                    />
+                                                </div>
+
+                                                {/* Game Details */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                                                        <h3 className="text-[#F5F7F5] text-base sm:text-lg font-bold truncate group-hover:text-[#22C55E] transition">
+                                                            {game.title}
+                                                        </h3>
+
+                                                        {game.rawg_rating && (
+                                                            <span className="bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] text-xs font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                                                ★ {Number(game.rawg_rating).toFixed(1)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {game.genres && (
+                                                        <p className="text-[#8B948F] text-xs sm:text-sm font-medium truncate">
+                                                            {game.genres}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Action Button */}
+                                            <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const q = encodeURIComponent(`${game.title} trailer`);
+                                                        window.open(`https://www.youtube.com/results?search_query=${q}`, '_blank');
+                                                    }}
+                                                    className="flex-1 sm:flex-initial rounded-lg bg-[#1F2923] text-[#8B948F] px-3.5 py-2 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] hover:text-[#F5F7F5] transition text-center"
+                                                >
+                                                    Trailer
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setRatingModal({
+                                                            show: true,
+                                                            gameSlug: game.external_id,
+                                                            existingReview: game.user_rating ? { rating: parseFloat(game.user_rating) } : null,
+                                                        });
+                                                    }}
+                                                    className={`flex-1 sm:flex-initial rounded-lg px-4 py-2 text-xs sm:text-sm font-bold transition text-center shadow-md ${
+                                                        game.user_rating
+                                                            ? 'bg-[#161F1A] border border-[#22C55E]/40 text-[#22C55E] hover:bg-[#22C55E]/10'
+                                                            : 'bg-[#22C55E] text-[#0B0F0D] hover:bg-[#16A34A] shadow-[#22C55E]/10'
+                                                    }`}
+                                                >
+                                                    {game.user_rating ? `★ Your Rating: ${game.user_rating}` : 'Give Rating'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Pagination for Searched Games */}
+                                {totalGamePages > 1 && (
+                                    <div className="flex items-center justify-between pt-2 text-xs text-[#8B948F]">
+                                        <span>
+                                            Showing {((gamePage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(gamePage * ITEMS_PER_PAGE, sortedGames.length)} of {sortedGames.length} games
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => setGamePage((p) => Math.max(1, p - 1))}
+                                                disabled={gamePage === 1}
+                                                className="px-3 py-1.5 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] disabled:opacity-40 hover:border-[#22C55E] transition font-medium"
+                                            >
+                                                Previous
+                                            </button>
+                                            <span className="font-semibold text-[#F5F7F5]">
+                                                {gamePage} / {totalGamePages}
+                                            </span>
+                                            <button
+                                                onClick={() => setGamePage((p) => Math.min(totalGamePages, p + 1))}
+                                                disabled={gamePage === totalGamePages}
+                                                className="px-3 py-1.5 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] disabled:opacity-40 hover:border-[#22C55E] transition font-medium"
+                                            >
+                                                Next
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )
                     )}
@@ -213,8 +410,8 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                 </>
             )}
 
-            {/* Recommended Users Section (Always visible) */}
-            {recommendedUsers && recommendedUsers.length > 0 && (
+            {/* Recommended Users Section (Only visible on Users Tab) */}
+            {activeTab === 'users' && recommendedUsers && recommendedUsers.length > 0 && (
                 <div className="mt-12 pt-8 border-t border-[#1F2923]">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
                         <div>
@@ -339,6 +536,13 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                     </div>
                 </div>
             )}
+            {/* Rating Modal */}
+            <RatingModal
+                show={ratingModal.show}
+                onClose={() => setRatingModal({ show: false, gameSlug: '', existingReview: null })}
+                gameSlug={ratingModal.gameSlug}
+                existingReview={ratingModal.existingReview}
+            />
             </div>
         </AppLayout>
     );

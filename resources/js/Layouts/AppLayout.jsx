@@ -138,7 +138,7 @@ export default function AppLayout({ children }) {
                         </span>
                     </Link>
 
-                    {isHomeOrSearch && auth?.user?.role !== 'admin' && (
+                    {auth?.user?.role !== 'admin' && (
                         <form onSubmit={submitSearch} className="flex-1 max-w-md">
                             <input
                                 type="text"
@@ -330,7 +330,7 @@ export default function AppLayout({ children }) {
                 </div>
             </nav>
 
-            <main className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 py-3 sm:py-5">{children}</main>
+            <main className="max-w-[1440px] mx-auto px-3.5 sm:px-8 lg:px-12 py-3 sm:py-5">{children}</main>
 
             {/* Rank Up Celebration Modal */}
             <RankUpModal

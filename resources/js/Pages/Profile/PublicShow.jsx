@@ -20,17 +20,23 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
     const [listIds, setListIds] = useState(myListIds || []);
     const [search, setSearch] = useState('');
     const [reviewFilter, setReviewFilter] = useState('all');
+    const [sortBy, setSortBy] = useState('rating_desc'); // rating_desc, latest_review, rating_asc, title_asc, title_desc, date_desc, date_asc
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [activeTab, setActiveTab] = useState('reviews');
     const [followSubTab, setFollowSubTab] = useState('following');
 
     const dropdownRef = useRef(null);
+    const sortDropdownRef = useRef(null);
 
     useEffect(() => {
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setIsDropdownOpen(false);
+            }
+            if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+                setIsSortDropdownOpen(false);
             }
         }
         document.addEventListener('mousedown', handleClickOutside);
@@ -122,7 +128,7 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
         const isInList = listIds.includes(gameId);
 
         setListIds((prev) =>
-            isInList ? prev.filter((id) => id !== gameId) : [...prev, id]
+            isInList ? prev.filter((id) => id !== gameId) : [...prev, gameId]
         );
 
         router.post(
@@ -138,7 +144,7 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
     }, [reviews, myReviewedGameIds]);
 
     const filtered = useMemo(() => {
-        return reviews.filter((r) => {
+        let list = reviews.filter((r) => {
             const matchesSearch = !search.trim()
                 ? true
                 : (r.game.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -148,7 +154,25 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                 : true;
             return matchesSearch && matchesShared;
         });
-    }, [search, reviews, reviewFilter, myReviewedGameIds]);
+
+        if (sortBy === 'title_asc') {
+            list.sort((a, b) => a.game.title.localeCompare(b.game.title));
+        } else if (sortBy === 'title_desc') {
+            list.sort((a, b) => b.game.title.localeCompare(a.game.title));
+        } else if (sortBy === 'rating_desc') {
+            list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        } else if (sortBy === 'rating_asc') {
+            list.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+        } else if (sortBy === 'date_desc') {
+            list.sort((a, b) => new Date(b.game.release_date || 0) - new Date(a.game.release_date || 0));
+        } else if (sortBy === 'date_asc') {
+            list.sort((a, b) => new Date(a.game.release_date || 0) - new Date(b.game.release_date || 0));
+        } else if (sortBy === 'latest_review') {
+            list.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        }
+
+        return list;
+    }, [search, reviews, reviewFilter, myReviewedGameIds, sortBy]);
 
     const totalPages = Math.ceil(filtered.length / PER_PAGE) || 1;
     const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
@@ -162,10 +186,10 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
         <AppLayout>
             <Head title={profileUser.name} />
 
-            <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12">
+            <div className="max-w-[1440px] mx-auto px-0">
                 {/* Header */}
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4">
                         <button
                             type="button"
                             onClick={() => {
@@ -175,17 +199,17 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                                     setShowAvatarModal(true);
                                 }
                             }}
-                            className={`relative w-16 h-16 rounded-full transition flex items-center justify-center shrink-0 cursor-pointer ${
+                            className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full transition flex items-center justify-center shrink-0 cursor-pointer ${
                                 !hasStories
                                     ? 'border-2 border-solid border-[#1F2923] hover:border-[#22C55E] bg-[#131916]'
                                     : hasUnviewedStories
                                     ? 'p-[3px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC] hover:scale-105'
                                     : 'border-2 border-[#1F2923] hover:border-[#2E3A32] opacity-75 hover:scale-105 bg-[#131916]'
                             }`}
-                            style={{ minWidth: '64px', minHeight: '64px' }}
+                            style={{ minWidth: '56px', minHeight: '56px' }}
                             title={hasStories ? "Click to view story" : "Click to view photo"}
                         >
-                            <div className="w-full h-full rounded-full bg-[#131916] flex items-center justify-center overflow-hidden text-xl font-semibold">
+                            <div className="w-full h-full rounded-full bg-[#131916] flex items-center justify-center overflow-hidden text-lg sm:text-xl font-semibold">
                                 {avatarUrl ? (
                                     <img
                                         src={avatarUrl}
@@ -215,8 +239,8 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                             )}
                         </button>
                         <div>
-                            <h1 className="text-[#F5F7F5] text-xl font-semibold">{profileUser.name}</h1>
-                            <p className="text-[#8B948F] text-sm mt-1">
+                            <h1 className="text-[#F5F7F5] text-lg sm:text-xl font-semibold">{profileUser.name}</h1>
+                            <p className="text-[#8B948F] text-xs sm:text-sm mt-0.5">
                                 {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
                             </p>
                         </div>
@@ -225,7 +249,7 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                     {!isOwner && (
                         <button
                             onClick={handleFollowButtonClick}
-                            className={`px-5 py-2 rounded-lg text-sm font-semibold transition shrink-0 ${
+                            className={`px-4 py-1.5 sm:px-5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${
                                 isFollowing
                                     ? 'bg-[#1F2923] text-[#8B948F] hover:bg-[#2E3A32] hover:text-[#DC2626]'
                                     : 'bg-[#22C55E] text-[#0B0F0D] hover:bg-[#16A34A]'
@@ -236,16 +260,16 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                     )}
                 </div>
 
-                {/* Interests inline with header: green highlighted for shared interests */}
+                {/* Interests inline with header: max 2 rows, scrollable */}
                 {interests.length > 0 && (
                     <div className="mb-6">
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 max-h-[76px] overflow-y-auto custom-scrollbar pr-1">
                             {interests.map((interest) => {
-                                const isShared = myInterestIds && myInterestIds.includes(interest.id);
+                                const isShared = !isOwner && myInterestIds && myInterestIds.includes(interest.id);
                                 return (
                                     <span
                                         key={interest.id}
-                                        className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition cursor-default flex items-center gap-1.5 ${
+                                        className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-semibold transition cursor-default flex items-center gap-1.5 shrink-0 ${
                                             isShared
                                                 ? 'bg-[#22C55E] border border-[#22C55E] text-[#0B0F0D] shadow-md'
                                                 : 'bg-[#131916] border border-[#1F2923] text-[#8B948F] hover:border-[#2E3A32] hover:text-[#F5F7F5]'
@@ -338,29 +362,102 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                     </div>
                 ) : (
                     <>
-                        {/* Reviews Header: title + dropdown filter & search form */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                            <h2 className="text-[#F5F7F5] text-base sm:text-lg font-semibold">
-                                {reviewFilter === 'shared' ? 'Shared Reviews' : 'All Reviews'}
-                            </h2>
+                        {/* Reviews Header: title + dropdown filter & search form in single block */}
+                        <div className="space-y-2.5 mb-4">
+                            <div className="flex items-center justify-between gap-2">
+                                <h2 className="text-[#F5F7F5] text-sm sm:text-lg font-semibold">
+                                    {reviewFilter === 'shared' ? 'Shared Reviews' : 'All Reviews'}
+                                </h2>
 
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                                {/* Custom Styled Shared Reviews Dropdown */}
-                                {!isOwner && myReviewedGameIds && myReviewedGameIds.length > 0 && (
-                                    <div className="relative" ref={dropdownRef}>
+                                {/* Sorting & Filter Controls inline with title on mobile */}
+                                <div className="flex items-center gap-2">
+                                    {!isOwner && myReviewedGameIds && myReviewedGameIds.length > 0 && (
+                                        <div className="relative" ref={dropdownRef}>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsDropdownOpen((prev) => !prev)}
+                                                className="flex items-center gap-1.5 bg-[#131916] border border-[#1F2923] hover:border-[#22C55E]/50 text-[#F5F7F5] text-[11px] sm:text-sm font-medium px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition shadow-sm"
+                                            >
+                                                <span>
+                                                    {reviewFilter === 'all'
+                                                        ? `All (${reviews.length})`
+                                                        : `Shared (${sharedReviewsCount})`}
+                                                </span>
+                                                <svg
+                                                    className={`w-3.5 h-3.5 text-[#8B948F] transition-transform duration-200 ${
+                                                        isDropdownOpen ? 'rotate-180 text-[#22C55E]' : ''
+                                                    }`}
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </button>
+
+                                            {isDropdownOpen && (
+                                                <div className="absolute right-0 mt-1.5 w-48 bg-[#131916] border border-[#1F2923] rounded-xl shadow-2xl py-1.5 z-20 overflow-hidden">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setReviewFilter('all');
+                                                            setPage(1);
+                                                            setIsDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-3.5 py-2 text-xs sm:text-sm font-medium flex items-center justify-between transition ${
+                                                            reviewFilter === 'all'
+                                                                ? 'bg-[#22C55E]/15 text-[#22C55E]'
+                                                                : 'text-[#8B948F] hover:bg-[#1F2923] hover:text-[#F5F7F5]'
+                                                        }`}
+                                                    >
+                                                        <span>All Reviews</span>
+                                                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#1F2923] text-[#F5F7F5]">
+                                                            {reviews.length}
+                                                        </span>
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setReviewFilter('shared');
+                                                            setPage(1);
+                                                            setIsDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-3.5 py-2 text-xs sm:text-sm font-medium flex items-center justify-between transition ${
+                                                            reviewFilter === 'shared'
+                                                                ? 'bg-[#22C55E]/15 text-[#22C55E]'
+                                                                : 'text-[#8B948F] hover:bg-[#1F2923] hover:text-[#F5F7F5]'
+                                                        }`}
+                                                    >
+                                                        <span>Shared Reviews</span>
+                                                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#22C55E]/20 text-[#22C55E]">
+                                                            {sharedReviewsCount}
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Custom Styled Sort Dropdown */}
+                                    <div className="relative" ref={sortDropdownRef}>
                                         <button
                                             type="button"
-                                            onClick={() => setIsDropdownOpen((prev) => !prev)}
-                                            className="flex items-center justify-between gap-2.5 bg-[#131916] border border-[#1F2923] hover:border-[#22C55E]/50 text-[#F5F7F5] text-xs sm:text-sm font-medium px-3.5 py-2 rounded-lg transition shadow-sm"
+                                            onClick={() => setIsSortDropdownOpen((prev) => !prev)}
+                                            className="flex items-center gap-1.5 bg-[#131916] border border-[#1F2923] hover:border-[#22C55E]/50 text-[#F5F7F5] text-[11px] sm:text-sm font-medium px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition shadow-sm"
                                         >
                                             <span>
-                                                {reviewFilter === 'all'
-                                                    ? `All Reviews (${reviews.length})`
-                                                    : `Shared Reviews (${sharedReviewsCount})`}
+                                                {sortBy === 'latest_review' && 'Latest Review'}
+                                                {sortBy === 'title_asc' && 'Alphabet (A - Z)'}
+                                                {sortBy === 'title_desc' && 'Alphabet (Z - A)'}
+                                                {sortBy === 'rating_desc' && 'Rating (Highest)'}
+                                                {sortBy === 'rating_asc' && 'Rating (Lowest)'}
+                                                {sortBy === 'date_desc' && 'Release Date (Newest)'}
+                                                {sortBy === 'date_asc' && 'Release Date (Oldest)'}
                                             </span>
                                             <svg
-                                                className={`w-4 h-4 text-[#8B948F] transition-transform duration-200 ${
-                                                    isDropdownOpen ? 'rotate-180 text-[#22C55E]' : ''
+                                                className={`w-3.5 h-3.5 text-[#8B948F] transition-transform duration-200 ${
+                                                    isSortDropdownOpen ? 'rotate-180 text-[#22C55E]' : ''
                                                 }`}
                                                 fill="none"
                                                 stroke="currentColor"
@@ -370,58 +467,53 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                                             </svg>
                                         </button>
 
-                                        {isDropdownOpen && (
-                                            <div className="absolute right-0 mt-1.5 w-48 bg-[#131916] border border-[#1F2923] rounded-xl shadow-2xl py-1.5 z-20 overflow-hidden">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setReviewFilter('all');
-                                                        setPage(1);
-                                                        setIsDropdownOpen(false);
-                                                    }}
-                                                    className={`w-full text-left px-3.5 py-2 text-xs sm:text-sm font-medium flex items-center justify-between transition ${
-                                                        reviewFilter === 'all'
-                                                            ? 'bg-[#22C55E]/15 text-[#22C55E]'
-                                                            : 'text-[#8B948F] hover:bg-[#1F2923] hover:text-[#F5F7F5]'
-                                                    }`}
-                                                >
-                                                    <span>All Reviews</span>
-                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#1F2923] text-[#F5F7F5]">
-                                                        {reviews.length}
-                                                    </span>
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setReviewFilter('shared');
-                                                        setPage(1);
-                                                        setIsDropdownOpen(false);
-                                                    }}
-                                                    className={`w-full text-left px-3.5 py-2 text-xs sm:text-sm font-medium flex items-center justify-between transition ${
-                                                        reviewFilter === 'shared'
-                                                            ? 'bg-[#22C55E]/15 text-[#22C55E]'
-                                                            : 'text-[#8B948F] hover:bg-[#1F2923] hover:text-[#F5F7F5]'
-                                                    }`}
-                                                >
-                                                    <span>Shared Reviews</span>
-                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#22C55E]/20 text-[#22C55E]">
-                                                        {sharedReviewsCount}
-                                                    </span>
-                                                </button>
+                                        {isSortDropdownOpen && (
+                                            <div className="absolute right-0 mt-1.5 w-52 bg-[#131916] border border-[#1F2923] rounded-xl shadow-2xl py-1.5 z-20 overflow-hidden">
+                                                <div className="px-3 py-1.5 text-[11px] font-bold text-[#8B948F] uppercase tracking-wider border-b border-[#1F2923]">
+                                                    Sort Reviews By
+                                                </div>
+                                                {[
+                                                    { id: 'rating_desc', label: 'Rating (Highest)' },
+                                                    { id: 'rating_asc', label: 'Rating (Lowest)' },
+                                                    { id: 'latest_review', label: 'Latest Review' },
+                                                    { id: 'title_asc', label: 'Alphabet (A - Z)' },
+                                                    { id: 'title_desc', label: 'Alphabet (Z - A)' },
+                                                    { id: 'date_desc', label: 'Release Date (Newest)' },
+                                                    { id: 'date_asc', label: 'Release Date (Oldest)' },
+                                                ].map((opt) => (
+                                                    <button
+                                                        key={opt.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setSortBy(opt.id);
+                                                            setPage(1);
+                                                            setIsSortDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-3.5 py-2 text-xs sm:text-sm font-medium flex items-center justify-between transition ${
+                                                            sortBy === opt.id
+                                                                ? 'bg-[#22C55E]/15 text-[#22C55E]'
+                                                                : 'text-[#8B948F] hover:bg-[#1F2923] hover:text-[#F5F7F5]'
+                                                        }`}
+                                                    >
+                                                        <span>{opt.label}</span>
+                                                        {sortBy === opt.id && (
+                                                            <span className="text-[#22C55E] font-bold">✓</span>
+                                                        )}
+                                                    </button>
+                                                ))}
                                             </div>
                                         )}
                                     </div>
-                                )}
-
-                                <input
-                                    type="text"
-                                    value={search}
-                                    onChange={(e) => handleSearchChange(e.target.value)}
-                                    placeholder="Search reviews..."
-                                    className="w-full sm:w-64 rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
-                                />
+                                </div>
                             </div>
+
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) => handleSearchChange(e.target.value)}
+                                placeholder="Search reviews..."
+                                className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-3.5 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
+                            />
                         </div>
 
                         {paginated.length === 0 ? (
@@ -438,7 +530,7 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                                         <div
                                             key={review.id}
                                             onClick={() => setSelectedReview(review)}
-                                            className="cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3 flex items-center gap-3 hover:border-[#2E3A32] transition"
+                                            className="cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-2.5 flex items-center gap-2.5 hover:border-[#2E3A32] transition"
                                         >
                                             <img
                                                 src={review.game.cover_url}
@@ -451,15 +543,15 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                                                 className="w-14 h-14 rounded-lg object-cover shrink-0"
                                             />
 
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="text-[#F5F7F5] text-xs font-medium truncate">
+                                            <div className="flex-1 min-w-0 pr-1">
+                                                <h3 className="text-[#F5F7F5] text-xs font-semibold truncate leading-snug">
                                                     {review.game.title}
                                                 </h3>
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-[#22C55E] text-xs font-semibold">
+                                                    <span className="text-[#22C55E] text-xs font-bold">
                                                         ★ {Number(review.rating).toFixed(1)}
                                                     </span>
-                                                    <span className="text-[#5A625D] text-xs">
+                                                    <span className="text-[#5A625D] text-[11px]">
                                                         {new Date(review.created_at).toLocaleDateString('en-US', {
                                                             day: 'numeric',
                                                             month: 'short',
@@ -469,13 +561,13 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                                             </div>
 
                                             {/* Buttons placed on the right side: 2 rows 1 column */}
-                                            <div className="flex flex-col gap-1.5 shrink-0 w-24">
+                                            <div className="flex flex-col gap-1.5 shrink-0 w-20">
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         openTrailer(review.game.title);
                                                     }}
-                                                    className="w-full rounded-md bg-[#1F2923] text-[#8B948F] text-[11px] font-medium px-2 py-1 hover:bg-[#2E3A32] hover:text-[#F5F7F5] transition text-center"
+                                                    className="w-full rounded-md bg-[#1F2923] text-[#8B948F] text-[10px] font-medium py-1 hover:bg-[#2E3A32] hover:text-[#F5F7F5] transition text-center"
                                                 >
                                                     Trailer
                                                 </button>
@@ -484,7 +576,7 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                                                         e.stopPropagation();
                                                         toggleList(review.game.id, review.game.slug);
                                                     }}
-                                                    className={`w-full rounded-md text-[11px] font-medium px-2 py-1 transition text-center ${listIds.includes(review.game.id)
+                                                    className={`w-full rounded-md text-[10px] font-medium py-1 transition text-center ${listIds.includes(review.game.id)
                                                         ? 'bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F0D]'
                                                         : 'bg-[#1F2923] text-[#8B948F] hover:bg-[#2E3A32] hover:text-[#F5F7F5]'
                                                         }`}
@@ -502,14 +594,15 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                                         <div key={review.id} className="relative">
                                             <div
                                                 onClick={() => setSelectedReview(review)}
-                                                className="absolute top-2 left-2 z-10 bg-[#0B0F0D]/80 backdrop-blur-sm text-[#22C55E] text-xs font-semibold px-2 py-1 rounded-md cursor-pointer hover:bg-[#0B0F0D] transition"
+                                                className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 bg-[#0B0F0D]/85 backdrop-blur-sm text-[#22C55E] text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md cursor-pointer hover:bg-[#0B0F0D] transition shadow"
                                             >
-                                                {Number(review.rating).toFixed(1)} ★
+                                                ★ {Number(review.rating).toFixed(1)}
                                             </div>
                                             <GameCard
                                                 game={review.game}
                                                 isInList={listIds.includes(review.game.id)}
                                                 onToggleList={toggleList}
+                                                hideRawgRating={true}
                                             />
                                         </div>
                                     ))}

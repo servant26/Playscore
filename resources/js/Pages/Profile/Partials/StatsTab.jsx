@@ -1,11 +1,14 @@
 import { useState, useMemo } from 'react';
-import { usePage } from '@inertiajs/react';
+import { usePage, router } from '@inertiajs/react';
 import StatsStoryModal from '@/Components/StatsStoryModal';
+import Modal from '@/Components/Modal';
 
 export default function StatsTab({ stats, myReviews = [], user, onSelectTab, showDownload = true }) {
     const pageUser = usePage().props.auth?.user;
     const currentUser = user || pageUser;
     const [showStoryModal, setShowStoryModal] = useState(false);
+    const [yearModalData, setYearModalData] = useState(null); // { year: '2005', reviews: [...] }
+    const [yearModalPage, setYearModalPage] = useState(1);
     const {
         totalReviews = 0,
         totalGamesInList = 0,
@@ -273,28 +276,39 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
 
     // 2. Line Chart Calculations (Reviews by Release Year)
     const yearChartData = useMemo(() => {
-        const entries = Object.entries(reviewsByYear);
-        if (entries.length === 0) return { path: '', points: [], maxCount: 0 };
+        const entries = Object.entries(reviewsByYear).sort((a, b) => Number(a[0]) - Number(b[0]));
+        if (entries.length === 0) return { path: '', points: [], maxCount: 0, svgWidth: 300 };
 
         const maxCount = Math.max(...entries.map(([, c]) => c), 1);
-        const padding = 20;
-        const width = 300;
-        const height = 120;
+        const paddingLeft = 35;
+        const paddingRight = 35;
+        // Spacious 65px gap so timeline stays wide, spacious, and scrollable on PC & Mobile
+        const pointSpacing = 65;
+        const svgWidth = Math.max(320, paddingLeft + paddingRight + (entries.length - 1) * pointSpacing);
+        const height = 130;
 
         const points = entries.map(([year, count], idx) => {
             const x = entries.length === 1
-                ? width / 2
-                : padding + (idx / (entries.length - 1)) * (width - 2 * padding);
-            const y = height - padding - (count / maxCount) * (height - 2 * padding);
-            return { year, count, x, y };
+                ? svgWidth / 2
+                : paddingLeft + idx * pointSpacing;
+            const y = height - 25 - (count / maxCount) * (height - 45);
+
+            // Collect reviews for games released in this year
+            const yearReviews = (myReviews || []).filter((r) => {
+                if (!r.game || !r.game.release_date) return false;
+                const rYear = new Date(r.game.release_date).getFullYear().toString();
+                return rYear === year;
+            });
+
+            return { year, count, x, y, reviews: yearReviews };
         });
 
         const path = points.reduce((acc, p, i) => {
             return i === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`;
         }, '');
 
-        return { path, points, maxCount };
-    }, [reviewsByYear]);
+        return { path, points, maxCount, svgWidth };
+    }, [reviewsByYear, myReviews]);
 
     // 3. Bar & Pie Chart Data (Rating Score Distribution)
     const ratingChartData = useMemo(() => {
@@ -417,35 +431,35 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
             )}
 
             {/* Top Overview Cards */}
-            <div className={`grid gap-3 sm:gap-4 ${showDownload ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2'}`}>
+            <div className={`grid gap-2.5 sm:gap-4 ${showDownload ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2'}`}>
                 {/* 1. Games in List (Only for personal profile where showDownload is true) */}
                 {showDownload && (
                     <div
                         onClick={() => onSelectTab && onSelectTab('gamelist')}
-                        className="bg-[#131916] border border-[#1F2923] rounded-xl p-3 sm:p-5 text-center cursor-pointer hover:border-[#2E3A32] hover:bg-[#19211d] transition group"
+                        className="bg-[#131916] border border-[#1F2923] rounded-xl p-2.5 sm:p-5 text-center cursor-pointer hover:border-[#2E3A32] hover:bg-[#19211d] transition group"
                     >
-                        <p className="text-[#8B948F] group-hover:text-[#F5F7F5] text-xs font-medium mb-1 transition">
+                        <p className="text-[#8B948F] group-hover:text-[#F5F7F5] text-[11px] sm:text-xs font-medium mb-0.5 sm:mb-1 transition">
                             Games in List
                         </p>
-                        <p className="text-[#F5F7F5] text-xl sm:text-3xl font-bold">{totalGamesInList}</p>
+                        <p className="text-[#F5F7F5] text-lg sm:text-3xl font-bold">{totalGamesInList}</p>
                     </div>
                 )}
 
                 {/* 2. Reviewed Games (Clickable -> 'myreview' when on personal profile) */}
                 <div
                     onClick={() => showDownload && onSelectTab && onSelectTab('myreview')}
-                    className={`bg-[#131916] border border-[#1F2923] rounded-xl p-3 sm:p-5 text-center transition group ${showDownload ? 'cursor-pointer hover:border-[#2E3A32] hover:bg-[#19211d]' : ''}`}
+                    className={`bg-[#131916] border border-[#1F2923] rounded-xl p-2.5 sm:p-5 text-center transition group ${showDownload ? 'cursor-pointer hover:border-[#2E3A32] hover:bg-[#19211d]' : ''}`}
                 >
-                    <p className={`text-[#8B948F] text-xs font-medium mb-1 transition ${showDownload ? 'group-hover:text-[#F5F7F5]' : ''}`}>
+                    <p className={`text-[#8B948F] text-[11px] sm:text-xs font-medium mb-0.5 sm:mb-1 transition ${showDownload ? 'group-hover:text-[#F5F7F5]' : ''}`}>
                         Reviewed Games
                     </p>
-                    <p className="text-[#F5F7F5] text-xl sm:text-3xl font-bold">{totalReviews}</p>
+                    <p className="text-[#F5F7F5] text-lg sm:text-3xl font-bold">{totalReviews}</p>
                 </div>
 
                 {/* 3. Average Score */}
-                <div className={`bg-[#131916] border border-[#1F2923] rounded-xl p-3 sm:p-5 text-center ${showDownload ? 'col-span-2 sm:col-span-1' : 'col-span-1'}`}>
-                    <p className="text-[#8B948F] text-xs font-medium mb-1">Average Score</p>
-                    <p className="text-[#22C55E] text-xl sm:text-3xl font-bold">★ {averageScore}</p>
+                <div className={`bg-[#131916] border border-[#1F2923] rounded-xl p-2.5 sm:p-5 text-center ${showDownload ? 'col-span-2 sm:col-span-1' : 'col-span-1'}`}>
+                    <p className="text-[#8B948F] text-[11px] sm:text-xs font-medium mb-0.5 sm:mb-1">Average Score</p>
+                    <p className="text-[#22C55E] text-lg sm:text-3xl font-bold">★ {averageScore}</p>
                 </div>
             </div>
 
@@ -733,48 +747,63 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
                     </p>
                 ) : (
                     <div className="relative w-full overflow-x-auto custom-scrollbar pb-2">
-                        <div className="min-w-[320px] h-36 relative">
-                            <svg viewBox="0 0 300 120" className="w-full h-full overflow-visible">
+                        <div className="h-36 relative pt-1" style={{ width: `${yearChartData.svgWidth}px`, minWidth: `${yearChartData.svgWidth}px` }}>
+                            <svg
+                                viewBox={`0 0 ${yearChartData.svgWidth} 130`}
+                                className="w-full h-full overflow-visible"
+                                style={{ width: `${yearChartData.svgWidth}px` }}
+                            >
                                 {/* Horizontal grid lines */}
-                                <line x1="20" y1="20" x2="280" y2="20" stroke="#1F2923" strokeDasharray="3 3" />
-                                <line x1="20" y1="60" x2="280" y2="60" stroke="#1F2923" strokeDasharray="3 3" />
-                                <line x1="20" y1="100" x2="280" y2="100" stroke="#1F2923" strokeDasharray="3 3" />
+                                <line x1="10" y1="20" x2={yearChartData.svgWidth - 10} y2="20" stroke="#1F2923" strokeDasharray="3 3" />
+                                <line x1="10" y1="60" x2={yearChartData.svgWidth - 10} y2="60" stroke="#1F2923" strokeDasharray="3 3" />
+                                <line x1="10" y1="100" x2={yearChartData.svgWidth - 10} y2="100" stroke="#1F2923" strokeDasharray="3 3" />
 
                                 {/* Trend line */}
                                 <path
                                     d={yearChartData.path}
                                     fill="none"
                                     stroke="#22C55E"
-                                    strokeWidth="3"
+                                    strokeWidth="2.5"
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                 />
 
-                                {/* Line Points & Tooltips */}
+                                {/* Line Points & Click Action */}
                                 {yearChartData.points.map((p, idx) => (
-                                    <g key={idx} className="group cursor-pointer">
+                                    <g
+                                        key={idx}
+                                        className="group cursor-pointer"
+                                        onClick={() => {
+                                            setYearModalData(p);
+                                            setYearModalPage(1);
+                                        }}
+                                    >
                                         <circle
                                             cx={p.x}
                                             cy={p.y}
-                                            r="5"
+                                            r="4.5"
                                             fill="#0B0F0D"
                                             stroke="#22C55E"
-                                            strokeWidth="2.5"
-                                            className="transition duration-200 group-hover:r-7 group-hover:fill-[#22C55E]"
+                                            strokeWidth="2"
+                                            className="transition duration-200 group-hover:r-6 group-hover:fill-[#22C55E]"
                                         />
+
+                                        {/* Total Games Count Label on Hover */}
                                         <text
                                             x={p.x}
                                             y={p.y - 9}
                                             textAnchor="middle"
-                                            className="fill-[#F5F7F5] text-[10px] font-bold opacity-0 group-hover:opacity-100 transition"
+                                            className="fill-[#22C55E] text-[10px] font-bold opacity-0 group-hover:opacity-100 transition pointer-events-none"
                                         >
                                             {p.count}
                                         </text>
+
+                                        {/* Year Label */}
                                         <text
                                             x={p.x}
-                                            y="118"
+                                            y="120"
                                             textAnchor="middle"
-                                            className="fill-[#8B948F] text-[9px] font-medium"
+                                            className="fill-[#8B948F] group-hover:fill-[#22C55E] text-[10px] font-semibold tracking-tight transition"
                                         >
                                             {p.year}
                                         </text>
@@ -785,6 +814,108 @@ export default function StatsTab({ stats, myReviews = [], user, onSelectTab, sho
                     </div>
                 )}
             </section>
+
+            {/* Click Modal for Games Released in Specific Year */}
+            <Modal
+                show={!!yearModalData}
+                onClose={() => setYearModalData(null)}
+                maxWidth="lg"
+            >
+                {yearModalData && (
+                    <div className="bg-[#131916] border border-[#1F2923] rounded-2xl p-5 sm:p-6 text-left">
+                        <div className="flex items-center justify-between border-b border-[#1F2923] pb-4 mb-4">
+                            <div>
+                                <h3 className="text-[#F5F7F5] text-lg font-bold">
+                                    Games Released in {yearModalData.year}
+                                </h3>
+                                <p className="text-[#8B948F] text-xs mt-0.5">
+                                    Total {yearModalData.reviews.length} {yearModalData.reviews.length === 1 ? 'game' : 'games'} reviewed
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setYearModalData(null)}
+                                className="w-8 h-8 rounded-lg bg-[#0B0F0D] border border-[#1F2923] text-[#8B948F] hover:text-white flex items-center justify-center transition"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Paginated 10 items per page */}
+                        {(() => {
+                            const perPage = 10;
+                            const totalPages = Math.ceil(yearModalData.reviews.length / perPage) || 1;
+                            const currentReviews = yearModalData.reviews.slice(
+                                (yearModalPage - 1) * perPage,
+                                yearModalPage * perPage
+                            );
+
+                            return (
+                                <div>
+                                    <div className="space-y-2.5 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">
+                                        {currentReviews.map((rev, idx) => {
+                                            const itemNumber = (yearModalPage - 1) * perPage + idx + 1;
+                                            return (
+                                                <div
+                                                    key={rev.id}
+                                                    onClick={() => {
+                                                        setYearModalData(null);
+                                                        router.get(route('games.show', rev.game.slug));
+                                                    }}
+                                                    className="bg-[#0B0F0D] border border-[#1F2923] hover:border-[#22C55E]/50 rounded-xl p-3 flex items-center gap-3.5 cursor-pointer transition"
+                                                >
+                                                    <span className="text-[#8B948F] text-xs font-bold w-6 text-center shrink-0">
+                                                        {itemNumber}.
+                                                    </span>
+
+                                                    <img
+                                                        src={rev.game.cover_url}
+                                                        alt={rev.game.title}
+                                                        className="w-11 h-11 rounded-lg object-cover shrink-0 bg-[#131916]"
+                                                    />
+
+                                                    <div className="flex-1 min-w-0">
+                                                        <h4 className="text-[#F5F7F5] text-xs sm:text-sm font-semibold truncate group-hover:text-[#22C55E] transition">
+                                                            {rev.game.title}
+                                                        </h4>
+                                                        <p className="text-[#8B948F] text-[11px] mt-0.5">
+                                                            Rating: <span className="text-[#22C55E] font-bold">★ {Number(rev.rating).toFixed(1)}</span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Pagination Controls */}
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center justify-between mt-5 pt-3 border-t border-[#1F2923]">
+                                            <p className="text-xs text-[#8B948F]">
+                                                Page {yearModalPage} of {totalPages}
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setYearModalPage((p) => Math.max(1, p - 1))}
+                                                    disabled={yearModalPage === 1}
+                                                    className="px-3 py-1.5 rounded-lg border border-[#1F2923] text-xs text-[#8B948F] hover:border-[#2E3A32] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                                >
+                                                    Previous
+                                                </button>
+                                                <button
+                                                    onClick={() => setYearModalPage((p) => Math.min(totalPages, p + 1))}
+                                                    disabled={yearModalPage === totalPages}
+                                                    className="px-3 py-1.5 rounded-lg border border-[#1F2923] text-xs text-[#8B948F] hover:border-[#2E3A32] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                                >
+                                                    Next
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
+                    </div>
+                )}
+            </Modal>
 
             <StatsStoryModal
                 show={showStoryModal}

@@ -10,12 +10,52 @@ use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
-    public function store(Request $request, Game $game): RedirectResponse
+    public function store(Request $request, string $gameIdentifier): RedirectResponse
     {
         $request->validate([
             'rating' => ['required', 'numeric', 'min:0', 'max:10'],
             'body' => ['nullable', 'string', 'max:2000'],
         ]);
+
+        // Find game by slug, id, or external_id (from RAWG API)
+        $game = Game::where('slug', $gameIdentifier)
+            ->orWhere('id', $gameIdentifier)
+            ->orWhere('external_id', $gameIdentifier)
+            ->first();
+
+        // If game is not in database yet (e.g. searched directly from RAWG API), import it first
+        if (!$game && is_numeric($gameIdentifier)) {
+            $rawg = app(\App\Services\RawgService::class);
+            $detail = $rawg->detail((int) $gameIdentifier);
+            if ($detail) {
+                $trailers = $rawg->trailers((int) $gameIdentifier);
+                $trailerUrl = $trailers[0]['data']['max'] ?? $trailers[0]['data']['480'] ?? null;
+                $coverUrl = $detail['background_image'] ?? $detail['background_image_additional'] ?? null;
+
+                $game = Game::create([
+                    'external_id' => $detail['id'],
+                    'title' => $detail['name'],
+                    'slug' => \Illuminate\Support\Str::slug($detail['name']).'-'.$detail['id'],
+                    'cover_url' => $coverUrl,
+                    'trailer_url' => $trailerUrl,
+                    'description' => strip_tags($detail['description'] ?? ''),
+                    'release_date' => $detail['released'] ?? null,
+                    'developer' => $detail['developers'][0]['name'] ?? null,
+                    'publisher' => $detail['publishers'][0]['name'] ?? null,
+                    'rawg_rating' => $detail['rating'] ?? null,
+                ]);
+
+                $genreSlugs = collect($detail['genres'] ?? [])->pluck('slug');
+                if ($genreSlugs->isNotEmpty()) {
+                    $interestIds = \App\Models\Interest::whereIn('slug', $genreSlugs)->pluck('id');
+                    $game->interests()->sync($interestIds);
+                }
+            }
+        }
+
+        if (!$game) {
+            abort(404, 'Game not found.');
+        }
 
         $isNewReview = !$game->reviews()->where('user_id', auth()->id())->exists();
 

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import ConfirmModal from '@/Components/ConfirmModal';
 import { getFallbackImage } from '@/Utils/imageFallback';
 
-export default function GameCard({ game, isInList, onToggleList }) {
+export default function GameCard({ game, isInList, onToggleList, hideRawgRating = false }) {
     const [showConfirm, setShowConfirm] = useState(false);
     const [imgSrc, setImgSrc] = useState(game.cover_url || getFallbackImage(game.title));
 
@@ -47,7 +47,7 @@ export default function GameCard({ game, isInList, onToggleList }) {
                     />
 
                     {/* Rating Badge */}
-                    {game.rawg_rating && (
+                    {!hideRawgRating && game.rawg_rating && (
                         <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-[#0B0F0D]/85 backdrop-blur-sm text-[#22C55E] text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md z-10">
                             ★ {Number(game.rawg_rating).toFixed(1)}
                         </div>
