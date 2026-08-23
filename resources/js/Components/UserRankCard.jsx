@@ -53,7 +53,7 @@ export default function UserRankCard({ reviewCount = 0 }) {
                                 <span className="text-[#22C55E] font-bold">Max Rank Achieved! ⚡</span>
                             ) : (
                                 <>
-                                    Progress to <strong className={nextRank.color}>{nextRank.name}</strong> ({nextRank.min} Reviews)
+                                    <span>{nextRank.icon}</span> Progress to <strong className={nextRank.color}>{nextRank.name}</strong> ({nextRank.min} Reviews)
                                 </>
                             )}
                         </span>
@@ -71,7 +71,7 @@ export default function UserRankCard({ reviewCount = 0 }) {
 
                     {!isMax && (
                         <p className="text-[11px] text-[#8B948F] mt-1.5 text-right">
-                            Need <span className="text-[#22C55E] font-semibold">{reviewsNeeded} more {reviewsNeeded === 1 ? 'review' : 'reviews'}</span> to reach {nextRank.name}
+                            Need <span className="text-[#22C55E] font-semibold">{reviewsNeeded} more {reviewsNeeded === 1 ? 'review' : 'reviews'}</span> to reach <span>{nextRank.icon}</span> {nextRank.name}
                         </p>
                     )}
                 </div>

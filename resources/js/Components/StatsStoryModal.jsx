@@ -243,7 +243,7 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
-            <div className="p-3.5 sm:p-4 bg-[#0B0F0D] text-[#F5F7F5] rounded-2xl max-h-[90vh] flex flex-col items-center">
+            <div className="p-3.5 sm:p-4 bg-[#0B0F0D] text-[#F5F7F5] rounded-2xl max-h-[95vh] sm:max-h-[92vh] flex flex-col items-center">
                 {/* Modal Header */}
                 <div className="w-full flex items-center justify-between mb-2 border-b border-[#1F2923] pb-2 shrink-0">
                     <div>
@@ -279,7 +279,7 @@ export default function StatsStoryModal({ show, onClose, user, stats, reviews = 
                 </div>
 
                 {/* --- 9:16 STORY CARD SCROLLABLE PREVIEW CONTAINER --- */}
-                <div className="w-full max-h-[290px] sm:max-h-[330px] overflow-y-auto custom-scrollbar border border-[#1F2923] rounded-xl p-2 bg-[#070A08] mb-2.5 shadow-inner">
+                <div className="w-full max-h-[340px] sm:max-h-[570px] overflow-y-auto custom-scrollbar border border-[#1F2923] rounded-xl p-2 bg-[#070A08] mb-2.5 shadow-inner">
                     <div className="flex justify-center items-start min-h-max py-1">
                         <div className="relative shadow-2xl rounded-2xl overflow-hidden shrink-0">
                             <div

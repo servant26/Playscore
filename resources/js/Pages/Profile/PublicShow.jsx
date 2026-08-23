@@ -5,6 +5,8 @@ import FollowListTab from './Partials/FollowListTab';
 import StatsTab from './Partials/StatsTab';
 import StoryViewerModal from '@/Components/StoryViewerModal';
 import HighlightSection from '@/Components/HighlightSection';
+import RankInfoModal from '@/Components/RankInfoModal';
+import { getRankInfo } from '@/Utils/rankSystem';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useMemo, useRef, useEffect } from 'react';
 
@@ -15,6 +17,7 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [showStoryViewer, setShowStoryViewer] = useState(false);
     const [showHighlightViewer, setShowHighlightViewer] = useState(false);
+    const [showRankModal, setShowRankModal] = useState(false);
     const [highlightViewerStories, setHighlightViewerStories] = useState([]);
     const [showUnfollowConfirm, setShowUnfollowConfirm] = useState(false);
     const [listIds, setListIds] = useState(myListIds || []);
@@ -63,6 +66,7 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
 
     const authUser = usePage().props.auth?.user;
     const isOwner = authUser && authUser.id === profileUser.id;
+    const { count, currentRank, nextRank, progress, isMax, reviewsNeeded } = getRankInfo(reviews ? reviews.length : 0);
 
     const [isFollowing, setIsFollowing] = useState(profileUser.is_following || false);
     const [followersCount, setFollowersCount] = useState(profileUser.followers_count || 0);
@@ -258,9 +262,50 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                         </button>
                         <div>
                             <h1 className="text-[#F5F7F5] text-lg sm:text-xl font-semibold">{profileUser.name}</h1>
-                            <p className="text-[#8B948F] text-xs sm:text-sm mt-0.5">
-                                {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
-                            </p>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                <p className="text-[#8B948F] text-xs sm:text-sm">
+                                    {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
+                                </p>
+                                <span className="text-[#38463E]">•</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowRankModal(true)}
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black border border-white/40 bg-[#19231E] text-white hover:bg-[#22332A] hover:border-white/70 transition-all duration-200 cursor-pointer shadow-md"
+                                    title="Click to view rank details"
+                                >
+                                    <span className="text-sm">{currentRank.icon}</span>
+                                    <span className="tracking-wide font-extrabold text-white" style={{ color: '#FFFFFF' }}>
+                                        {currentRank.name}
+                                    </span>
+                                </button>
+                            </div>
+
+                            {/* Rank Progress Bar & Next Rank Requirement */}
+                            {!isMax && nextRank ? (
+                                <div className="mt-2 w-full max-w-[280px] sm:max-w-[320px]">
+                                    <div className="flex items-center justify-between text-[11px] font-medium text-[#8B948F] mb-1">
+                                        <span className="flex items-center gap-1">
+                                            <span>{nextRank.icon}</span>
+                                            <span>
+                                                Progress to <strong className={`font-semibold ${nextRank.color}`}>{nextRank.name}</strong> ({nextRank.min} Reviews)
+                                            </span>
+                                        </span>
+                                        <span className="text-[#F5F7F5] font-bold text-[10px] ml-2 shrink-0">
+                                            {count} / {currentRank.target}
+                                        </span>
+                                    </div>
+                                    <div className="w-full h-1.5 rounded-full bg-[#0B0F0D] border border-[#1F2923] overflow-hidden p-[1px]">
+                                        <div
+                                            className="h-full rounded-full bg-gradient-to-r from-[#16A34A] to-[#22C55E] transition-all duration-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"
+                                            style={{ width: `${progress}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-[11px] text-[#22C55E] font-bold mt-1.5">
+                                    Max Rank Achieved! ⚡
+                                </p>
+                            )}
                         </div>
                     </div>
 
@@ -309,7 +354,7 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                 )}
 
                 {/* Highlights Section (Above Gamer Rank / Profile Tabs) */}
-                <div className="mb-2">
+                <div className="mb-4">
                     <HighlightSection
                         highlights={highlights}
                         isOwner={false}
@@ -790,6 +835,13 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                 stories={highlightViewerStories}
                 initialIndex={0}
                 onClose={() => setShowHighlightViewer(false)}
+            />
+
+            {/* Rank Info Modal */}
+            <RankInfoModal
+                show={showRankModal}
+                onClose={() => setShowRankModal(false)}
+                reviewCount={reviews ? reviews.length : 0}
             />
         </AppLayout>
     );

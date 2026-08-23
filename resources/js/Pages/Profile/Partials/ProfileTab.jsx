@@ -4,7 +4,9 @@ import { useRef, useState } from 'react';
 import Modal from '@/Components/Modal';
 import FollowListModal from '@/Components/FollowListModal';
 import GameCard from '@/Components/GameCard';
+import RankInfoModal from '@/Components/RankInfoModal';
 import UserRankCard from '@/Components/UserRankCard';
+import { getRankInfo } from '@/Utils/rankSystem';
 
 import HighlightSection from '@/Components/HighlightSection';
 
@@ -41,6 +43,10 @@ export default function ProfileTab({
     const [avatarPreview, setAvatarPreview] = useState(getAvatarUrl(user.avatar));
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [showFollowModal, setShowFollowModal] = useState({ show: false, type: 'followers' });
+    const [showRankModal, setShowRankModal] = useState(false);
+
+    const reviewCount = myReviews ? myReviews.length : 0;
+    const { count, currentRank, nextRank, progress, isMax, reviewsNeeded } = getRankInfo(reviewCount);
 
     // Password visibility state toggles
     const [showCurrentPw, setShowCurrentPw] = useState(false);
@@ -611,6 +617,13 @@ export default function ProfileTab({
                 type={showFollowModal.type}
                 user={user}
                 onClose={() => setShowFollowModal({ show: false, type: 'followers' })}
+            />
+
+            {/* Rank Info Modal */}
+            <RankInfoModal
+                show={showRankModal}
+                onClose={() => setShowRankModal(false)}
+                reviewCount={reviewCount}
             />
         </div>
     );
