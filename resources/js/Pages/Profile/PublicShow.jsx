@@ -666,6 +666,7 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                                                 isInList={listIds.includes(review.game.id)}
                                                 onToggleList={toggleList}
                                                 hideRawgRating={true}
+                                                onCardClick={() => setSelectedReview(review)}
                                             />
                                         </div>
                                     ))}
@@ -710,46 +711,54 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
             {/* Review detail modal */}
             {selectedReview && (
                 <div
-                    className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4"
+                    className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 px-4 py-6 overflow-y-auto custom-scrollbar"
                     onClick={() => setSelectedReview(null)}
                 >
                     <div
-                        className="bg-[#131916] border border-[#1F2923] rounded-xl overflow-hidden max-w-md w-full"
+                        className="bg-[#131916] border border-[#1F2923] rounded-2xl overflow-hidden max-w-md w-full shadow-2xl max-h-[85vh] flex flex-col my-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <img
-                            src={selectedReview.game.cover_url}
-                            alt={selectedReview.game.title}
-                            className="w-full h-48 object-cover"
-                        />
-                        <div className="p-6">
-                            <h3 className="text-[#F5F7F5] text-lg font-semibold mb-1">
+                        <div className="relative h-40 sm:h-48 shrink-0 bg-[#0B0F0D]">
+                            <img
+                                src={selectedReview.game.cover_url}
+                                alt={selectedReview.game.title}
+                                className="w-full h-full object-cover"
+                            />
+                            <button
+                                onClick={() => setSelectedReview(null)}
+                                className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center text-xs font-bold hover:bg-black transition"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="p-5 sm:p-6 flex flex-col flex-1 min-h-0">
+                            <h3 className="text-[#F5F7F5] text-base sm:text-lg font-bold mb-1 line-clamp-1">
                                 {selectedReview.game.title}
                             </h3>
-                            <div className="flex items-center gap-2 mb-4">
-                                <span className="text-[#22C55E] text-2xl font-bold">
+                            <div className="flex items-center gap-2 mb-3 shrink-0">
+                                <span className="text-[#22C55E] text-2xl font-black">
                                     {Number(selectedReview.rating).toFixed(1)}
                                 </span>
-                                <span className="text-[#5A625D] text-sm">/ 10</span>
+                                <span className="text-[#5A625D] text-xs font-semibold">/ 10</span>
                                 <span className="text-[#22C55E] text-lg">★</span>
                             </div>
                             {selectedReview.body && (
-                                <p className="text-[#8B948F] text-sm leading-relaxed mb-6">
-                                    {selectedReview.body}
-                                </p>
+                                <div className="max-h-[160px] sm:max-h-[200px] overflow-y-auto custom-scrollbar pr-2 mb-5 text-[#8B948F] text-xs sm:text-sm leading-relaxed">
+                                    <p>{selectedReview.body}</p>
+                                </div>
                             )}
 
-                            <div className="flex gap-2">
+                            <div className="flex gap-2.5 mt-auto pt-2 border-t border-[#1F2923] shrink-0">
                                 <button
                                     onClick={() => setSelectedReview(null)}
-                                    className="flex-1 rounded-lg border border-[#1F2923] text-[#8B948F] py-2.5 text-sm hover:border-[#2E3A32] hover:text-[#F5F7F5] transition"
+                                    className="flex-1 rounded-xl border border-[#1F2923] text-[#8B948F] py-2.5 text-xs sm:text-sm font-semibold hover:border-[#2E3A32] hover:text-[#F5F7F5] transition"
                                 >
                                     Close
                                 </button>
                                 <button
                                     onClick={() => goToGame(selectedReview.game.slug)}
                                     style={{ backgroundColor: '#22C55E', color: '#0B0F0D' }}
-                                    className="flex-1 rounded-lg font-medium py-2.5 text-sm hover:opacity-90 transition"
+                                    className="flex-1 rounded-xl font-bold py-2.5 text-xs sm:text-sm hover:bg-[#16A34A] transition shadow-md"
                                 >
                                     View Game
                                 </button>

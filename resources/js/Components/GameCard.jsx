@@ -3,7 +3,7 @@ import { useState } from 'react';
 import ConfirmModal from '@/Components/ConfirmModal';
 import { getFallbackImage } from '@/Utils/imageFallback';
 
-export default function GameCard({ game, isInList, onToggleList, hideRawgRating = false }) {
+export default function GameCard({ game, isInList, onToggleList, hideRawgRating = false, onCardClick = null }) {
     const [showConfirm, setShowConfirm] = useState(false);
     const [imgSrc, setImgSrc] = useState(game.cover_url || getFallbackImage(game.title));
 
@@ -31,10 +31,18 @@ export default function GameCard({ game, isInList, onToggleList, hideRawgRating 
         router.get(route('games.show', game.slug));
     };
 
+    const handleCardClick = () => {
+        if (onCardClick) {
+            onCardClick();
+        } else {
+            goToDetail();
+        }
+    };
+
     return (
         <>
             <div
-                onClick={goToDetail}
+                onClick={handleCardClick}
                 className="group cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl overflow-hidden hover:border-[#2E3A32] transition flex flex-col"
             >
                 {/* Cover Image with Title & Genre Hover Overlay */}
