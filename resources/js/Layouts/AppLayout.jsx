@@ -125,13 +125,83 @@ export default function AppLayout({ children }) {
         .slice(0, 2)
         .toUpperCase();
 
+    const navItems = [
+        {
+            key: 'mystory',
+            label: 'My Story',
+            href: route('profile.edit'),
+            isActive: currentUrl === '/profile' || currentUrl.startsWith('/profile#') || currentUrl.startsWith('/profile?'),
+            icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            ),
+        },
+        {
+            key: 'dashboard',
+            label: 'Dashboard',
+            href: route('dashboard'),
+            isActive: currentUrl === '/dashboard' || currentUrl.startsWith('/dashboard?') || currentUrl.startsWith('/all-games'),
+            icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+            ),
+        },
+        {
+            key: 'myreview',
+            label: 'My Review',
+            href: route('profile.edit') + '#myreview',
+            isActive: currentUrl.includes('/profile') && (typeof window !== 'undefined' && window.location.hash.includes('myreview')),
+            icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+            ),
+        },
+        {
+            key: 'mylist',
+            label: 'My List',
+            href: route('profile.edit') + '#gamelist',
+            isActive: currentUrl.includes('/profile') && (typeof window !== 'undefined' && window.location.hash.includes('gamelist')),
+            icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+            ),
+        },
+        {
+            key: 'stats',
+            label: 'Stats',
+            href: route('profile.edit') + '#stats',
+            isActive: currentUrl.includes('/profile') && (typeof window !== 'undefined' && window.location.hash.includes('stats')),
+            icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+            ),
+        },
+        {
+            key: 'mutual',
+            label: 'Mutual',
+            href: route('profile.edit') + '#following',
+            isActive: currentUrl.includes('/profile') && (typeof window !== 'undefined' && (window.location.hash.includes('follow') || window.location.hash.includes('mutual'))),
+            icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            ),
+        },
+    ];
+
     return (
-        <div className="min-h-screen bg-[#0B0F0D] w-full overflow-x-hidden">
-            <nav className="sticky top-0 z-40 bg-[#0F1512] border-b border-[#1F2923]">
-                <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 h-16 flex items-center gap-6">
+        <div className="min-h-screen bg-[#0B0F0D] w-full relative">
+            {/* Top Navbar */}
+            <nav className="sticky top-0 z-40 bg-[#0F1512]/95 backdrop-blur-md border-b border-[#1F2923]">
+                <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 h-16 flex items-center gap-4 sm:gap-6">
                     <Link href={auth?.user?.role === 'admin' ? route('admin.dashboard') : route('dashboard')} className="flex items-center gap-2 shrink-0">
-                        <div className="w-8 h-8 rounded-md bg-[#22C55E] flex items-center justify-center">
-                            <span className="text-[#0B0F0D] font-bold text-sm">P</span>
+                        <div className="w-8 h-8 rounded-full bg-[#22C55E] flex items-center justify-center shadow-[0_0_12px_rgba(34,197,94,0.35)]">
+                            <span className="text-[#0B0F0D] font-black text-sm">P</span>
                         </div>
                         <span className="text-[#F5F7F5] font-semibold text-lg hidden sm:block">
                             Playscore
@@ -145,7 +215,7 @@ export default function AppLayout({ children }) {
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search games or users..."
-                                className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
+                                className="w-full rounded-xl bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
                             />
                         </form>
                     )}
@@ -330,7 +400,50 @@ export default function AppLayout({ children }) {
                 </div>
             </nav>
 
-            <main className="max-w-[1440px] mx-auto px-3.5 sm:px-8 lg:px-12 py-3 sm:py-5">{children}</main>
+            {/* Layout Body: Left HRIS-Style Pill Sidebar + Main Content */}
+            <div className="max-w-[1440px] mx-auto flex items-start px-2 sm:px-4 lg:px-8 py-3 sm:py-5 gap-3 sm:gap-6">
+                {/* Floating Rounded Pill Sidebar - Centered vertically on screen (top-1/2 -translate-y-1/2) */}
+                <aside className="fixed left-3 sm:left-4 lg:left-5 top-1/2 -translate-y-1/2 z-30 hidden md:flex flex-col items-center bg-[#131916]/95 backdrop-blur-xl border border-[#1F2923] rounded-full py-4 px-2 shadow-2xl space-y-3">
+                    {navItems.map((item) => (
+                        <Link
+                            key={item.key}
+                            href={item.href}
+                            className={`relative group w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                item.isActive
+                                    ? 'bg-[#22C55E] text-[#0B0F0D] shadow-[0_0_16px_rgba(34,197,94,0.4)]'
+                                    : 'text-[#8B948F] hover:text-[#F5F7F5] hover:bg-[#1F2923]'
+                            }`}
+                            title={item.label}
+                        >
+                            {item.icon}
+
+                            {/* Tooltip on Hover */}
+                            <span className="absolute left-14 bg-[#0F1512] border border-[#1F2923] text-[#F5F7F5] text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
+                                {item.label}
+                            </span>
+                        </Link>
+                    ))}
+                </aside>
+
+                {/* Main Content Area (With left margin to give space to the fixed sidebar) */}
+                <main className="flex-1 min-w-0 w-full md:pl-16 lg:pl-18">{children}</main>
+            </div>
+
+            {/* Mobile Bottom Navigation Bar */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0F1512]/95 backdrop-blur-md border-t border-[#1F2923] px-4 py-2 flex items-center justify-around">
+                {navItems.map((item) => (
+                    <Link
+                        key={item.key}
+                        href={item.href}
+                        className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition ${
+                            item.isActive ? 'text-[#22C55E] font-bold' : 'text-[#8B948F] hover:text-[#F5F7F5]'
+                        }`}
+                    >
+                        {item.icon}
+                        <span className="text-[10px] font-medium">{item.label}</span>
+                    </Link>
+                ))}
+            </div>
 
             {/* Rank Up Celebration Modal */}
             <RankUpModal

@@ -240,43 +240,23 @@ export default function Edit({
         return (
             <AppLayout>
                 <Head title="Profile" />
-                <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-                    <aside className="w-full lg:w-64 shrink-0">
-                        <nav className="flex lg:flex-col overflow-x-auto pb-2 lg:pb-0 gap-1.5 scrollbar-none">
-                            {ADMIN_TABS.map((tab) => (
-                                <button
-                                    key={tab.key}
-                                    onClick={() => setAdminSubTab(tab.key)}
-                                    className={`text-left whitespace-nowrap px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition ${
-                                        adminSubTab === tab.key
-                                            ? 'bg-[#22C55E] text-[#0B0F0D]'
-                                            : 'text-[#8B948F] bg-[#131916]/60 lg:bg-transparent hover:bg-[#131916] hover:text-[#F5F7F5]'
-                                    }`}
-                                >
-                                    {tab.label}
-                                </button>
-                            ))}
-                        </nav>
-                    </aside>
-
-                    <div className="flex-1 min-w-0">
-                        <ProfileTab
-                            mustVerifyEmail={mustVerifyEmail}
-                            status={status}
-                            followersCount={followersCount}
-                            followingCount={followingCount}
-                            allInterests={allInterests}
-                            userInterestIds={userInterestIds}
-                            recommendations={recommendations}
-                            listIds={listIds}
-                            pendingChanges={pendingChanges}
-                            onToggleList={toggleList}
-                            onSave={saveChanges}
-                            onDiscard={discardChanges}
-                            myReviews={myReviews}
-                            adminSubTab={adminSubTab}
-                        />
-                    </div>
+                <div className="w-full">
+                    <ProfileTab
+                        mustVerifyEmail={mustVerifyEmail}
+                        status={status}
+                        followersCount={followersCount}
+                        followingCount={followingCount}
+                        allInterests={allInterests}
+                        userInterestIds={userInterestIds}
+                        recommendations={recommendations}
+                        listIds={listIds}
+                        pendingChanges={pendingChanges}
+                        onToggleList={toggleList}
+                        onSave={saveChanges}
+                        onDiscard={discardChanges}
+                        myReviews={myReviews}
+                        adminSubTab={adminSubTab}
+                    />
                 </div>
             </AppLayout>
         );
@@ -286,115 +266,96 @@ export default function Edit({
         <AppLayout>
             <Head title="Profile" />
 
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-                <aside className="w-full lg:w-56 shrink-0">
-                    <nav className="flex lg:flex-col overflow-x-auto pb-2 lg:pb-0 gap-1.5 scrollbar-none">
-                        {TABS.map((tab) => (
+            <div className="w-full">
+                {activeTab === 'profile' && (
+                    <ProfileTab
+                        mustVerifyEmail={mustVerifyEmail}
+                        status={status}
+                        followersCount={followersCount}
+                        followingCount={followingCount}
+                        allInterests={allInterests}
+                        userInterestIds={userInterestIds}
+                        recommendations={recommendations}
+                        listIds={listIds}
+                        pendingChanges={pendingChanges}
+                        onToggleList={toggleList}
+                        onSave={saveChanges}
+                        onDiscard={discardChanges}
+                        myReviews={myReviews}
+                        highlights={highlights}
+                        myStories={myStories}
+                        myArchivedStories={myArchivedStories}
+                        allUserStories={allUserStories}
+                        onSelectHighlight={(hl) => {
+                            const storiesWithHl = (hl.stories || []).map((s) => ({ ...s, highlightId: hl.highlightId || hl.id }));
+                            storiesWithHl.highlightId = hl.highlightId || hl.id;
+                            setViewerStories(storiesWithHl);
+                            setShowViewer(true);
+                        }}
+                    />
+                )}
+
+                {activeTab === 'gamelist_review' && (
+                    <div>
+                        <div className="flex border-b border-[#1F2923] mb-6 overflow-x-auto scrollbar-none">
                             <button
-                                key={tab.key}
-                                onClick={() => handleTabChange(tab.key)}
-                                className={`text-left whitespace-nowrap px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition ${activeTab === tab.key
-                                    ? 'bg-[#22C55E] text-[#0B0F0D]'
-                                    : 'text-[#8B948F] bg-[#131916]/60 lg:bg-transparent hover:bg-[#131916] hover:text-[#F5F7F5]'
+                                onClick={() => setGamesSubTab('myreview')}
+                                className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${gamesSubTab === 'myreview'
+                                    ? 'border-[#22C55E] text-[#22C55E]'
+                                    : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
                                     }`}
                             >
-                                {tab.label}
+                                My Review
                             </button>
-                        ))}
-                    </nav>
-                </aside>
-
-                <div className="flex-1 min-w-0">
-                    {activeTab === 'profile' && (
-                        <ProfileTab
-                            mustVerifyEmail={mustVerifyEmail}
-                            status={status}
-                            followersCount={followersCount}
-                            followingCount={followingCount}
-                            allInterests={allInterests}
-                            userInterestIds={userInterestIds}
-                            recommendations={recommendations}
-                            listIds={listIds}
-                            pendingChanges={pendingChanges}
-                            onToggleList={toggleList}
-                            onSave={saveChanges}
-                            onDiscard={discardChanges}
-                            myReviews={myReviews}
-                            highlights={highlights}
-                            myStories={myStories}
-                            myArchivedStories={myArchivedStories}
-                            allUserStories={allUserStories}
-                            onSelectHighlight={(hl) => {
-                                const storiesWithHl = (hl.stories || []).map((s) => ({ ...s, highlightId: hl.highlightId || hl.id }));
-                                storiesWithHl.highlightId = hl.highlightId || hl.id;
-                                setViewerStories(storiesWithHl);
-                                setShowViewer(true);
-                            }}
-                        />
-                    )}
-
-                    {activeTab === 'gamelist_review' && (
-                        <div>
-                            <div className="flex border-b border-[#1F2923] mb-6 overflow-x-auto scrollbar-none">
-                                <button
-                                    onClick={() => setGamesSubTab('myreview')}
-                                    className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${gamesSubTab === 'myreview'
-                                        ? 'border-[#22C55E] text-[#22C55E]'
-                                        : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
-                                        }`}
-                                >
-                                    My Review
-                                </button>
-                                <button
-                                    onClick={() => setGamesSubTab('gamelist')}
-                                    className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${gamesSubTab === 'gamelist'
-                                        ? 'border-[#22C55E] text-[#22C55E]'
-                                        : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
-                                        }`}
-                                >
-                                    Gamelist
-                                </button>
-                            </div>
-
-                            {gamesSubTab === 'myreview' ? (
-                                <MyReviewTab myReviews={myReviews} />
-                            ) : (
-                                <GameListTab gameList={gameList} />
-                            )}
+                            <button
+                                onClick={() => setGamesSubTab('gamelist')}
+                                className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${gamesSubTab === 'gamelist'
+                                    ? 'border-[#22C55E] text-[#22C55E]'
+                                    : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
+                                    }`}
+                            >
+                                Gamelist
+                            </button>
                         </div>
-                    )}
 
-                    {activeTab === 'stats' && (
-                        <StatsTab stats={stats} myReviews={myReviews} onSelectTab={handleTabChange} />
-                    )}
+                        {gamesSubTab === 'myreview' ? (
+                            <MyReviewTab myReviews={myReviews} />
+                        ) : (
+                            <GameListTab gameList={gameList} />
+                        )}
+                    </div>
+                )}
 
-                    {activeTab === 'follow' && (
-                        <div>
-                            <div className="flex border-b border-[#1F2923] mb-6 overflow-x-auto scrollbar-none">
-                                <button
-                                    onClick={() => setFollowSubTab('following')}
-                                    className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${followSubTab === 'following'
-                                        ? 'border-[#22C55E] text-[#22C55E]'
-                                        : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
-                                        }`}
-                                >
-                                    Following ({followingCount})
-                                </button>
-                                <button
-                                    onClick={() => setFollowSubTab('followers')}
-                                    className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${followSubTab === 'followers'
-                                        ? 'border-[#22C55E] text-[#22C55E]'
-                                        : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
-                                        }`}
-                                >
-                                    Followers ({followersCount})
-                                </button>
-                            </div>
+                {activeTab === 'stats' && (
+                    <StatsTab stats={stats} myReviews={myReviews} onSelectTab={handleTabChange} />
+                )}
 
-                            <FollowListTab user={authUser} type={followSubTab} />
+                {activeTab === 'follow' && (
+                    <div>
+                        <div className="flex border-b border-[#1F2923] mb-6 overflow-x-auto scrollbar-none">
+                            <button
+                                onClick={() => setFollowSubTab('following')}
+                                className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${followSubTab === 'following'
+                                    ? 'border-[#22C55E] text-[#22C55E]'
+                                    : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
+                                    }`}
+                            >
+                                Following ({followingCount})
+                            </button>
+                            <button
+                                onClick={() => setFollowSubTab('followers')}
+                                className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition whitespace-nowrap ${followSubTab === 'followers'
+                                    ? 'border-[#22C55E] text-[#22C55E]'
+                                    : 'border-transparent text-[#8B948F] hover:text-[#F5F7F5]'
+                                    }`}
+                            >
+                                Followers ({followersCount})
+                            </button>
                         </div>
-                    )}
-                </div>
+
+                        <FollowListTab user={authUser} type={followSubTab} />
+                    </div>
+                )}
             </div>
 
             <StoryViewerModal
