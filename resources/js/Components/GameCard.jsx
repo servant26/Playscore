@@ -61,6 +61,14 @@ export default function GameCard({ game, isInList, onToggleList, hideRawgRating 
                         </div>
                     )}
 
+                    {/* Popular Badge */}
+                    {(game.is_popular || (Number(game.rawg_rating) >= 4.2)) && (
+                        <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-[#EF4444] px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold text-white uppercase tracking-wider flex items-center gap-1 shadow z-10">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            <span>Popular</span>
+                        </div>
+                    )}
+
                     {/* Hover Title & Genre Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F0D]/95 via-[#0B0F0D]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-2.5 sm:p-3 flex flex-col justify-end pointer-events-none">
                         <h3 className="text-[#F5F7F5] text-xs sm:text-sm font-bold line-clamp-2 leading-tight">

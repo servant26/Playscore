@@ -22,19 +22,23 @@ class AllGamesController extends Controller
                     ?? $item['background_image_additional']
                     ?? ($item['short_screenshots'][0]['image'] ?? null);
 
+                $isPopular = ($item['added'] ?? 0) >= 4000 
+                    || (($item['rating'] ?? 0) >= 4.2 && ($item['ratings_count'] ?? 0) >= 300);
+
                 return [
                     'external_id' => $item['id'],
                     'title' => $item['name'],
                     'cover_url' => $cover,
                     'rawg_rating' => $item['rating'] ?? null,
                     'genres' => collect($item['genres'] ?? [])->pluck('name')->implode(', '),
+                    'is_popular' => (bool) $isPopular,
                 ];
             })
-            ->take(9)
+            ->take(12)
             ->values();
 
         $totalCount = $response['count'] ?? 0;
-        $perPage = 9;
+        $perPage = 12;
         $lastPage = (int) ceil($totalCount / $perPage);
 
         $user = auth()->user();

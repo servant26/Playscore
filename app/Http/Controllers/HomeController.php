@@ -3,157 +3,136 @@
 namespace App\Http\Controllers;
 
 use App\Services\RawgService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class HomeController extends Controller
 {
-    public function index(RawgService $rawg): Response
+    public function index(Request $request, RawgService $rawg): Response
     {
+        $tab = $request->input('tab', 'all'); // 'all', 'popular', 'new', 'for-you'
+        $page = max(1, (int) $request->input('page', 1));
         $dailySeed = (int) now()->format('Ymd');
+        $user = auth()->user();
 
+        // 1. Featured games for the Hero Showcase
         try {
-            $topHitsResponse = $rawg->popular(1);
-            $newGamesResponse = $rawg->newReleases(1);
-
-            $topHitsPool = collect($topHitsResponse['results'] ?? [])
+            $heroResponse = $rawg->popular(1);
+            $heroPool = collect($heroResponse['results'] ?? [])
                 ->filter(fn ($item) => !empty($item['rating']))
-                ->take(30)
+                ->take(20)
                 ->values();
-
-            $newGamesPool = collect($newGamesResponse['results'] ?? [])
-                ->filter(fn ($item) => !empty($item['rating']))
-                ->take(25)
-                ->values();
-
-            $topHits = $this->deterministicPick($topHitsPool, $dailySeed, 10)
-                ->map(fn ($item) => $this->mapGame($item))
-                ->values();
-
-            $newGames = $this->deterministicPick($newGamesPool, $dailySeed + 1, 10)
+            $heroGames = $this->deterministicPick($heroPool, $dailySeed, 8)
                 ->map(fn ($item) => $this->mapGame($item))
                 ->values();
         } catch (\Throwable $e) {
-            $topHits = collect([]);
-            $newGames = collect([]);
+            $heroGames = collect([]);
         }
 
-        $user = auth()->user();
+        // 2. Tab Data & Pagination (8 games per page, 2 rows x 4 columns)
+        $tabGames = collect([]);
+        $lastPage = 1;
 
-        $formatStory = function ($story) {
-            if (!$story) return null;
-
-            if ($story->type === 'rank_up') {
-                return [
-                    'id' => $story->id,
-                    'type' => 'rank_up',
-                    'user_id' => $story->user_id,
-                    'user_name' => $story->user->name,
-                    'user_avatar' => $story->user->avatar,
-                    'created_at' => $story->created_at->diffForHumans(),
-                    'rank_name' => $story->rank_name,
-                    'rank_count' => $story->rank_count,
-                ];
+        if ($tab === 'popular') {
+            try {
+                $response = $rawg->popular($page);
+                $tabGames = collect($response['results'] ?? [])
+                    ->filter(fn ($item) => !empty($item['rating']))
+                    ->map(fn ($item) => $this->mapGame($item))
+                    ->take(8)
+                    ->values();
+                $totalCount = $response['count'] ?? 0;
+                $lastPage = min((int) ceil($totalCount / 8), 100);
+            } catch (\Throwable $e) {
+                $tabGames = collect([]);
             }
-
-            if (!$story->review || !$story->review->game) return null;
-
-            return [
-                'id' => $story->id,
-                'type' => 'review',
-                'user_id' => $story->user_id,
-                'user_name' => $story->user->name,
-                'user_avatar' => $story->user->avatar,
-                'created_at' => $story->created_at->diffForHumans(),
-                'review' => [
-                    'rating' => (float) $story->review->rating,
-                    'body' => $story->review->body,
-                    'game_title' => $story->review->game->title,
-                    'game_cover' => $story->review->game->cover_url,
-                    'game_slug' => $story->review->game->slug,
-                ],
-            ];
-        };
-
-        $myStoriesModels = \App\Models\Story::active()
-            ->where('user_id', $user->id)
-            ->with(['review.game', 'user'])
-            ->oldest()
-            ->get();
-
-        $myStories = $myStoriesModels
-            ->map($formatStory)
-            ->filter()
-            ->values();
-
-        $followingIds = $user->following()->pluck('users.id')->toArray();
-        $followingStoryModels = \App\Models\Story::active()
-            ->whereIn('user_id', $followingIds)
-            ->with(['review.game', 'user'])
-            ->oldest()
-            ->get();
-
-        $followingStoryGroups = $followingStoryModels
-            ->groupBy('user_id')
-            ->map(function ($group) use ($formatStory) {
-                $firstStoryUser = $group->first()->user;
-                $stories = $group->map($formatStory)->filter()->values();
-                return [
-                    'user_id' => $firstStoryUser->id,
-                    'user_name' => $firstStoryUser->name,
-                    'user_avatar' => $firstStoryUser->avatar,
-                    'stories' => $stories,
-                ];
-            })
-            ->values();
-
-        $myListIds = $user ? $user->gameList()->pluck('games.id')->toArray() : [];
-        $myListExternalIds = $user ? $user->gameList()->whereNotNull('external_id')->pluck('games.external_id')->toArray() : [];
-
-        $userReviewCount = $user ? $user->reviews()->count() : 0;
-        $recommendedGames = collect([]);
-
-        if ($userReviewCount > 0) {
-            // Find genres from games the user has reviewed with high ratings or interests
-            $userReviewedGameIds = $user->reviews()->pluck('game_id')->toArray();
-
+        } elseif ($tab === 'new') {
+            try {
+                $response = $rawg->newReleases($page);
+                $tabGames = collect($response['results'] ?? [])
+                    ->filter(fn ($item) => !empty($item['rating']))
+                    ->map(fn ($item) => $this->mapGame($item))
+                    ->take(8)
+                    ->values();
+                $totalCount = $response['count'] ?? 0;
+                $lastPage = min((int) ceil($totalCount / 8), 100);
+            } catch (\Throwable $e) {
+                $tabGames = collect([]);
+            }
+        } elseif ($tab === 'for-you') {
+            $userReviewedGameIds = $user ? $user->reviews()->pluck('game_id')->toArray() : [];
             $userReviewedGenreIds = \App\Models\Interest::whereHas('games', function ($q) use ($userReviewedGameIds) {
                 $q->whereIn('games.id', $userReviewedGameIds);
             })->pluck('id')->toArray();
 
-            $userInterestIds = $user->interests()->pluck('interests.id')->toArray();
+            $userInterestIds = $user ? $user->interests()->pluck('interests.id')->toArray() : [];
             $targetGenreIds = array_unique(array_merge($userReviewedGenreIds, $userInterestIds));
 
-            $dbRecommendations = \App\Models\Game::with('interests')
+            $dbQuery = \App\Models\Game::with('interests')
                 ->whereHas('interests', function ($q) use ($targetGenreIds) {
                     if (!empty($targetGenreIds)) {
                         $q->whereIn('interests.id', $targetGenreIds);
                     }
                 })
                 ->whereNotIn('id', $userReviewedGameIds)
-                ->inRandomOrder()
-                ->limit(10)
-                ->get()
-                ->map(fn ($g) => [
+                ->orderBy('id', 'asc')
+                ->limit(40)
+                ->get();
+
+            $totalCount = $dbQuery->count();
+            $lastPage = 1; // Strict 1-page only for 'For You'
+
+            if ($totalCount > 0) {
+                $pickedGames = $this->deterministicPick($dbQuery, $dailySeed + 5, 8);
+                $tabGames = $pickedGames->map(fn ($g) => [
                     'external_id' => $g->external_id ?? $g->id,
                     'title' => $g->title,
                     'cover_url' => $g->cover_url,
                     'rawg_rating' => $g->rawg_rating ? (float)$g->rawg_rating : null,
                     'genres' => $g->interests->pluck('name')->implode(', '),
-                ]);
-
-            $recommendedGames = $dbRecommendations;
+                    'is_popular' => (bool) ($g->rawg_rating >= 4.2),
+                ])->values();
+            } else {
+                // Fallback to top rated (8 games, 1 page)
+                try {
+                    $response = $rawg->popular(1);
+                    $tabGames = collect($response['results'] ?? [])
+                        ->filter(fn ($item) => !empty($item['rating']))
+                        ->map(fn ($item) => $this->mapGame($item))
+                        ->take(8)
+                        ->values();
+                } catch (\Throwable $e) {
+                    $tabGames = collect([]);
+                }
+            }
+        } else {
+            // 'all' tab - Combined All Games
+            try {
+                $response = $rawg->popular($page);
+                $tabGames = collect($response['results'] ?? [])
+                    ->filter(fn ($item) => !empty($item['rating']))
+                    ->map(fn ($item) => $this->mapGame($item))
+                    ->take(8)
+                    ->values();
+                $totalCount = $response['count'] ?? 0;
+                $lastPage = min((int) ceil($totalCount / 8), 100);
+            } catch (\Throwable $e) {
+                $tabGames = collect([]);
+            }
         }
 
+        $myListIds = $user ? $user->gameList()->pluck('games.id')->toArray() : [];
+        $myListExternalIds = $user ? $user->gameList()->whereNotNull('external_id')->pluck('games.external_id')->toArray() : [];
+
         return Inertia::render('Home', [
-            'topHits' => $topHits,
-            'newGames' => $newGames,
-            'myStories' => $myStories,
-            'followingStoryGroups' => $followingStoryGroups,
+            'heroGames' => $heroGames,
+            'tabGames' => $tabGames,
+            'currentTab' => $tab,
+            'currentPage' => $page,
+            'lastPage' => max(1, $lastPage),
             'myListIds' => $myListIds,
             'myListExternalIds' => $myListExternalIds,
-            'userReviewCount' => $userReviewCount,
-            'recommendedGames' => $recommendedGames,
         ]);
     }
 
@@ -191,12 +170,16 @@ class HomeController extends Controller
             ?? $item['background_image_additional']
             ?? ($item['short_screenshots'][0]['image'] ?? null);
 
+        $isPopular = ($item['added'] ?? 0) >= 4000 
+            || (($item['rating'] ?? 0) >= 4.2 && ($item['ratings_count'] ?? 0) >= 300);
+
         return [
             'external_id' => $item['id'],
             'title' => $item['name'],
             'cover_url' => $cover,
             'rawg_rating' => $item['rating'] ?? null,
             'genres' => collect($item['genres'] ?? [])->pluck('name')->implode(', '),
+            'is_popular' => (bool) $isPopular,
         ];
     }
 }

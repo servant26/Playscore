@@ -13,9 +13,6 @@ export default function AllGames({
     myListExternalIds = [],
     userReviewCount = 0,
 }) {
-    const pcGames = games;
-    const tabletAndMobileGames = games.slice(0, 8);
-
     const hasReviews = userReviewCount > 0;
     const homeTabTitle = hasReviews ? 'Recommended for You' : 'Top Hits & New Games';
 
@@ -52,27 +49,16 @@ export default function AllGames({
 
                 <h2 className="text-[#F5F7F5] text-lg sm:text-xl font-semibold mb-3">All Games</h2>
 
-                    {/* PC Grid (lg:): Displays 9 games (3 columns x 3 rows) */}
-                    <div className="hidden lg:grid lg:grid-cols-3 gap-6 mb-8">
-                        {pcGames.map((game) => (
-                            <RawgGameCard
-                                key={game.external_id}
-                                game={game}
-                                isInList={myListExternalIds.includes(game.external_id)}
-                            />
-                        ))}
-                    </div>
-
-                    {/* Tablet & Mobile Grid (< lg): Displays 8 games (2 columns x 4 rows) */}
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:hidden gap-4 sm:gap-6 mb-8">
-                        {tabletAndMobileGames.map((game) => (
-                            <RawgGameCard
-                                key={game.external_id}
-                                game={game}
-                                isInList={myListExternalIds.includes(game.external_id)}
-                            />
-                        ))}
-                    </div>
+                {/* Responsive Grid: 2 cols (mobile), 3-4 cols (tablet/laptop), 6 cols (PC lg & xl) */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-3.5 lg:gap-4 mb-8">
+                    {games.map((game) => (
+                        <RawgGameCard
+                            key={game.external_id}
+                            game={game}
+                            isInList={myListExternalIds.includes(game.external_id)}
+                        />
+                    ))}
+                </div>
 
                     <div className="flex items-center justify-center gap-2 mb-8">
                         <button

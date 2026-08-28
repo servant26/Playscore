@@ -62,8 +62,8 @@ export default function RawgGameCard({ game, isInList: initialIsInList = false, 
                 onClick={goToDetail}
                 className="group cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl overflow-hidden hover:border-[#2E3A32] transition flex flex-col"
             >
-                {/* Cover Image with Title & Genre Hover Overlay */}
-                <div className="relative aspect-[3/4] sm:aspect-[16/9] overflow-hidden bg-[#0B0F0D]">
+                {/* Cover Image with Title & Genre Hover Overlay (Portrait / Game Box Cover 3:4) */}
+                <div className="relative aspect-[3/4] overflow-hidden bg-[#0B0F0D]">
                     <img
                         src={imgSrc}
                         alt={game.title}
@@ -75,6 +75,14 @@ export default function RawgGameCard({ game, isInList: initialIsInList = false, 
                     {game.rawg_rating && (
                         <div className="absolute top-2 right-2 bg-[#0B0F0D]/85 backdrop-blur-sm text-[#22C55E] text-xs font-semibold px-2 py-1 rounded-md z-10">
                             ★ {Number(game.rawg_rating).toFixed(1)}
+                        </div>
+                    )}
+
+                    {/* Popular Badge */}
+                    {(game.is_popular || (Number(game.rawg_rating) >= 4.2)) && (
+                        <div className="absolute top-2 left-2 bg-[#EF4444] px-2 py-0.5 rounded-md text-[10px] font-bold text-white uppercase tracking-wider flex items-center gap-1 shadow z-10">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            <span>Popular</span>
                         </div>
                     )}
 
