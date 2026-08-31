@@ -380,7 +380,7 @@ export default function AppLayout({ children }) {
                             {showProfileMenu && (
                                 <div className="absolute right-0 top-12 w-48 bg-[#131916] border border-[#1F2923] rounded-lg shadow-lg py-1 z-50">
                                     <Link
-                                        href={route('profile.edit')}
+                                        href={route('profile.edit') + '#profile'}
                                         className="block px-4 py-2 text-sm text-[#F5F7F5] hover:bg-[#1F2923]"
                                     >
                                         Profile

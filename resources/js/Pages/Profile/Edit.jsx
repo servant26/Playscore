@@ -56,24 +56,13 @@ export default function Edit({
             } else if (hash === 'followers') {
                 tab = 'follow';
                 followSub = 'followers';
-            } else if (hash === 'following' || hash === 'follow') {
+            } else if (hash === 'following' || hash === 'follow' || hash === 'mutual') {
                 tab = 'follow';
                 followSub = 'following';
             } else if (hash === 'stats') {
                 tab = 'stats';
-            } else if (hash === 'profile' || hash === 'interest') {
-                tab = 'profile';
             } else {
-                const stored = localStorage.getItem('playscore_profile_tab');
-                if (stored === 'gamelist' || stored === 'myreview' || stored === 'gamelist_review') {
-                    tab = 'gamelist_review';
-                    gamesSub = stored === 'gamelist' ? 'gamelist' : 'myreview';
-                } else if (stored === 'following' || stored === 'followers' || stored === 'follow') {
-                    tab = 'follow';
-                    followSub = stored === 'followers' ? 'followers' : 'following';
-                } else if (stored === 'stats') {
-                    tab = 'stats';
-                }
+                tab = 'profile';
             }
         }
         return { tab, gamesSub, followSub };
@@ -85,12 +74,23 @@ export default function Edit({
     const [followSubTab, setFollowSubTab] = useState(initialState.followSub);
 
     useEffect(() => {
+        const handleHashChange = () => {
+            const state = getInitialState();
+            setActiveTab(state.tab);
+            setGamesSubTab(state.gamesSub);
+            setFollowSubTab(state.followSub);
+        };
+
+        window.addEventListener('hashchange', handleHashChange);
+        return () => window.removeEventListener('hashchange', handleHashChange);
+    }, []);
+
+    useEffect(() => {
         if (typeof window !== 'undefined') {
             let currentHash = activeTab;
             if (activeTab === 'gamelist_review') currentHash = gamesSubTab;
             else if (activeTab === 'follow') currentHash = followSubTab;
 
-            localStorage.setItem('playscore_profile_tab', currentHash);
             if (window.location.hash !== `#${currentHash}`) {
                 window.history.replaceState(null, '', `#${currentHash}`);
             }
@@ -240,7 +240,7 @@ export default function Edit({
         return (
             <AppLayout>
                 <Head title="Profile" />
-                <div className="w-full">
+                <div className="max-w-6xl mx-auto w-full">
                     <ProfileTab
                         mustVerifyEmail={mustVerifyEmail}
                         status={status}
@@ -266,7 +266,7 @@ export default function Edit({
         <AppLayout>
             <Head title="Profile" />
 
-            <div className="w-full">
+            <div className="max-w-6xl mx-auto w-full">
                 {activeTab === 'profile' && (
                     <ProfileTab
                         mustVerifyEmail={mustVerifyEmail}
