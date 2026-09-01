@@ -69,7 +69,7 @@ export default function Search({ query, games = [], users = [], recommendedUsers
         <AppLayout>
             <Head title={`Search: ${query}`} />
 
-            <div className="pb-16 sm:pb-24">
+            <div className="max-w-6xl mx-auto w-full pb-16 sm:pb-24">
                 {/* Header Section */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <h2 className="text-[#F5F7F5] text-xl font-semibold">

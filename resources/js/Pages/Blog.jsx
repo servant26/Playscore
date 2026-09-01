@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 import PublicNavbar from '@/Components/PublicNavbar';
 import PublicFooter from '@/Components/PublicFooter';
+import Pagination from '@/Components/Pagination';
 
 export default function Blog({ dbArticles = [] }) {
     const [selectedCategory, setSelectedCategory] = useState('All');
@@ -389,7 +390,7 @@ export default function Blog({ dbArticles = [] }) {
                                 </div>
                             )}
 
-                            {/* Pagination Controls (5 Items Per Page Max) */}
+                            {/* Responsive Pagination Controls */}
                             {totalPages > 1 && (
                                 <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 pt-6 border-t border-[#1F2923]">
                                     <p className="text-xs text-[#8B948F] text-center sm:text-left">
@@ -400,38 +401,12 @@ export default function Blog({ dbArticles = [] }) {
                                         of <span className="font-semibold text-white">{filteredArticles.length}</span> articles
                                     </p>
 
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                            disabled={currentPage === 1}
-                                            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#131916] border border-[#1F2923] text-[#8B948F] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
-                                        >
-                                            Previous
-                                        </button>
-
-                                        <div className="flex items-center gap-1">
-                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                                <button
-                                                    key={page}
-                                                    onClick={() => setCurrentPage(page)}
-                                                    className={`w-7 h-7 rounded-lg text-xs font-bold transition ${currentPage === page
-                                                            ? 'bg-[#22C55E] text-[#0B0F0D]'
-                                                            : 'bg-[#131916] text-[#8B948F] border border-[#1F2923] hover:text-white'
-                                                        }`}
-                                                >
-                                                    {page}
-                                                </button>
-                                            ))}
-                                        </div>
-
-                                        <button
-                                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                            disabled={currentPage === totalPages}
-                                            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#131916] border border-[#1F2923] text-[#8B948F] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
-                                        >
-                                            Next
-                                        </button>
-                                    </div>
+                                    <Pagination
+                                        currentPage={currentPage}
+                                        totalPages={totalPages}
+                                        onPageChange={(p) => setCurrentPage(p)}
+                                        className="!pt-0 !pb-0"
+                                    />
                                 </div>
                             )}
                         </div>

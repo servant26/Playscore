@@ -1,7 +1,8 @@
 import AppLayout from '@/Layouts/AppLayout';
 import ConfirmModal from '@/Components/ConfirmModal';
+import Pagination from '@/Components/Pagination';
 import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getFallbackImage } from '@/Utils/imageFallback';
 
 export default function Dashboard({
@@ -10,6 +11,7 @@ export default function Dashboard({
     currentTab = 'all',
     currentPage = 1,
     lastPage = 1,
+    perPage = 8,
     myListIds = [],
     myListExternalIds = [],
 }) {
@@ -19,6 +21,30 @@ export default function Dashboard({
     // List management state
     const [listExternalIds, setListExternalIds] = useState(myListExternalIds || []);
     const [confirmModalGame, setConfirmModalGame] = useState(null);
+
+    // Device responsive per_page calculation:
+    // Mobile (<768px): 10 items (2 cols x 5 rows)
+    // Tablet (>=768px and <1024px): 9 items (3 cols x 3 rows)
+    // Desktop (>=1024px): 8 items (4 cols x 2 rows)
+    const getDevicePerPage = () => {
+        if (typeof window === 'undefined') return 8;
+        const width = window.innerWidth;
+        if (width < 768) return 10;
+        if (width < 1024) return 9;
+        return 8;
+    };
+
+    // Auto synchronize per_page on mount if initial load doesn't match client viewport
+    useEffect(() => {
+        const expectedPerPage = getDevicePerPage();
+        if (perPage !== expectedPerPage) {
+            router.get(
+                route('dashboard'),
+                { tab: currentTab, page: 1, per_page: expectedPerPage },
+                { preserveScroll: true, preserveState: true, replace: true }
+            );
+        }
+    }, []);
 
     // Tab items: All Games, Popular, New Games, For You
     const tabs = [
@@ -42,12 +68,20 @@ export default function Dashboard({
 
     const handleTabChange = (tabKey) => {
         setHoveredGame(null);
-        router.get(route('dashboard'), { tab: tabKey, page: 1 }, { preserveScroll: true, preserveState: true });
+        router.get(
+            route('dashboard'),
+            { tab: tabKey, page: 1, per_page: getDevicePerPage() },
+            { preserveScroll: true, preserveState: true }
+        );
     };
 
     const goToPage = (pageNumber) => {
         setHoveredGame(null);
-        router.get(route('dashboard'), { tab: currentTab, page: pageNumber }, { preserveScroll: true, preserveState: true });
+        router.get(
+            route('dashboard'),
+            { tab: currentTab, page: pageNumber, per_page: getDevicePerPage() },
+            { preserveScroll: true, preserveState: true }
+        );
     };
 
     const openTrailer = (e, gameTitle) => {
@@ -195,8 +229,12 @@ export default function Dashboard({
                         </div>
                     </div>
 
-                    {/* Horizontal 16:9 Stream-Card Grid: Exactly 2 rows (4 cols x 2 rows = 8 cards on PC, 3 cols x 2 rows = 6 on tablet) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 pt-6 mb-8">
+                    {/* Responsive Stream-Card Grid:
+                        - Mobile: 2 columns (grid-cols-2), 10 items/page (2 cols x 5 rows)
+                        - Tablet: 3 columns (md:grid-cols-3), 9 items/page (3 cols x 3 rows)
+                        - PC/Desktop: 4 columns (lg:grid-cols-4), 8 items/page (4 cols x 2 rows)
+                    */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 pt-6 mb-8">
                         {tabGames.map((game) => {
                             const cover = game.cover_url || getFallbackImage(game.title);
                             const isInList = listExternalIds.includes(game.external_id);
@@ -208,7 +246,7 @@ export default function Dashboard({
                                     onMouseEnter={() => handleHoverGame(game)}
                                     onTouchStart={() => handleHoverGame(game)}
                                     onClick={() => goToDetail(game)}
-                                    className={`group cursor-pointer flex flex-col bg-[#131916] rounded-2xl overflow-hidden transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl border ${
+                                    className={`group cursor-pointer flex flex-col bg-[#131916] rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl border ${
                                         isHovered
                                             ? 'border-[#22C55E] shadow-[0_0_18px_rgba(34,197,94,0.35)]'
                                             : 'border-[#1F2923] hover:border-[#22C55E]/60'
@@ -228,7 +266,7 @@ export default function Dashboard({
 
                                         {/* Top Left Badge: Score / Rating */}
                                         {game.rawg_rating && (
-                                            <div className="absolute top-2.5 left-2.5 bg-black/75 backdrop-blur-sm px-2 py-0.5 rounded-md text-[11px] font-semibold text-[#F5F7F5] flex items-center gap-1 shadow">
+                                            <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-black/75 backdrop-blur-sm px-1.5 py-0.5 sm:px-2 rounded-md text-[10px] sm:text-[11px] font-semibold text-[#F5F7F5] flex items-center gap-1 shadow">
                                                 <span className="text-[#22C55E]">★</span>
                                                 <span>{Number(game.rawg_rating).toFixed(1)}</span>
                                             </div>
@@ -236,7 +274,7 @@ export default function Dashboard({
 
                                         {/* Top Right Badge: POPULAR (Only for truly popular games) */}
                                         {(game.is_popular || (Number(game.rawg_rating) >= 4.2)) && (
-                                            <div className="absolute top-2.5 right-2.5 bg-[#EF4444] px-2 py-0.5 rounded-md text-[10px] font-bold text-white uppercase tracking-wider flex items-center gap-1 shadow">
+                                            <div className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 bg-[#EF4444] px-1.5 py-0.5 sm:px-2 rounded-md text-[9px] sm:text-[10px] font-bold text-white uppercase tracking-wider flex items-center gap-1 shadow">
                                                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                                                 <span>Popular</span>
                                             </div>
@@ -244,16 +282,16 @@ export default function Dashboard({
                                     </div>
 
                                     {/* Card Metadata & Footer Row */}
-                                    <div className="p-4 flex flex-col justify-between flex-1">
-                                        <h3 className={`font-bold text-sm sm:text-base transition line-clamp-1 mb-2 ${
+                                    <div className="p-3 sm:p-4 flex flex-col justify-between flex-1">
+                                        <h3 className={`font-bold text-xs sm:text-sm lg:text-base transition line-clamp-1 mb-1.5 sm:mb-2 ${
                                             isHovered ? 'text-[#22C55E]' : 'text-[#F5F7F5] group-hover:text-[#22C55E]'
                                         }`}>
                                             {game.title}
                                         </h3>
 
-                                        <div className="flex items-center justify-between pt-2 border-t border-[#1F2923]/60 text-xs text-[#8B948F] gap-2">
+                                        <div className="flex items-center justify-between pt-2 border-t border-[#1F2923]/60 text-xs text-[#8B948F] gap-1.5 sm:gap-2">
                                             {/* Full Genres list */}
-                                            <span className="truncate text-[11px] sm:text-xs font-medium text-[#D1D5DB] flex-1" title={game.genres || 'Action'}>
+                                            <span className="truncate text-[10px] sm:text-[11px] lg:text-xs font-medium text-[#D1D5DB] flex-1" title={game.genres || 'Action'}>
                                                 {game.genres || 'Action'}
                                             </span>
 
@@ -261,7 +299,7 @@ export default function Dashboard({
                                             <button
                                                 type="button"
                                                 onClick={(e) => handleToggleList(e, game)}
-                                                className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg shrink-0 transition ${
+                                                className={`text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg shrink-0 transition ${
                                                     isInList
                                                         ? 'bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/40 hover:bg-[#DC2626]/15 hover:text-[#EF4444] hover:border-[#DC2626]/40'
                                                         : 'bg-[#1F2923] text-[#8B948F] border border-[#2E3A32] hover:text-[#F5F7F5] hover:border-[#22C55E]/50'
@@ -276,43 +314,13 @@ export default function Dashboard({
                         })}
                     </div>
 
-                    {/* Pagination Controls */}
-                    {lastPage > 1 && (
-                        <div className="flex items-center justify-center gap-2 pt-2">
-                            <button
-                                type="button"
-                                onClick={() => goToPage(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                className="rounded-lg border border-[#1F2923] text-[#8B948F] px-3 py-1.5 text-sm hover:border-[#2E3A32] hover:text-[#F5F7F5] transition disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                                Prev
-                            </button>
-
-                            {pageNumbers().map((p) => (
-                                <button
-                                    key={p}
-                                    type="button"
-                                    onClick={() => goToPage(p)}
-                                    className={`rounded-lg px-3.5 py-1.5 text-sm font-semibold transition ${
-                                        p === currentPage
-                                            ? 'bg-[#22C55E] text-[#0B0F0D]'
-                                            : 'border border-[#1F2923] text-[#8B948F] hover:border-[#2E3A32] hover:text-[#F5F7F5]'
-                                    }`}
-                                >
-                                    {p}
-                                </button>
-                            ))}
-
-                            <button
-                                type="button"
-                                onClick={() => goToPage(currentPage + 1)}
-                                disabled={currentPage === lastPage}
-                                className="rounded-lg border border-[#1F2923] text-[#8B948F] px-3 py-1.5 text-sm hover:border-[#2E3A32] hover:text-[#F5F7F5] transition disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                                Next
-                            </button>
-                        </div>
-                    )}
+                    {/* Responsive Pagination Controls */}
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={lastPage}
+                        onPageChange={goToPage}
+                        className="mt-4"
+                    />
                 </div>
             </div>
 

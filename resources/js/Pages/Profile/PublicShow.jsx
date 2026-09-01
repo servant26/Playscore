@@ -1,4 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
+import PublicNavbar from '@/Components/PublicNavbar';
+import PublicFooter from '@/Components/PublicFooter';
+import Pagination from '@/Components/Pagination';
 import GameCard from '@/Components/GameCard';
 import Modal from '@/Components/Modal';
 import FollowListTab from './Partials/FollowListTab';
@@ -208,7 +211,7 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
         <AppLayout>
             <Head title={profileUser.name} />
 
-            <div className="max-w-[1440px] mx-auto px-0">
+            <div className="max-w-6xl mx-auto w-full">
                 {/* Header */}
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                     <div className="flex items-center gap-3 sm:gap-4">
@@ -674,36 +677,13 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
                             </>
                         )}
 
-                        {totalPages > 1 && (
-                            <div className="flex items-center justify-center gap-2 mt-6">
-                                <button
-                                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                    disabled={page === 1}
-                                    className="rounded-lg border border-[#1F2923] text-[#8B948F] px-3 py-1.5 text-sm hover:border-[#2E3A32] transition disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                    Prev
-                                </button>
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                                    <button
-                                        key={p}
-                                        onClick={() => setPage(p)}
-                                        className={`rounded-lg px-3 py-1.5 text-sm transition ${p === page
-                                            ? 'bg-[#22C55E] text-[#0B0F0D] font-medium'
-                                            : 'border border-[#1F2923] text-[#8B948F] hover:border-[#2E3A32]'
-                                            }`}
-                                    >
-                                        {p}
-                                    </button>
-                                ))}
-                                <button
-                                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                                    disabled={page === totalPages}
-                                    className="rounded-lg border border-[#1F2923] text-[#8B948F] px-3 py-1.5 text-sm hover:border-[#2E3A32] transition disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        )}
+                        {/* Responsive Pagination */}
+                        <Pagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            onPageChange={(p) => setPage(p)}
+                            className="mt-6"
+                        />
                     </>
                 )}
             </div>

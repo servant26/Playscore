@@ -6,13 +6,27 @@ import RankUpModal from '@/Components/RankUpModal';
 export default function AppLayout({ children }) {
     const { auth, url, flash } = usePage().props;
     const currentUrl = usePage().url;
+    const [currentHash, setCurrentHash] = useState(typeof window !== 'undefined' ? window.location.hash : '');
     const [search, setSearch] = useState('');
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [showNotifMenu, setShowNotifMenu] = useState(false);
+    const [showMyDataMenu, setShowMyDataMenu] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loadingNotifs, setLoadingNotifs] = useState(false);
     const [rankUpData, setRankUpData] = useState(null);
+
+    useEffect(() => {
+        const updateHash = () => {
+            setCurrentHash(window.location.hash || '');
+        };
+        window.addEventListener('hashchange', updateHash);
+        window.addEventListener('popstate', updateHash);
+        return () => {
+            window.removeEventListener('hashchange', updateHash);
+            window.removeEventListener('popstate', updateHash);
+        };
+    }, []);
 
     useEffect(() => {
         if (flash?.rank_up) {
@@ -401,7 +415,7 @@ export default function AppLayout({ children }) {
             </nav>
 
             {/* Layout Body: Left HRIS-Style Pill Sidebar + Main Content */}
-            <div className="max-w-[1440px] mx-auto flex items-start px-2 sm:px-4 lg:px-8 py-3 sm:py-5 gap-3 sm:gap-6">
+            <div className="max-w-[1440px] mx-auto flex items-start px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-5 gap-3 sm:gap-6">
                 {/* Floating Rounded Pill Sidebar - Centered vertically on screen (top-1/2 -translate-y-1/2) */}
                 <aside className="fixed left-3 sm:left-4 lg:left-5 top-1/2 -translate-y-1/2 z-30 hidden md:flex flex-col items-center bg-[#131916]/95 backdrop-blur-xl border border-[#1F2923] rounded-full py-4 px-2 shadow-2xl space-y-3">
                     {navItems.map((item) => (
@@ -425,24 +439,150 @@ export default function AppLayout({ children }) {
                     ))}
                 </aside>
 
-                {/* Main Content Area (With left margin to give space to the fixed sidebar) */}
-                <main className="flex-1 min-w-0 w-full md:pl-16 lg:pl-18">{children}</main>
+                {/* Main Content Area (With left margin for fixed sidebar, right padding for tablet/iPad, and bottom padding for mobile navbar) */}
+                <main className="flex-1 min-w-0 w-full pb-20 md:pb-0 md:pl-16 md:pr-4 lg:pl-18 lg:pr-0">{children}</main>
             </div>
 
-            {/* Mobile Bottom Navigation Bar */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0F1512]/95 backdrop-blur-md border-t border-[#1F2923] px-4 py-2 flex items-center justify-around">
-                {navItems.map((item) => (
-                    <Link
-                        key={item.key}
-                        href={item.href}
-                        className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition ${
-                            item.isActive ? 'text-[#22C55E] font-bold' : 'text-[#8B948F] hover:text-[#F5F7F5]'
+            {/* Mobile Bottom Navigation Bar: Story, My Data (Popup: My List, My Review), Dashboard, Stats, Mutual */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0F1512]/95 backdrop-blur-md border-t border-[#1F2923] py-2 grid grid-cols-5 items-center">
+                {/* 1. Story */}
+                <Link
+                    href={route('profile.edit')}
+                    onClick={() => setShowMyDataMenu(false)}
+                    className={`flex flex-col items-center justify-center gap-1 py-1 w-full transition ${
+                        (currentUrl === '/profile' || currentUrl.startsWith('/profile#') || currentUrl.startsWith('/profile?')) &&
+                        !currentHash.includes('myreview') &&
+                        !currentHash.includes('gamelist') &&
+                        !currentHash.includes('stats') &&
+                        !currentHash.includes('follow') &&
+                        !currentHash.includes('mutual') &&
+                        !currentHash.includes('profile')
+                            ? 'text-[#22C55E] font-bold'
+                            : 'text-[#8B948F] hover:text-[#F5F7F5]'
+                    }`}
+                >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-[10px] font-medium whitespace-nowrap">Story</span>
+                </Link>
+
+                {/* 2. My Data (Clickable with Dropdown for My List & My Review) */}
+                <div className="relative flex flex-col items-center justify-center w-full">
+                    <button
+                        type="button"
+                        onClick={() => setShowMyDataMenu(!showMyDataMenu)}
+                        className={`flex flex-col items-center justify-center gap-1 py-1 w-full transition ${
+                            showMyDataMenu ||
+                            (currentUrl.includes('/profile') &&
+                                (currentHash.includes('myreview') || currentHash.includes('gamelist')))
+                                ? 'text-[#22C55E] font-bold'
+                                : 'text-[#8B948F] hover:text-[#F5F7F5]'
                         }`}
                     >
-                        {item.icon}
-                        <span className="text-[10px] font-medium">{item.label}</span>
-                    </Link>
-                ))}
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                        </svg>
+                        <span className="text-[10px] font-medium flex items-center gap-0.5 whitespace-nowrap">
+                            My Data
+                            <svg className={`w-2.5 h-2.5 transition-transform duration-200 ${showMyDataMenu ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                        </span>
+                    </button>
+
+                    {/* My Data Popover Dropdown (Upwards) */}
+                    {showMyDataMenu && (
+                        <>
+                            {/* Backdrop to close on outside tap */}
+                            <div
+                                className="fixed inset-0 z-40 bg-transparent"
+                                onClick={() => setShowMyDataMenu(false)}
+                            />
+
+                            <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-36 bg-[#131916] border border-[#1F2923] rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                                <Link
+                                    href={route('profile.edit') + '#gamelist'}
+                                    onClick={() => setShowMyDataMenu(false)}
+                                    className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl transition ${
+                                        currentUrl.includes('/profile') && currentHash.includes('gamelist')
+                                            ? 'bg-[#22C55E]/15 text-[#22C55E]'
+                                            : 'text-[#F5F7F5] hover:bg-[#1F2923] hover:text-[#22C55E]'
+                                    }`}
+                                >
+                                    <svg className="w-4 h-4 text-[#22C55E] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                    </svg>
+                                    <span>My List</span>
+                                </Link>
+
+                                <Link
+                                    href={route('profile.edit') + '#myreview'}
+                                    onClick={() => setShowMyDataMenu(false)}
+                                    className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl transition ${
+                                        currentUrl.includes('/profile') && currentHash.includes('myreview')
+                                            ? 'bg-[#22C55E]/15 text-[#22C55E]'
+                                            : 'text-[#F5F7F5] hover:bg-[#1F2923] hover:text-[#22C55E]'
+                                    }`}
+                                >
+                                    <svg className="w-4 h-4 text-[#22C55E] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    <span>My Review</span>
+                                </Link>
+                            </div>
+                        </>
+                    )}
+                </div>
+
+                {/* 3. Dashboard (Exact Middle - Slot 3 of 5) */}
+                <Link
+                    href={route('dashboard')}
+                    onClick={() => setShowMyDataMenu(false)}
+                    className={`flex flex-col items-center justify-center gap-1 py-1 w-full transition ${
+                        currentUrl === '/dashboard' || currentUrl.startsWith('/dashboard?') || currentUrl.startsWith('/all-games')
+                            ? 'text-[#22C55E] font-bold'
+                            : 'text-[#8B948F] hover:text-[#F5F7F5]'
+                    }`}
+                >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    <span className="text-[10px] font-medium whitespace-nowrap">Dashboard</span>
+                </Link>
+
+                {/* 4. Stats */}
+                <Link
+                    href={route('profile.edit') + '#stats'}
+                    onClick={() => setShowMyDataMenu(false)}
+                    className={`flex flex-col items-center justify-center gap-1 py-1 w-full transition ${
+                        currentUrl.includes('/profile') && currentHash.includes('stats')
+                            ? 'text-[#22C55E] font-bold'
+                            : 'text-[#8B948F] hover:text-[#F5F7F5]'
+                    }`}
+                >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span className="text-[10px] font-medium whitespace-nowrap">Stats</span>
+                </Link>
+
+                {/* 5. Mutual */}
+                <Link
+                    href={route('profile.edit') + '#following'}
+                    onClick={() => setShowMyDataMenu(false)}
+                    className={`flex flex-col items-center justify-center gap-1 py-1 w-full transition ${
+                        currentUrl.includes('/profile') &&
+                        (currentHash.includes('follow') || currentHash.includes('mutual'))
+                            ? 'text-[#22C55E] font-bold'
+                            : 'text-[#8B948F] hover:text-[#F5F7F5]'
+                    }`}
+                >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span className="text-[10px] font-medium whitespace-nowrap">Mutual</span>
+                </Link>
             </div>
 
             {/* Rank Up Celebration Modal */}

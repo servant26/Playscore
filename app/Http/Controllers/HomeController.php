@@ -13,6 +13,17 @@ class HomeController extends Controller
     {
         $tab = $request->input('tab', 'all'); // 'all', 'popular', 'new', 'for-you'
         $page = max(1, (int) $request->input('page', 1));
+        
+        // Auto detect device type from User-Agent if per_page is not explicitly provided
+        $defaultPerPage = 8;
+        $userAgent = strtolower($request->header('User-Agent', ''));
+        if (preg_match('/(ipad|tablet|playbook|silk)|(android(?!.*mobi))/i', $userAgent)) {
+            $defaultPerPage = 9; // Tablet: 3 columns x 3 rows = 9 data
+        } elseif (preg_match('/(mobile|iphone|ipod|android.*mobile|blackberry|iemobile|kindle|opera mini)/i', $userAgent)) {
+            $defaultPerPage = 10; // Mobile: 2 columns x 5 rows = 10 data
+        }
+
+        $perPage = max(1, min(50, (int) $request->input('per_page', $defaultPerPage)));
         $dailySeed = (int) now()->format('Ymd');
         $user = auth()->user();
 
@@ -30,7 +41,7 @@ class HomeController extends Controller
             $heroGames = collect([]);
         }
 
-        // 2. Tab Data & Pagination (8 games per page, 2 rows x 4 columns)
+        // 2. Tab Data & Pagination (Dynamic per_page: 10 on mobile, 9 on tablet, 8 on desktop)
         $tabGames = collect([]);
         $lastPage = 1;
 
@@ -40,10 +51,10 @@ class HomeController extends Controller
                 $tabGames = collect($response['results'] ?? [])
                     ->filter(fn ($item) => !empty($item['rating']))
                     ->map(fn ($item) => $this->mapGame($item))
-                    ->take(8)
+                    ->take($perPage)
                     ->values();
                 $totalCount = $response['count'] ?? 0;
-                $lastPage = min((int) ceil($totalCount / 8), 100);
+                $lastPage = min((int) ceil($totalCount / $perPage), 100);
             } catch (\Throwable $e) {
                 $tabGames = collect([]);
             }
@@ -53,10 +64,10 @@ class HomeController extends Controller
                 $tabGames = collect($response['results'] ?? [])
                     ->filter(fn ($item) => !empty($item['rating']))
                     ->map(fn ($item) => $this->mapGame($item))
-                    ->take(8)
+                    ->take($perPage)
                     ->values();
                 $totalCount = $response['count'] ?? 0;
-                $lastPage = min((int) ceil($totalCount / 8), 100);
+                $lastPage = min((int) ceil($totalCount / $perPage), 100);
             } catch (\Throwable $e) {
                 $tabGames = collect([]);
             }
@@ -84,7 +95,7 @@ class HomeController extends Controller
             $lastPage = 1; // Strict 1-page only for 'For You'
 
             if ($totalCount > 0) {
-                $pickedGames = $this->deterministicPick($dbQuery, $dailySeed + 5, 8);
+                $pickedGames = $this->deterministicPick($dbQuery, $dailySeed + 5, $perPage);
                 $tabGames = $pickedGames->map(fn ($g) => [
                     'external_id' => $g->external_id ?? $g->id,
                     'title' => $g->title,
@@ -94,13 +105,13 @@ class HomeController extends Controller
                     'is_popular' => (bool) ($g->rawg_rating >= 4.2),
                 ])->values();
             } else {
-                // Fallback to top rated (8 games, 1 page)
+                // Fallback to top rated
                 try {
                     $response = $rawg->popular(1);
                     $tabGames = collect($response['results'] ?? [])
                         ->filter(fn ($item) => !empty($item['rating']))
                         ->map(fn ($item) => $this->mapGame($item))
-                        ->take(8)
+                        ->take($perPage)
                         ->values();
                 } catch (\Throwable $e) {
                     $tabGames = collect([]);
@@ -113,10 +124,10 @@ class HomeController extends Controller
                 $tabGames = collect($response['results'] ?? [])
                     ->filter(fn ($item) => !empty($item['rating']))
                     ->map(fn ($item) => $this->mapGame($item))
-                    ->take(8)
+                    ->take($perPage)
                     ->values();
                 $totalCount = $response['count'] ?? 0;
-                $lastPage = min((int) ceil($totalCount / 8), 100);
+                $lastPage = min((int) ceil($totalCount / $perPage), 100);
             } catch (\Throwable $e) {
                 $tabGames = collect([]);
             }
@@ -131,6 +142,7 @@ class HomeController extends Controller
             'currentTab' => $tab,
             'currentPage' => $page,
             'lastPage' => max(1, $lastPage),
+            'perPage' => $perPage,
             'myListIds' => $myListIds,
             'myListExternalIds' => $myListExternalIds,
         ]);

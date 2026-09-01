@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import RawgGameCard from '@/Components/RawgGameCard';
 import StoryBar from '@/Components/StoryBar';
+import Pagination from '@/Components/Pagination';
 import { Head, Link, router } from '@inertiajs/react';
 
 export default function AllGames({
@@ -18,14 +19,6 @@ export default function AllGames({
 
     const goToPage = (page) => {
         router.get(route('all-games'), { page }, { preserveScroll: true });
-    };
-
-    const pageNumbers = () => {
-        const pages = [];
-        const start = Math.max(1, currentPage - 2);
-        const end = Math.min(lastPage, currentPage + 2);
-        for (let i = start; i <= end; i++) pages.push(i);
-        return pages;
     };
 
     return (
@@ -60,38 +53,14 @@ export default function AllGames({
                     ))}
                 </div>
 
-                    <div className="flex items-center justify-center gap-2 mb-8">
-                        <button
-                            onClick={() => goToPage(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            className="rounded-lg border border-[#1F2923] text-[#8B948F] px-3 py-1.5 text-sm hover:border-[#2E3A32] transition disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                            Prev
-                        </button>
-
-                        {pageNumbers().map((p) => (
-                            <button
-                                key={p}
-                                onClick={() => goToPage(p)}
-                                className={`rounded-lg px-3 py-1.5 text-sm transition ${
-                                    p === currentPage
-                                        ? 'bg-[#22C55E] text-[#0B0F0D] font-medium'
-                                        : 'border border-[#1F2923] text-[#8B948F] hover:border-[#2E3A32]'
-                                }`}
-                            >
-                                {p}
-                            </button>
-                        ))}
-
-                        <button
-                            onClick={() => goToPage(currentPage + 1)}
-                            disabled={currentPage === lastPage}
-                            className="rounded-lg border border-[#1F2923] text-[#8B948F] px-3 py-1.5 text-sm hover:border-[#2E3A32] transition disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
+                {/* Responsive Pagination Controls */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={lastPage}
+                    onPageChange={goToPage}
+                    className="mb-8"
+                />
+            </div>
         </AppLayout>
     );
 }

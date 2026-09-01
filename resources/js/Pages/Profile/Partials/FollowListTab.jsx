@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { getAvatarUrl } from '@/Utils/avatar';
+import Pagination from '@/Components/Pagination';
 
 const PER_PAGE = 10;
 
@@ -174,36 +175,13 @@ export default function FollowListTab({ user, type = 'following' }) {
             )}
 
             {/* Pagination Controls */}
-            {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-6">
-                    <button
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        disabled={page === 1}
-                        className="rounded-lg border border-[#1F2923] text-[#8B948F] px-3 py-1.5 text-sm hover:border-[#2E3A32] transition disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                        Prev
-                    </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                        <button
-                            key={p}
-                            onClick={() => setPage(p)}
-                            className={`rounded-lg px-3 py-1.5 text-sm transition ${p === page
-                                    ? 'bg-[#22C55E] text-[#0B0F0D] font-medium'
-                                    : 'border border-[#1F2923] text-[#8B948F] hover:border-[#2E3A32]'
-                                }`}
-                        >
-                            {p}
-                        </button>
-                    ))}
-                    <button
-                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={page === totalPages}
-                        className="rounded-lg border border-[#1F2923] text-[#8B948F] px-3 py-1.5 text-sm hover:border-[#2E3A32] transition disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                        Next
-                    </button>
-                </div>
-            )}
+            {/* Responsive Pagination */}
+            <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={(p) => setPage(p)}
+                className="mt-6"
+            />
 
             {/* Unfollow Confirmation Modal in English */}
             {userToUnfollow && (

@@ -1,5 +1,6 @@
 import RatingModal from '@/Components/RatingModal';
 import ConfirmModal from '@/Components/ConfirmModal';
+import Pagination from '@/Components/Pagination';
 import { router } from '@inertiajs/react';
 import { useState, useMemo, useEffect } from 'react';
 
@@ -227,30 +228,13 @@ export default function MyReviewTab({ myReviews }) {
                 </div>
             )}
 
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#1F2923]">
-                    <p className="text-xs text-[#8B948F]">
-                        Page {page} of {totalPages}
-                    </p>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setPage((p) => Math.max(1, p - 1))}
-                            disabled={page === 1}
-                            className="px-3 py-1.5 rounded-lg border border-[#1F2923] text-xs text-[#8B948F] hover:border-[#2E3A32] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
-                        >
-                            Previous
-                        </button>
-                        <button
-                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                            disabled={page === totalPages}
-                            className="px-3 py-1.5 rounded-lg border border-[#1F2923] text-xs text-[#8B948F] hover:border-[#2E3A32] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
-            )}
+            {/* Responsive Pagination Controls */}
+            <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={(p) => setPage(p)}
+                className="mt-6 pt-4 border-t border-[#1F2923]"
+            />
 
             {selectedReview && !showEditModal && (
                 <div
