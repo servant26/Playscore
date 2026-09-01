@@ -7,6 +7,7 @@ import GameCard from '@/Components/GameCard';
 import RankInfoModal from '@/Components/RankInfoModal';
 import UserRankCard from '@/Components/UserRankCard';
 import { getRankInfo } from '@/Utils/rankSystem';
+import LoadingDots from '@/Components/LoadingDots';
 
 import HighlightSection from '@/Components/HighlightSection';
 
@@ -311,9 +312,13 @@ export default function ProfileTab({
                                 type="submit"
                                 disabled={processing}
                                 style={saveButtonStyle}
-                                className="rounded-lg font-medium py-2 text-sm hover:opacity-90 transition disabled:opacity-50"
+                                className="rounded-lg font-medium py-2 text-sm hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center"
                             >
-                                Save
+                                {processing ? (
+                                    <LoadingDots text="Saving" />
+                                ) : (
+                                    <span>Save</span>
+                                )}
                             </button>
                             <Transition
                                 show={recentlySuccessful}
@@ -504,9 +509,13 @@ export default function ProfileTab({
                                 type="submit"
                                 disabled={pwProcessing}
                                 style={saveButtonStyle}
-                                className="rounded-lg font-medium py-2 text-sm hover:opacity-90 transition disabled:opacity-50"
+                                className="rounded-lg font-medium py-2 text-sm hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center"
                             >
-                                Save
+                                {pwProcessing ? (
+                                    <LoadingDots text="Saving" />
+                                ) : (
+                                    <span>Save</span>
+                                )}
                             </button>
                             <Transition
                                 show={pwSuccessful}

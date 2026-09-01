@@ -6,6 +6,7 @@ use App\Models\Highlight;
 use App\Models\Story;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class HighlightController extends Controller
 {
@@ -14,7 +15,10 @@ class HighlightController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:50',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
-            'story_id' => 'nullable|exists:stories,id',
+            'story_id' => [
+                'nullable',
+                Rule::exists('stories', 'id')->where('user_id', auth()->id()),
+            ],
         ]);
 
         $coverPath = null;
@@ -64,7 +68,10 @@ class HighlightController extends Controller
         }
 
         $validated = $request->validate([
-            'story_id' => 'required|exists:stories,id',
+            'story_id' => [
+                'required',
+                Rule::exists('stories', 'id')->where('user_id', auth()->id()),
+            ],
         ]);
 
         $highlight->stories()->syncWithoutDetaching([$validated['story_id']]);

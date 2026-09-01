@@ -1,0 +1,11 @@
+﻿# Block direct access to sensitive files
+<FilesMatch "^\.env|^\.gitignore|^\.gitattributes|composer\.(json|lock)|package(-lock)?\.json|artisan|phpunit\.xml">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block directory traversal to hidden dot-files
+<Files ~ "^\.(env|htaccess|htpasswd|git)">
+    Order allow,deny
+    Deny from all
+</Files>

@@ -59,11 +59,13 @@ class ReviewController extends Controller
 
         $isNewReview = !$game->reviews()->where('user_id', auth()->id())->exists();
 
+        $cleanBody = $request->filled('body') ? trim(strip_tags($request->body)) : null;
+
         $review = $game->reviews()->updateOrCreate(
             ['user_id' => auth()->id()],
             [
                 'rating' => $request->rating,
-                'body' => $request->body,
+                'body' => $cleanBody,
             ]
         );
 
@@ -73,8 +75,11 @@ class ReviewController extends Controller
             $otherReviewers = $game->reviews()
                 ->where('user_id', '!=', auth()->id())
                 ->with('user')
+                ->latest()
+                ->take(50)
                 ->get()
                 ->pluck('user')
+                ->filter()
                 ->unique('id');
 
             foreach ($otherReviewers as $reviewer) {
@@ -125,9 +130,19 @@ class ReviewController extends Controller
 
     public function publishRankStory(Request $request): RedirectResponse
     {
+        $validRanks = [
+            'Novice Reviewer',
+            'Bronze Gamer',
+            'Silver Gamer',
+            'Gold Gamer',
+            'Platinum Gamer',
+            'Diamond Master',
+            'Legendary Grandmaster',
+        ];
+
         $request->validate([
-            'rank_name' => ['required', 'string'],
-            'rank_count' => ['required', 'integer'],
+            'rank_name' => ['required', 'string', \Illuminate\Validation\Rule::in($validRanks)],
+            'rank_count' => ['required', 'integer', 'in:10,25,100,250,500,1000'],
         ]);
 
         \App\Models\Story::create([
@@ -153,8 +168,18 @@ class ReviewController extends Controller
 
     public function congratulateRank(Request $request, \App\Models\User $user): \Illuminate\Http\JsonResponse
     {
+        $validRanks = [
+            'Novice Reviewer',
+            'Bronze Gamer',
+            'Silver Gamer',
+            'Gold Gamer',
+            'Platinum Gamer',
+            'Diamond Master',
+            'Legendary Grandmaster',
+        ];
+
         $request->validate([
-            'rank_name' => ['required', 'string'],
+            'rank_name' => ['required', 'string', \Illuminate\Validation\Rule::in($validRanks)],
             'message' => ['nullable', 'string', 'max:500'],
         ]);
 

@@ -1,5 +1,6 @@
 import AuthLayout from '@/Layouts/AuthLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import LoadingDots from '@/Components/LoadingDots';
 import { useState, useRef } from 'react';
 
 export default function Register({ interests }) {
@@ -340,9 +341,13 @@ export default function Register({ interests }) {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="flex-1 rounded-lg bg-[#22C55E] text-[#0B0F0D] font-medium py-2.5 text-sm hover:bg-[#4ADE80] transition disabled:opacity-50"
+                            className="flex-1 rounded-lg bg-[#22C55E] text-[#0B0F0D] font-medium py-2.5 text-sm hover:bg-[#4ADE80] transition disabled:opacity-50 flex items-center justify-center"
                         >
-                            Create account
+                            {processing ? (
+                                <LoadingDots text="Creating account" />
+                            ) : (
+                                <span>Create account</span>
+                            )}
                         </button>
                     </div>
                 </form>

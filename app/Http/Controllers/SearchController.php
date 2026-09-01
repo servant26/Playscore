@@ -59,17 +59,15 @@ class SearchController extends Controller
                     })
                     ->values();
             } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('RAWG API Search failed: ' . $e->getMessage());
                 $games = collect();
             }
 
-            // 2. Search Users in Database (Exclude Admin)
+            // 2. Search Users in Database (Exclude Admin, search by name only for privacy)
             $users = User::where(function ($q) {
                     $q->where('role', '!=', 'admin')->orWhereNull('role');
                 })
-                ->where(function ($q) use ($query) {
-                    $q->where('name', 'like', "%{$query}%")
-                      ->orWhere('email', 'like', "%{$query}%");
-                })
+                ->where('name', 'like', "%{$query}%")
                 ->get()
                 ->map(function ($u) {
                     $reviews = $u->reviews()->with('game.interests')->get();
@@ -118,7 +116,17 @@ class SearchController extends Controller
                 })
                 ->where('name', 'not like', '%test%')
                 ->where('email', 'not like', '%test%')
-                ->with(['interests', 'gameList', 'reviews.game.interests'])
+                ->where(function ($q) use ($myInterestIds, $myGameListIds) {
+                    if (!empty($myInterestIds)) {
+                        $q->whereHas('interests', fn($sub) => $sub->whereIn('interests.id', $myInterestIds));
+                    }
+                    if (!empty($myGameListIds)) {
+                        $q->orWhereHas('gameList', fn($sub) => $sub->whereIn('games.id', $myGameListIds));
+                    }
+                    $q->orWhereHas('reviews');
+                })
+                ->with(['interests:id,name', 'gameList:id', 'reviews.game.interests:id,name'])
+                ->limit(25)
                 ->get();
 
             $scoredCandidates = $candidates->map(function ($u) use ($authUser, $myInterestIds, $myGameListIds, $myReviewMap, $myReviewedGameIds) {

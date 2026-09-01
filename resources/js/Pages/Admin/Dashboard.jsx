@@ -254,7 +254,7 @@ export default function AdminDashboard({ resetRequests = [], users = [], article
         <AppLayout>
             <Head title="Admin Dashboard" />
 
-            <div className="py-4 sm:py-6 space-y-6">
+            <div className="max-w-6xl mx-auto w-full py-4 sm:py-6 space-y-6">
                 {/* Header with Flash Message aligned to the right */}
                 <div className="border-b border-[#1F2923] pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                     <div>

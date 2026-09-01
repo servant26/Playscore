@@ -44,7 +44,9 @@ class GameListController extends Controller
                         $game->interests()->sync($interestIds);
                     }
                 }
-            } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('RAWG API Import failed in GameListController: ' . $e->getMessage());
+            }
         }
 
         if ($game) {

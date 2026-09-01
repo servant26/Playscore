@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
+import LoadingDots from '@/Components/LoadingDots';
 
 export default function RatingModal({ show, onClose, gameSlug, existingReview }) {
     const { data, setData, post, processing, reset } = useForm({
@@ -92,9 +93,13 @@ export default function RatingModal({ show, onClose, gameSlug, existingReview })
                             type="submit"
                             disabled={processing || data.rating === 0}
                             style={{ backgroundColor: '#22C55E', color: '#0B0F0D' }}
-                            className="flex-1 rounded-lg font-medium py-2.5 text-sm hover:opacity-90 transition disabled:opacity-50"
+                            className="flex-1 rounded-lg font-medium py-2.5 text-sm hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
                         >
-                            Submit
+                            {processing ? (
+                                <LoadingDots text="Submitting" />
+                            ) : (
+                                <span>Submit</span>
+                            )}
                         </button>
                     </div>
                 </form>

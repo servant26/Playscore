@@ -31,10 +31,12 @@ class AdminController extends Controller
                 ];
             });
 
-        $users = User::where(function ($q) {
-            $q->where('role', '!=', 'admin')->orWhereNull('role');
-        })
+        $users = User::select(['id', 'name', 'email', 'role', 'avatar', 'created_at'])
+            ->where(function ($q) {
+                $q->where('role', '!=', 'admin')->orWhereNull('role');
+            })
             ->latest()
+            ->limit(200)
             ->get()
             ->map(function ($u) {
                 return [

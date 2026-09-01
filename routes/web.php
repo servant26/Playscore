@@ -32,27 +32,35 @@ Route::get('/games/{game}', [App\Http\Controllers\GameController::class, 'show']
 Route::post('/check-email', function (\Illuminate\Http\Request $request) {
     $exists = \App\Models\User::where('email', $request->input('email'))->exists();
     return response()->json(['exists' => $exists]);
-});
+})->middleware('throttle:10,1');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/game-list/{game}/toggle', [App\Http\Controllers\GameListController::class, 'toggle'])->name('game-list.toggle');
-    Route::get('/search', [App\Http\Controllers\SearchController::class, 'index'])->name('search');
+    Route::get('/search', [App\Http\Controllers\SearchController::class, 'index'])
+        ->middleware('throttle:60,1')
+        ->name('search');
     Route::post('/interests', [App\Http\Controllers\InterestController::class, 'update'])->name('interests.update');
-    Route::post('/games/{game}/reviews', [App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
+    Route::post('/games/{game}/reviews', [App\Http\Controllers\ReviewController::class, 'store'])
+        ->middleware('throttle:15,1')
+        ->name('reviews.store');
     Route::post('/reviews/{review}/story', [App\Http\Controllers\ReviewController::class, 'publishToStory'])->name('reviews.story');
     Route::post('/stories/rank', [App\Http\Controllers\ReviewController::class, 'publishRankStory'])->name('stories.rank');
     Route::delete('/stories/{story}', [App\Http\Controllers\ReviewController::class, 'destroyStory'])->name('stories.destroy');
-    Route::post('/users/{user}/congratulate-rank', [App\Http\Controllers\ReviewController::class, 'congratulateRank'])->name('users.congratulate-rank');
+    Route::post('/users/{user}/congratulate-rank', [App\Http\Controllers\ReviewController::class, 'congratulateRank'])
+        ->middleware('throttle:10,1')
+        ->name('users.congratulate-rank');
     Route::delete('/reviews/{review}', [App\Http\Controllers\ReviewController::class, 'destroy'])->name('reviews.destroy');
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/unread', [App\Http\Controllers\NotificationController::class, 'unread'])->name('notifications.unread');
     Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::get('/users/{user}', [App\Http\Controllers\PublicProfileController::class, 'show'])->name('users.show');
-    Route::post('/users/{user}/follow', [App\Http\Controllers\FollowController::class, 'toggle'])->name('users.follow');
+    Route::post('/users/{user}/follow', [App\Http\Controllers\FollowController::class, 'toggle'])
+        ->middleware('throttle:30,1')
+        ->name('users.follow');
     Route::get('/users/{user}/followers', [App\Http\Controllers\FollowController::class, 'followers'])->name('users.followers');
     Route::get('/users/{user}/following', [App\Http\Controllers\FollowController::class, 'following'])->name('users.following');
 

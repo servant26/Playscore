@@ -145,6 +145,27 @@ class PublicProfileController extends Controller
             ->filter()
             ->values();
 
+        // Map only required fields to avoid sending unnecessary data & bloated payloads to frontend
+        $mappedReviews = $reviews->map(function ($review) {
+            return [
+                'id' => $review->id,
+                'rating' => (float) $review->rating,
+                'body' => $review->body,
+                'created_at' => $review->created_at ? $review->created_at->toISOString() : null,
+                'game' => $review->game ? [
+                    'id' => $review->game->id,
+                    'title' => $review->game->title,
+                    'slug' => $review->game->slug,
+                    'cover_url' => $review->game->cover_url,
+                    'release_date' => $review->game->release_date,
+                    'interests' => $review->game->interests ? $review->game->interests->map(fn($i) => [
+                        'id' => $i->id,
+                        'name' => $i->name,
+                    ]) : [],
+                ] : null,
+            ];
+        })->values();
+
         return Inertia::render('Profile/PublicShow', [
             'profileUser' => [
                 'id' => $user->id,
@@ -159,7 +180,7 @@ class PublicProfileController extends Controller
             'interests' => $user->interests()->get(['interests.id', 'interests.name']),
             'myInterestIds' => $myInterestIds,
             'myReviewedGameIds' => $myReviewedGameIds,
-            'reviews' => $reviews,
+            'reviews' => $mappedReviews,
             'myListIds' => $myListIds,
             'stats' => [
                 'totalReviews' => $totalReviews,
