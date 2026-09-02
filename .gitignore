@@ -1,8 +1,11 @@
 *.log
 .DS_Store
 .env
+.env.*
+!.env.example
 .env.backup
 .env.production
+.env.staging
 .phpactor.json
 .phpunit.result.cache
 /.codex
@@ -25,6 +28,11 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Debug / one-off scripts — jangan pernah di-commit ke repo
+check_*.php
+debug_*.php
+test_*.php
 
 # Internal discussion / analysis docs
 /discuss
