@@ -32,6 +32,40 @@ class Game extends Model
         ];
     }
 
+    /**
+     * Sanitasi URL agar hanya mengizinkan protokol https:// yang valid
+     */
+    private static function sanitizeUrl(?string $url): ?string
+    {
+        if (empty($url)) {
+            return null;
+        }
+
+        $url = trim($url);
+
+        // Hanya izinkan URL yang dimulai dengan https://
+        if (!str_starts_with(strtolower($url), 'https://')) {
+            return null;
+        }
+
+        // Validasi struktur URL
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        return $url;
+    }
+
+    public function setCoverUrlAttribute(?string $value): void
+    {
+        $this->attributes['cover_url'] = self::sanitizeUrl($value);
+    }
+
+    public function setTrailerUrlAttribute(?string $value): void
+    {
+        $this->attributes['trailer_url'] = self::sanitizeUrl($value);
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';

@@ -145,6 +145,14 @@ class ReviewController extends Controller
             'rank_count' => ['required', 'integer', 'in:10,25,100,250,500,1000'],
         ]);
 
+        // Verifikasi apakah user memang memiliki jumlah review yang mencukupi untuk rank ini
+        $actualReviewCount = auth()->user()->reviews()->count();
+        if ($actualReviewCount < $request->rank_count) {
+            return back()->withErrors([
+                'rank_count' => 'You do not have enough reviews to publish this rank achievement story.',
+            ]);
+        }
+
         \App\Models\Story::create([
             'user_id' => auth()->id(),
             'type' => 'rank_up',
@@ -185,6 +193,20 @@ class ReviewController extends Controller
 
         if ($user->id === auth()->id()) {
             return response()->json(['message' => 'Cannot congratulate yourself'], 422);
+        }
+
+        // Cegah spam: Cek apakah user sudah pernah mengirim ucapan selamat untuk rank yang sama ke user ini
+        $alreadyCongratulated = $user->notifications()
+            ->where('type', \App\Notifications\RankCongratulated::class)
+            ->where('data->sender_id', auth()->id())
+            ->where('data->rank_name', $request->rank_name)
+            ->exists();
+
+        if ($alreadyCongratulated) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You have already congratulated this user for ' . $request->rank_name . '.',
+            ], 422);
         }
 
         $messageText = trim($request->message) ?: "Congratulations on reaching {$request->rank_name}! 🎉";

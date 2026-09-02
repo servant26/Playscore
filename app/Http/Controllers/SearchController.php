@@ -64,13 +64,20 @@ class SearchController extends Controller
             }
 
             // 2. Search Users in Database (Exclude Admin, search by name only for privacy)
+            // Dioptimasi dengan eager loading untuk mencegah N+1 problem dan limit 15 hasil
             $users = User::where(function ($q) {
                     $q->where('role', '!=', 'admin')->orWhereNull('role');
                 })
                 ->where('name', 'like', "%{$query}%")
+                ->with([
+                    'interests:id,name',
+                    'reviews' => fn($q) => $q->select('id', 'user_id', 'game_id'),
+                    'reviews.game.interests:id,name'
+                ])
+                ->limit(15)
                 ->get()
                 ->map(function ($u) {
-                    $reviews = $u->reviews()->with('game.interests')->get();
+                    $reviews = $u->reviews;
                     $totalReviews = $reviews->count();
 
                     $genreCounts = [];
@@ -86,7 +93,7 @@ class SearchController extends Controller
                     $topGenres = array_slice(array_keys($genreCounts), 0, 3);
 
                     if (empty($topGenres)) {
-                        $topGenres = $u->interests()->take(3)->pluck('name')->toArray();
+                        $topGenres = $u->interests->take(3)->pluck('name')->toArray();
                     }
 
                     return [
@@ -98,6 +105,7 @@ class SearchController extends Controller
                     ];
                 })
                 ->values();
+
         }
 
         // 3. Compute 10 Closest Recommended Users based on interests, game list, & reviews (Exclude Admin)

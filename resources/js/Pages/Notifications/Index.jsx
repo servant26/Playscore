@@ -169,20 +169,31 @@ export default function NotificationsIndex({ notifications, unreadCount }) {
                             <span className="font-semibold text-[#F5F7F5]">{notifications.total}</span> notifications
                         </p>
                         <div className="flex items-center gap-1.5">
-                            {notifications.links.map((link, i) => (
-                                <Link
-                                    key={i}
-                                    href={link.url || '#'}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
-                                        link.active
-                                            ? 'bg-[#22C55E] text-[#0B0F0D]'
-                                            : link.url
-                                            ? 'bg-[#131916] text-[#8B948F] border border-[#1F2923] hover:text-[#F5F7F5] hover:border-[#2E3A32]'
-                                            : 'text-[#5A625D] cursor-not-allowed opacity-50'
-                                    }`}
-                                />
-                            ))}
+                        {notifications.links.map((link, i) => {
+                                // Decode HTML entities dari Laravel paginator (« » &amp; dst.)
+                                // tanpa pakai dangerouslySetInnerHTML
+                                const decodeLabel = (str) => {
+                                    const el = document.createElement('textarea');
+                                    el.innerHTML = str;
+                                    return el.value;
+                                };
+                                return (
+                                    <Link
+                                        key={i}
+                                        href={link.url || '#'}
+                                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                                            link.active
+                                                ? 'bg-[#22C55E] text-[#0B0F0D]'
+                                                : link.url
+                                                ? 'bg-[#131916] text-[#8B948F] border border-[#1F2923] hover:text-[#F5F7F5] hover:border-[#2E3A32]'
+                                                : 'text-[#5A625D] cursor-not-allowed opacity-50'
+                                        }`}
+                                    >
+                                        {decodeLabel(link.label)}
+                                    </Link>
+                                );
+                            })}
+
                         </div>
                     </div>
                 )}

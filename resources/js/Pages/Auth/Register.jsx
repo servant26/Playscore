@@ -71,7 +71,8 @@ export default function Register({ interests }) {
             });
             const result = await response.json();
 
-            if (result.exists) {
+            // Backend returns { available: true } if email is free, { available: false } if taken
+            if (result.available === false) {
                 setEmailTaken(true);
                 setCheckingEmail(false);
                 return;
@@ -80,9 +81,12 @@ export default function Register({ interests }) {
             setCheckingEmail(false);
             setStep(2);
         } catch (error) {
+            // On error (e.g. rate limited), still allow proceeding — server will catch duplicate on submit
             setCheckingEmail(false);
+            setStep(2);
         }
     };
+
 
     const goToStep3 = () => setStep(3);
     const backStep = () => setStep((s) => s - 1);

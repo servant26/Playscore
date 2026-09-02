@@ -6,6 +6,7 @@ use App\Models\PasswordResetRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -73,6 +74,12 @@ class AdminController extends Controller
         if ($user) {
             $user->password = '12345678';
             $user->save();
+
+            try {
+                DB::table('sessions')->where('user_id', $user->id)->delete();
+            } catch (\Throwable $e) {
+                // Session driver might not be database
+            }
         }
 
         $passwordResetRequest->update([
@@ -87,6 +94,12 @@ class AdminController extends Controller
     {
         $user->password = '12345678';
         $user->save();
+
+        try {
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+        } catch (\Throwable $e) {
+            // Session driver might not be database
+        }
 
         PasswordResetRequest::where('email', $user->email)
             ->where('status', 'pending')

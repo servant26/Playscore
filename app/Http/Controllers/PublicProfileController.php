@@ -72,40 +72,7 @@ class PublicProfileController extends Controller
         $myInterestIds = $authUser ? $authUser->interests()->pluck('interests.id')->toArray() : [];
         $myReviewedGameIds = $authUser ? $authUser->reviews()->pluck('game_id')->toArray() : [];
 
-        $formatStory = function ($story) {
-            if (!$story) return null;
-
-            if ($story->type === 'rank_up') {
-                return [
-                    'id' => $story->id,
-                    'type' => 'rank_up',
-                    'user_id' => $story->user_id,
-                    'user_name' => $story->user->name,
-                    'user_avatar' => $story->user->avatar,
-                    'created_at' => $story->created_at->diffForHumans(),
-                    'rank_name' => $story->rank_name,
-                    'rank_count' => $story->rank_count,
-                ];
-            }
-
-            if (!$story->review || !$story->review->game) return null;
-
-            return [
-                'id' => $story->id,
-                'type' => 'review',
-                'user_id' => $story->user_id,
-                'user_name' => $story->user->name,
-                'user_avatar' => $story->user->avatar,
-                'created_at' => $story->created_at->diffForHumans(),
-                'review' => [
-                    'rating' => (float) $story->review->rating,
-                    'body' => $story->review->body,
-                    'game_title' => $story->review->game->title,
-                    'game_cover' => $story->review->game->cover_url,
-                    'game_slug' => $story->review->game->slug,
-                ],
-            ];
-        };
+        $formatStory = fn ($story) => $story?->formatForFrontend();
 
         $userStoriesModels = \App\Models\Story::active()
             ->where('user_id', $user->id)

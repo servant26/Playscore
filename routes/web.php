@@ -30,47 +30,107 @@ Route::get('/games/{game}', [App\Http\Controllers\GameController::class, 'show']
     ->name('games.show');
 
 Route::post('/check-email', function (\Illuminate\Http\Request $request) {
-    $exists = \App\Models\User::where('email', $request->input('email'))->exists();
-    return response()->json(['exists' => $exists]);
-})->middleware('throttle:10,1');
+    // Validasi format email dulu sebelum query ke DB
+    $email = $request->input('email', '');
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return response()->json(['available' => true]); // Email tidak valid = tidak ada di DB
+    }
+
+    $exists = \App\Models\User::where('email', strtolower(trim($email)))->exists();
+
+    // Gunakan key 'available' (bukan 'exists') — lebih netral dan tidak eksplisit
+    // Rate limit sangat ketat: 5 request per menit per IP
+    return response()->json(['available' => !$exists]);
+})->middleware('throttle:5,1');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::post('/game-list/{game}/toggle', [App\Http\Controllers\GameListController::class, 'toggle'])->name('game-list.toggle');
+
+    Route::post('/game-list/{game}/toggle', [App\Http\Controllers\GameListController::class, 'toggle'])
+        ->middleware('throttle:30,1')   // 30/menit — wajar untuk toggle daftar game
+        ->name('game-list.toggle');
+
     Route::get('/search', [App\Http\Controllers\SearchController::class, 'index'])
         ->middleware('throttle:60,1')
         ->name('search');
-    Route::post('/interests', [App\Http\Controllers\InterestController::class, 'update'])->name('interests.update');
+
+    Route::post('/interests', [App\Http\Controllers\InterestController::class, 'update'])
+        ->middleware('throttle:10,1')   // 10/menit — jarang diupdate
+        ->name('interests.update');
+
     Route::post('/games/{game}/reviews', [App\Http\Controllers\ReviewController::class, 'store'])
         ->middleware('throttle:15,1')
         ->name('reviews.store');
-    Route::post('/reviews/{review}/story', [App\Http\Controllers\ReviewController::class, 'publishToStory'])->name('reviews.story');
-    Route::post('/stories/rank', [App\Http\Controllers\ReviewController::class, 'publishRankStory'])->name('stories.rank');
-    Route::delete('/stories/{story}', [App\Http\Controllers\ReviewController::class, 'destroyStory'])->name('stories.destroy');
+
+    Route::delete('/reviews/{review}', [App\Http\Controllers\ReviewController::class, 'destroy'])
+        ->middleware('throttle:10,1')   // 10/menit — cegah mass delete
+        ->name('reviews.destroy');
+
+    Route::post('/reviews/{review}/story', [App\Http\Controllers\ReviewController::class, 'publishToStory'])
+        ->middleware('throttle:20,1')   // 20/menit — publish story dari review
+        ->name('reviews.story');
+
+    Route::post('/stories/rank', [App\Http\Controllers\ReviewController::class, 'publishRankStory'])
+        ->middleware('throttle:5,1')    // 5/menit — posting rank story jarang dilakukan
+        ->name('stories.rank');
+
+    Route::delete('/stories/{story}', [App\Http\Controllers\ReviewController::class, 'destroyStory'])
+        ->middleware('throttle:10,1')   // 10/menit — cegah mass delete story
+        ->name('stories.destroy');
+
     Route::post('/users/{user}/congratulate-rank', [App\Http\Controllers\ReviewController::class, 'congratulateRank'])
         ->middleware('throttle:10,1')
         ->name('users.congratulate-rank');
-    Route::delete('/reviews/{review}', [App\Http\Controllers\ReviewController::class, 'destroy'])->name('reviews.destroy');
+
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/unread', [App\Http\Controllers\NotificationController::class, 'unread'])->name('notifications.unread');
-    Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
-    Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+
+    Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])
+        ->middleware('throttle:60,1')   // 60/menit — wajar saat user aktif baca notif
+        ->name('notifications.read');
+
+    Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])
+        ->middleware('throttle:10,1')   // 10/menit — tombol "baca semua"
+        ->name('notifications.read-all');
+
     Route::get('/users/{user}', [App\Http\Controllers\PublicProfileController::class, 'show'])->name('users.show');
+
     Route::post('/users/{user}/follow', [App\Http\Controllers\FollowController::class, 'toggle'])
         ->middleware('throttle:30,1')
         ->name('users.follow');
+
     Route::get('/users/{user}/followers', [App\Http\Controllers\FollowController::class, 'followers'])->name('users.followers');
     Route::get('/users/{user}/following', [App\Http\Controllers\FollowController::class, 'following'])->name('users.following');
 
-    Route::post('/highlights', [App\Http\Controllers\HighlightController::class, 'store'])->name('highlights.store');
-    Route::post('/highlights/reorder', [App\Http\Controllers\HighlightController::class, 'reorder'])->name('highlights.reorder');
-    Route::post('/highlights/{highlight}/update', [App\Http\Controllers\HighlightController::class, 'update'])->name('highlights.update');
-    Route::post('/highlights/{highlight}/stories', [App\Http\Controllers\HighlightController::class, 'addStory'])->name('highlights.add-story');
-    Route::delete('/highlights/{highlight}', [App\Http\Controllers\HighlightController::class, 'destroy'])->name('highlights.destroy');
-    Route::delete('/highlights/{highlight}/stories/{story}', [App\Http\Controllers\HighlightController::class, 'removeStory'])->name('highlights.remove-story');
+    // Highlight routes
+    Route::post('/highlights', [App\Http\Controllers\HighlightController::class, 'store'])
+        ->middleware('throttle:20,1')   // 20/menit — buat highlight baru
+        ->name('highlights.store');
+
+    Route::post('/highlights/reorder', [App\Http\Controllers\HighlightController::class, 'reorder'])
+        ->middleware('throttle:20,1')   // 20/menit — drag-drop reorder
+        ->name('highlights.reorder');
+
+    Route::post('/highlights/{highlight}/update', [App\Http\Controllers\HighlightController::class, 'update'])
+        ->middleware('throttle:20,1')   // 20/menit — edit highlight
+        ->name('highlights.update');
+
+    Route::post('/highlights/{highlight}/stories', [App\Http\Controllers\HighlightController::class, 'addStory'])
+        ->middleware('throttle:30,1')   // 30/menit — tambah story ke highlight
+        ->name('highlights.add-story');
+
+    Route::delete('/highlights/{highlight}', [App\Http\Controllers\HighlightController::class, 'destroy'])
+        ->middleware('throttle:5,1')    // 5/menit — hapus highlight (operasi destruktif)
+        ->name('highlights.destroy');
+
+    Route::delete('/highlights/{highlight}/stories/{story}', [App\Http\Controllers\HighlightController::class, 'removeStory'])
+        ->middleware('throttle:10,1')   // 10/menit — hapus story dari highlight
+        ->name('highlights.remove-story');
 });
+
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');

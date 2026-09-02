@@ -92,7 +92,7 @@ class HighlightController extends Controller
 
     public function removeStory(Highlight $highlight, Story $story): RedirectResponse
     {
-        if ($highlight->user_id !== auth()->id()) {
+        if ($highlight->user_id !== auth()->id() || $story->user_id !== auth()->id()) {
             abort(403);
         }
 
