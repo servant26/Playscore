@@ -1,2 +1,10 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /profile/edit
+Disallow: /profile/edit/*
+Disallow: /notifications
+Disallow: /notifications/*
+
+Sitemap: https://playscore.my.id/sitemap.xml

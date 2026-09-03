@@ -13,6 +13,39 @@ Route::get('/reviews-community', [App\Http\Controllers\PublicReviewsController::
 Route::get('/games', [App\Http\Controllers\PublicGamesController::class, 'index'])->name('games.index');
 Route::get('/leaderboard', [App\Http\Controllers\LeaderboardController::class, 'index'])->name('leaderboard');
 
+// SEO: Dynamic XML Sitemap for Googlebot
+Route::get('/sitemap.xml', function () {
+    $baseUrl = config('app.url', 'https://playscore.my.id');
+    $articles = \App\Models\Article::latest()->get(['id', 'updated_at']);
+
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+    // Static public pages
+    $staticRoutes = ['/', '/about', '/blog', '/reviews-community', '/games', '/leaderboard'];
+    foreach ($staticRoutes as $route) {
+        $xml .= '<url>';
+        $xml .= '<loc>' . rtrim($baseUrl, '/') . $route . '</loc>';
+        $xml .= '<changefreq>daily</changefreq>';
+        $xml .= '<priority>' . ($route === '/' ? '1.0' : '0.8') . '</priority>';
+        $xml .= '</url>';
+    }
+
+    // Dynamic blog articles
+    foreach ($articles as $article) {
+        $xml .= '<url>';
+        $xml .= '<loc>' . rtrim($baseUrl, '/') . '/blog/' . $article->id . '</loc>';
+        $xml .= '<lastmod>' . ($article->updated_at ? $article->updated_at->toAtomString() : now()->toAtomString()) . '</lastmod>';
+        $xml .= '<changefreq>weekly</changefreq>';
+        $xml .= '<priority>0.7</priority>';
+        $xml .= '</url>';
+    }
+
+    $xml .= '</urlset>';
+
+    return response($xml, 200)->header('Content-Type', 'text/xml');
+});
+
 Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
