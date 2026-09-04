@@ -1,7 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import PublicNavbar from '@/Components/PublicNavbar';
 import Modal from '@/Components/Modal';
+import { getAvatarUrl } from '@/Utils/avatar';
 
 export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
     const [authModal, setAuthModal] = useState(false);
@@ -160,8 +161,12 @@ export default function PublicReviews({ reviews = [], currentFilter = 'all' }) {
                                 <div className="pt-3 border-t border-[#1F2923] flex items-center justify-between">
                                     <div className="flex items-center gap-2.5">
                                         <img
-                                            src={rev.user_avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${rev.user_name}`}
+                                            src={getAvatarUrl(rev.user_avatar) || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(rev.user_name)}`}
                                             alt={rev.user_name}
+                                            onError={(e) => {
+                                                e.currentTarget.onerror = null;
+                                                e.currentTarget.src = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(rev.user_name)}`;
+                                            }}
                                             className="w-7 h-7 rounded-full object-cover bg-[#161F1A] border border-[#1F2923]"
                                         />
                                         <span className="text-xs font-semibold text-[#F5F7F5]">

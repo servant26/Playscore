@@ -25,7 +25,7 @@ class PublicReviewsController extends Controller
                     'is_truncated' => strlen($cleanBody) > 160,
                     'created_at' => $rev->created_at->diffForHumans(),
                     'user_name' => $rev->user->name ?? 'Anonymous Gamer',
-                    'user_avatar' => $rev->user->avatar ?? null,
+                    'user_avatar' => $rev->user?->avatar ? (str_starts_with($rev->user->avatar, 'http') ? $rev->user->avatar : asset('storage/' . $rev->user->avatar)) : null,
                     'game_title' => $rev->game->title ?? 'Featured Game',
                     'game_cover' => $rev->game->cover_url ?? 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80',
                 ];

@@ -20,7 +20,7 @@ class HomeController extends Controller
         if (preg_match('/(ipad|tablet|playbook|silk)|(android(?!.*mobi))/i', $userAgent)) {
             $defaultPerPage = 9; // Tablet: 3 columns x 3 rows = 9 data
         } elseif (preg_match('/(mobile|iphone|ipod|android.*mobile|blackberry|iemobile|kindle|opera mini)/i', $userAgent)) {
-            $defaultPerPage = 10; // Mobile: 2 columns x 5 rows = 10 data
+            $defaultPerPage = 8; // Mobile: 1 column x 8 rows = 8 data
         }
 
         $perPage = max(1, min(50, (int) $request->input('per_page', $defaultPerPage)));

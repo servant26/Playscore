@@ -23,13 +23,13 @@ export default function Dashboard({
     const [confirmModalGame, setConfirmModalGame] = useState(null);
 
     // Device responsive per_page calculation:
-    // Mobile (<768px): 10 items (2 cols x 5 rows)
+    // Mobile (<768px): 8 items (1 col x 8 rows)
     // Tablet (>=768px and <1024px): 9 items (3 cols x 3 rows)
     // Desktop (>=1024px): 8 items (4 cols x 2 rows)
     const getDevicePerPage = () => {
         if (typeof window === 'undefined') return 8;
         const width = window.innerWidth;
-        if (width < 768) return 10;
+        if (width < 768) return 8;
         if (width < 1024) return 9;
         return 8;
     };
@@ -230,11 +230,11 @@ export default function Dashboard({
                     </div>
 
                     {/* Responsive Stream-Card Grid:
-                        - Mobile: 2 columns (grid-cols-2), 10 items/page (2 cols x 5 rows)
+                        - Mobile: 1 column (grid-cols-1), 8 items/page
                         - Tablet: 3 columns (md:grid-cols-3), 9 items/page (3 cols x 3 rows)
                         - PC/Desktop: 4 columns (lg:grid-cols-4), 8 items/page (4 cols x 2 rows)
                     */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 pt-6 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-4 lg:gap-5 pt-6 mb-8">
                         {tabGames.map((game) => {
                             const cover = game.cover_url || getFallbackImage(game.title);
                             const isInList = listExternalIds.includes(game.external_id);

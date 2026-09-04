@@ -211,7 +211,7 @@ export default function PublicShow({ profileUser, userStories = [], highlights =
         <AppLayout>
             <Head title={profileUser.name} />
 
-            <div className="max-w-6xl mx-auto w-full">
+            <div className="max-w-[1216px] mx-auto w-full">
                 {/* Header */}
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                     <div className="flex items-center gap-3 sm:gap-4">

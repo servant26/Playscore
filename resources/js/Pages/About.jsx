@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import PublicNavbar from '@/Components/PublicNavbar';
+import PublicFooter from '@/Components/PublicFooter';
 
 function CoverSlideshow({ games = [] }) {
     const [activeSlide, setActiveSlide] = useState(0);
@@ -143,94 +144,113 @@ export default function About({ totalGamesCount = '870K+', trendingGames = [] })
                 </div>
             </section>
 
-            {/* Light Content Body with Responsive Padding & Grids */}
-            <div className="bg-slate-50 text-slate-900">
-                <main className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 py-8 sm:py-12 lg:py-16 space-y-6 sm:space-y-8">
-                    {/* Background & Purpose */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8 items-stretch">
-                        <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-8 shadow-sm space-y-3 flex flex-col justify-between">
-                            <div>
-                                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 mb-3">
-                                    Our Background & Purpose
+            {/* Clean Modern White/Light Content Body */}
+            <div className="bg-[#F8FAFC] text-slate-900 border-t border-[#1F2923]">
+                {/* 1. Background & Mission Section */}
+                <section className="py-14 sm:py-20 border-b border-slate-200">
+                    <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+                            {/* Mission Card */}
+                            <div className="lg:col-span-7 space-y-5">
+                                <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 leading-tight">
+                                    Built by Gamers, for Players Who Take Every Quest Seriously.
                                 </h2>
-                                <p className="text-slate-600 text-xs sm:text-sm lg:text-base leading-relaxed mb-3">
-                                    Playscore was created to address a common problem among gaming enthusiasts: the lack of a modern, uncluttered space to log played games and express detailed opinions beyond simple 5-star ratings.
+                                <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+                                    Playscore was born out of frustration with rigid 5-star ratings and cluttered forums. We wanted a clean, fast, and authentic space where every game in your backlog actually counts, and every review helps someone decide what to experience next.
                                 </p>
-                                <p className="text-slate-600 text-xs sm:text-sm lg:text-base leading-relaxed">
-                                    Whether you are a casual player wanting to keep track of completed titles or a veteran reviewer crafting in-depth critiques, Playscore offers a streamlined environment designed specifically around your gaming habits.
+                                <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+                                    Whether you want to document your 100-hour RPG odyssey, rate a cozy weekend indie gem, or showcase your gamer rank, Playscore provides the exact tools you need without corporate fluff or sponsored bias.
                                 </p>
-                            </div>
-                        </div>
 
-                        <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-8 shadow-sm space-y-4 flex flex-col justify-between">
-                            <div>
-                                <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">
-                                    Why Gamers Choose Playscore
-                                </h3>
-                                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
-                                    Tailored features built for precision tracking and vibrant community interaction.
-                                </p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 sm:gap-6 pt-4 border-t border-slate-100">
-                                <div>
-                                    <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#16A34A]">{totalGamesCount}</p>
-                                    <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-1">Real-time Game Database</p>
+                                {/* Highlights grid */}
+                                <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="p-4 rounded-xl bg-white border border-slate-200 hover:border-[#16A34A]/60 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 shadow-sm">
+                                        <h4 className="text-sm font-bold text-slate-900 mb-0.5">Zero Rating Inflation</h4>
+                                        <p className="text-xs text-slate-500">Unbiased community scores with decimal precision from 0.0 to 10.0.</p>
+                                    </div>
+                                    <div className="p-4 rounded-xl bg-white border border-slate-200 hover:border-[#16A34A]/60 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 shadow-sm">
+                                        <h4 className="text-sm font-bold text-slate-900 mb-0.5">Verified Gamer Identity</h4>
+                                        <p className="text-xs text-slate-500">Earn rank badges from Novice to Platinum based on genuine critiques.</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#16A34A]">0.0 – 10.0</p>
-                                    <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-1">Decimal Rating Scale</p>
+                            </div>
+
+                            {/* Gamer Values Card */}
+                            <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+                                <div className="space-y-5">
+                                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                                        <span>🎮</span> What Powers Playscore
+                                    </h3>
+                                    
+                                    <div className="space-y-3">
+                                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-[#16A34A]/60 hover:bg-white transition-all duration-300">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-sm font-semibold text-slate-900">Database Coverage</span>
+                                                <span className="text-xs font-bold text-[#16A34A]">{totalGamesCount}</span>
+                                            </div>
+                                            <p className="text-xs text-slate-500">Direct synchronization with RAWG API covers retro classics to upcoming AAA releases.</p>
+                                        </div>
+
+                                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-[#16A34A]/60 hover:bg-white transition-all duration-300">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-sm font-semibold text-slate-900">Social Story Engine</span>
+                                                <span className="text-xs font-bold text-[#16A34A]">24h Active</span>
+                                            </div>
+                                            <p className="text-xs text-slate-500">Share your latest gaming moments and game list additions like modern social stories.</p>
+                                        </div>
+
+                                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-[#16A34A]/60 hover:bg-white transition-all duration-300">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-sm font-semibold text-slate-900">Clean & Ad-Free UX</span>
+                                                <span className="text-xs font-bold text-[#16A34A]">100% Free</span>
+                                            </div>
+                                            <p className="text-xs text-slate-500">No intrusive pop-ups, autoplay videos, or clickbait sponsor banners.</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </section>
 
-                    {/* Core Capabilities */}
-                    <div className="border-t border-slate-200 pt-5 sm:pt-8">
-                        <div className="mb-4 sm:mb-6">
-                            <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold text-slate-900 mb-1.5">
-                                Core Platform Capabilities
+                {/* 2. Core Capabilities Pillar Grid */}
+                <section className="py-14 sm:py-20">
+                    <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12">
+                        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
+                            <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-3">
+                                Everything You Need for Your Gaming Vault
                             </h2>
-                            <p className="text-xs sm:text-sm text-slate-600">
-                                Everything you need to log, evaluate, and share your gaming journey.
+                            <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+                                Explore the specialized features tailored specifically for game lovers, critics, and collectors.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
                             {featureItems.map((item, idx) => (
                                 <div
                                     key={idx}
-                                    className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm hover:shadow-md hover:border-[#16A34A]/50 transition-all"
+                                    className="p-6 rounded-2xl bg-white border border-slate-200 hover:border-[#16A34A]/60 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 flex flex-col justify-between group"
                                 >
-                                    <h3 className="font-bold text-sm sm:text-base lg:text-lg text-slate-900 mb-2">
-                                        {item.title}
-                                    </h3>
-                                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                                        {item.description}
-                                    </p>
+                                    <div>
+                                        <span className="w-10 h-10 rounded-xl bg-[#16A34A]/10 text-[#16A34A] font-extrabold text-sm flex items-center justify-center mb-4">
+                                            0{idx + 1}
+                                        </span>
+                                        <h3 className="font-bold text-base sm:text-lg text-slate-900 mb-2">
+                                            {item.title}
+                                        </h3>
+                                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                            {item.description}
+                                        </p>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
-                </main>
-
-                {/* Compact Full Width Dark Footer CTA */}
-                <section className="w-full bg-[#0B0F0D] border-t border-[#1F2923] py-5 sm:py-8 text-center text-[#F5F7F5]">
-                    <div className="max-w-xl mx-auto px-6 space-y-1">
-                        <h2 className="text-base sm:text-lg lg:text-xl font-bold text-white">
-                            Ready to build your gaming profile?
-                        </h2>
-                        <p className="text-[9px] sm:text-xs text-[#8B948F] max-w-xs sm:max-w-sm mx-auto leading-tight sm:leading-relaxed">
-                            <Link
-                                href={route('login')}
-                                className="text-[#22C55E] hover:text-[#4ADE80] font-semibold transition-colors"
-                            >
-                                Join Playscore
-                            </Link>{' '}
-                            today and start logging your gaming journey with precision.
-                        </p>
-                    </div>
                 </section>
             </div>
+
+            {/* Same Global Public Footer as Home, Reviews & News */}
+            <PublicFooter />
         </div>
     );
 }

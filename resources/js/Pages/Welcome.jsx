@@ -135,7 +135,7 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
                         <h1 className="text-[#F5F7F5] text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6 tracking-tight">
                             Rate it. Review it.<br />Remember it.
                         </h1>
-                        <p className="text-[#8B948F] text-sm sm:text-base leading-relaxed mb-6 sm:mb-8 max-w-xl mx-auto sm:mx-0">
+                        <p className="text-[#8B948F] text-base sm:text-base lg:text-base leading-relaxed mb-6 sm:mb-8 max-w-xl mx-auto sm:mx-0">
                             Track every game you play, share honest reviews, and discover what to
                             play next based on what you actually like.
                         </p>
@@ -143,7 +143,7 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
                             <div className="mb-8 sm:mb-10 flex justify-center sm:justify-start">
                                 <Link
                                     href={route('login')}
-                                    className="inline-block rounded-lg bg-[#22C55E] text-[#0B0F0D] px-5 py-2.5 sm:px-6 sm:py-3 text-xs sm:text-sm font-semibold hover:bg-[#4ADE80] transition"
+                                    className="inline-block rounded-xl bg-[#22C55E] text-[#0B0F0D] px-6 py-2.5 sm:px-6 sm:py-3 text-sm font-bold hover:bg-[#4ADE80] transition shadow-lg shadow-[#22C55E]/20 active:scale-95"
                                 >
                                     Get Started Free
                                 </Link>
@@ -153,16 +153,16 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
                         {/* Inline Stats */}
                         <div className="pt-4 sm:pt-6 grid grid-cols-3 gap-3 sm:gap-6 text-center sm:text-left">
                             <div>
-                                <p className="text-[#22C55E] text-xl sm:text-3xl font-bold">{totalGamesCount || '800K+'}</p>
-                                <p className="text-[#8B948F] text-[11px] sm:text-sm mt-0.5 sm:mt-1">Games in database</p>
+                                <p className="text-[#22C55E] text-2xl sm:text-3xl font-bold">{totalGamesCount || '800K+'}</p>
+                                <p className="text-[#8B948F] text-xs sm:text-sm mt-1">Games in database</p>
                             </div>
                             <div>
-                                <p className="text-[#22C55E] text-xl sm:text-3xl font-bold">0-10</p>
-                                <p className="text-[#8B948F] text-[11px] sm:text-sm mt-0.5 sm:mt-1">Precise rating scale</p>
+                                <p className="text-[#22C55E] text-2xl sm:text-3xl font-bold">0-10</p>
+                                <p className="text-[#8B948F] text-xs sm:text-sm mt-1">Precise rating scale</p>
                             </div>
                             <div>
-                                <p className="text-[#22C55E] text-xl sm:text-3xl font-bold">Free</p>
-                                <p className="text-[#8B948F] text-[11px] sm:text-sm mt-0.5 sm:mt-1">Forever, no catch</p>
+                                <p className="text-[#22C55E] text-2xl sm:text-3xl font-bold">Free</p>
+                                <p className="text-[#8B948F] text-xs sm:text-sm mt-1">Forever, no catch</p>
                             </div>
                         </div>
                     </div>
@@ -174,7 +174,7 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
                 <div className="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 py-16 sm:py-24">
                     <div className="text-center mb-10 sm:mb-14">
                         <h2 className="text-[#0B0F0D] text-2xl sm:text-4xl font-bold mb-2 sm:mb-3">How it works</h2>
-                        <p className="text-[#4A5568] text-sm sm:text-base max-w-xl mx-auto">
+                        <p className="text-[#4A5568] text-base sm:text-base lg:text-base max-w-xl mx-auto">
                             Three simple steps to start tracking your games.
                         </p>
                     </div>
@@ -190,7 +190,7 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
                                     className="w-full h-full object-cover transition-all duration-500"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                                <span className="absolute top-3 left-3 bg-[#16A34A] text-white text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full shadow">
+                                <span className="absolute top-3 left-3 bg-[#16A34A] text-white text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-full shadow">
                                     STEP {steps[activeStep].number}
                                 </span>
                             </div>
@@ -204,7 +204,7 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
                             <h3 className="text-[#0B0F0D] text-xl sm:text-3xl font-bold mb-2 sm:mb-4">
                                 {steps[activeStep].title}
                             </h3>
-                            <p className="text-[#4A5568] text-sm sm:text-lg leading-relaxed mb-6 sm:mb-8">
+                            <p className="text-[#4A5568] text-base sm:text-base lg:text-base leading-relaxed mb-6 sm:mb-8">
                                 {steps[activeStep].description}
                             </p>
 
@@ -213,14 +213,14 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => setActiveStep((prev) => (prev === 0 ? steps.length - 1 : prev - 1))}
-                                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-[#CBD5E1] shadow-sm flex items-center justify-center text-[#0B0F0D] hover:bg-[#16A34A] hover:text-white hover:border-[#16A34A] transition"
+                                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white border border-[#CBD5E1] shadow-sm flex items-center justify-center text-[#0B0F0D] hover:bg-[#16A34A] hover:text-white hover:border-[#16A34A] transition"
                                         title="Previous step"
                                     >
                                         ←
                                     </button>
                                     <button
                                         onClick={() => setActiveStep((prev) => (prev === steps.length - 1 ? 0 : prev + 1))}
-                                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-[#CBD5E1] shadow-sm flex items-center justify-center text-[#0B0F0D] hover:bg-[#16A34A] hover:text-white hover:border-[#16A34A] transition"
+                                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white border border-[#CBD5E1] shadow-sm flex items-center justify-center text-[#0B0F0D] hover:bg-[#16A34A] hover:text-white hover:border-[#16A34A] transition"
                                         title="Next step"
                                     >
                                         →
@@ -249,7 +249,7 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
                         <h2 className="text-[#0B0F0D] text-2xl sm:text-3xl font-bold mb-2 sm:mb-3">
                             Everything you need
                         </h2>
-                        <p className="text-[#4A5568] text-sm sm:text-base">
+                        <p className="text-[#4A5568] text-base sm:text-base lg:text-base">
                             Built for people who take their gaming seriously.
                         </p>
                     </div>
@@ -261,10 +261,10 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
                                 className="group bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-5 sm:p-6 hover:bg-[#1E293B] hover:border-[#334155] hover:scale-[1.02] sm:hover:scale-105 transition-all duration-300 transform shadow-sm hover:shadow-xl cursor-pointer"
                             >
                                 <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">{feature.icon}</div>
-                                <h3 className="text-[#0B0F0D] group-hover:text-white text-sm sm:text-base font-semibold mb-1.5 sm:mb-2 transition">
+                                <h3 className="text-[#0B0F0D] group-hover:text-white text-base sm:text-base lg:text-base font-semibold mb-1.5 sm:mb-2 transition">
                                     {feature.title}
                                 </h3>
-                                <p className="text-[#4A5568] group-hover:text-[#94A3B8] text-xs sm:text-sm leading-relaxed transition">
+                                <p className="text-[#4A5568] group-hover:text-[#94A3B8] text-sm sm:text-sm lg:text-sm leading-relaxed transition">
                                     {feature.description}
                                 </p>
                             </div>
@@ -281,7 +281,7 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
                             <h2 className="text-[#0B0F0D] text-2xl sm:text-3xl font-bold mb-1.5 sm:mb-2">
                                 Trending Right Now
                             </h2>
-                            <p className="text-[#4A5568] text-sm sm:text-base">
+                            <p className="text-[#4A5568] text-base sm:text-base lg:text-base">
                                 A taste of what you'll find on Playscore.
                             </p>
                         </div>

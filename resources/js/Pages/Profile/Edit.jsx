@@ -240,7 +240,7 @@ export default function Edit({
         return (
             <AppLayout>
                 <Head title="Profile" />
-                <div className="max-w-6xl mx-auto w-full">
+                <div className="max-w-[1216px] mx-auto w-full">
                     <ProfileTab
                         mustVerifyEmail={mustVerifyEmail}
                         status={status}
@@ -266,7 +266,7 @@ export default function Edit({
         <AppLayout>
             <Head title="Profile" />
 
-            <div className="max-w-6xl mx-auto w-full">
+            <div className="max-w-[1216px] mx-auto w-full">
                 {activeTab === 'profile' && (
                     <ProfileTab
                         mustVerifyEmail={mustVerifyEmail}

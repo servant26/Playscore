@@ -32,7 +32,7 @@ export default function NotificationsIndex({ notifications, unreadCount }) {
         <AppLayout>
             <Head title="All Notifications" />
 
-            <div className="max-w-6xl mx-auto w-full py-4 sm:py-6">
+            <div className="max-w-[1216px] mx-auto w-full py-4 sm:py-6">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                     <div>

@@ -69,7 +69,7 @@ export default function Search({ query, games = [], users = [], recommendedUsers
         <AppLayout>
             <Head title={`Search: ${query}`} />
 
-            <div className="max-w-6xl mx-auto w-full pb-16 sm:pb-24">
+            <div className="max-w-[1216px] mx-auto w-full pb-16 sm:pb-24">
                 {/* Header Section */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <h2 className="text-[#F5F7F5] text-xl font-semibold">
@@ -146,11 +146,11 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                                 </div>
                             )}
 
-                            {/* Filter Tabs */}
-                            <div className="flex items-center gap-1 bg-[#131916] border border-[#1F2923] p-1 rounded-lg shrink-0">
+                            {/* Filter Tabs: 50:50 on mobile */}
+                            <div className="flex items-center gap-1 bg-[#131916] border border-[#1F2923] p-1 rounded-lg shrink-0 w-full sm:w-auto">
                                 <button
                                     onClick={() => setActiveTab('games')}
-                                    className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition ${
+                                    className={`flex-1 sm:flex-initial text-center px-3 py-1.5 sm:px-4 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition ${
                                         activeTab === 'games'
                                             ? 'bg-[#22C55E] text-[#0B0F0D] font-semibold'
                                             : 'text-[#8B948F] hover:text-[#F5F7F5]'
@@ -160,7 +160,7 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('users')}
-                                    className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition ${
+                                    className={`flex-1 sm:flex-initial text-center px-3 py-1.5 sm:px-4 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition ${
                                         activeTab === 'users'
                                             ? 'bg-[#22C55E] text-[#0B0F0D] font-semibold'
                                             : 'text-[#8B948F] hover:text-[#F5F7F5]'
@@ -310,7 +310,7 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                                         <div
                                             key={user.id}
                                             onClick={() => goToProfile(user.id)}
-                                            className="group cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3.5 sm:p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 hover:border-[#2E3A32] transition"
+                                            className="group cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3.5 sm:p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 hover:border-white/30 hover:shadow-lg hover:shadow-white/5 transition-all duration-300"
                                         >
                                             <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                                                 {/* Avatar */}
@@ -338,12 +338,12 @@ export default function Search({ query, games = [], users = [], recommendedUsers
 
                                                 {/* Details */}
                                                 <div className="flex-1 min-w-0">
-                                                    <h3 className="text-[#F5F7F5] text-sm sm:text-base font-medium truncate mb-1 group-hover:text-[#22C55E] transition">
+                                                    <h3 className="text-[#F5F7F5] text-sm sm:text-base font-medium truncate mb-1 group-hover:text-white transition">
                                                         {user.name}
                                                     </h3>
 
                                                     <div className="flex flex-wrap items-center gap-2 text-xs">
-                                                        <span className="text-[#22C55E] font-medium bg-[#22C55E]/10 px-2 py-0.5 rounded">
+                                                        <span className="text-[#F5F7F5] font-medium bg-[#1F2923] border border-[#2E3A32] px-2.5 py-0.5 rounded-md">
                                                             {user.total_reviews} {user.total_reviews === 1 ? 'Review' : 'Reviews'}
                                                         </span>
 
@@ -413,17 +413,23 @@ export default function Search({ query, games = [], users = [], recommendedUsers
             {/* Recommended Users Section (Only visible on Users Tab) */}
             {activeTab === 'users' && recommendedUsers && recommendedUsers.length > 0 && (
                 <div className="mt-12 pt-8 border-t border-[#1F2923]">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
-                        <div>
-                            <h3 className="text-[#F5F7F5] text-lg font-bold flex items-center gap-2.5">
-                                <span>Recommended Users For You</span>
-                                <span className="text-xs bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] px-2.5 py-0.5 rounded-full font-semibold">
-                                    Closest Taste
-                                </span>
+                    <div className="mb-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1.5">
+                            <h3 className="text-[#F5F7F5] text-lg font-bold block">
+                                Recommended Users For You
                             </h3>
-                            <p className="text-[#8B948F] text-xs mt-1">
-                                Users with similar genre interests, game lists, and review ratings closest to your taste.
-                            </p>
+                            <span className="hidden sm:inline-flex text-xs bg-[#1F2923] border border-[#2E3A32] text-[#F5F7F5] px-2.5 py-0.5 rounded-full font-semibold">
+                                Closest Taste
+                            </span>
+                        </div>
+                        <p className="text-[#8B948F] text-xs leading-relaxed">
+                            Users with similar genre interests, game lists, and review ratings closest to your taste.
+                        </p>
+                        {/* Mobile full-width badge below description */}
+                        <div className="mt-3 block sm:hidden">
+                            <div className="w-full text-center py-1.5 px-3 rounded-lg bg-[#1F2923] border border-[#2E3A32] text-[#F5F7F5] text-xs font-semibold">
+                                Closest Taste
+                            </div>
                         </div>
                     </div>
 
@@ -435,7 +441,7 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                                     <div
                                         key={recUser.id}
                                         onClick={() => goToProfile(recUser.id)}
-                                        className="group cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3.5 sm:p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 hover:border-[#2E3A32] transition"
+                                        className="group cursor-pointer bg-[#131916] border border-[#1F2923] rounded-xl p-3.5 sm:p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 hover:border-white/30 hover:shadow-lg hover:shadow-white/5 transition-all duration-300"
                                     >
                                         <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                                             {/* Rank Badge + Avatar */}
@@ -461,7 +467,7 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                                                         {recUser.name.charAt(0).toUpperCase()}
                                                     </span>
                                                 </div>
-                                                <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-[#22C55E] text-[#0B0F0D] font-bold text-[10px] flex items-center justify-center shadow">
+                                                <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-[#1F2923] border border-[#2E3A32] text-white font-bold text-[10px] flex items-center justify-center shadow">
                                                     #{globalRank}
                                                 </span>
                                             </div>
@@ -469,12 +475,12 @@ export default function Search({ query, games = [], users = [], recommendedUsers
                                             {/* Details */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 flex-wrap mb-1">
-                                                    <h4 className="text-[#F5F7F5] text-sm sm:text-base font-medium truncate group-hover:text-[#22C55E] transition">
+                                                    <h4 className="text-[#F5F7F5] text-sm sm:text-base font-medium truncate group-hover:text-white transition">
                                                         {recUser.name}
                                                     </h4>
 
                                                     {/* Taste Match Badge */}
-                                                    <span className="bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                                    <span className="bg-[#1F2923] border border-[#2E3A32] text-[#F5F7F5] text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1">
                                                         <span>{recUser.match_percentage}% Similar Taste</span>
                                                     </span>
                                                 </div>
