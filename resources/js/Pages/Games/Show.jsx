@@ -210,38 +210,52 @@ export default function Show({ game, userReview, reviews, moreLikeThis = [], isI
                 </div>
 
                 {/* Actions Bar */}
-                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 mb-6">
-                    <button
-                        onClick={openTrailer}
-                        className="flex-1 sm:flex-initial rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] transition text-center"
-                    >
-                        Trailer
-                    </button>
-                    <button
-                        onClick={toggleList}
-                        className={`flex-1 sm:flex-initial rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition text-center ${inList
-                            ? 'bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F0D]'
-                            : 'bg-[#1F2923] text-[#F5F7F5] hover:bg-[#2E3A32]'
-                            }`}
-                    >
-                        {inList ? '✓ In List' : '+ My List'}
-                    </button>
-                    {userReview ? (
+                <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5 sm:gap-3 mb-6">
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 flex-1">
                         <button
-                            onClick={() => setShowRatingModal(true)}
-                            className="w-full sm:w-auto justify-center rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] transition flex items-center gap-2"
+                            onClick={openTrailer}
+                            className="flex-1 sm:flex-initial rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] transition text-center"
                         >
-                            <span>Your Rating:</span>
-                            <span className="text-[#22C55E] font-bold">
-                                ★ {Number(userReview.rating).toFixed(1)}
-                            </span>
+                            Trailer
                         </button>
-                    ) : (
                         <button
-                            onClick={() => setShowRatingModal(true)}
-                            className="w-full sm:w-auto justify-center rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] transition"
+                            onClick={toggleList}
+                            className={`flex-1 sm:flex-initial rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition text-center ${inList
+                                ? 'bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F0D]'
+                                : 'bg-[#1F2923] text-[#F5F7F5] hover:bg-[#2E3A32]'
+                                }`}
                         >
-                            ★ Give Rating
+                            {inList ? '✓ In List' : '+ My List'}
+                        </button>
+                        {userReview ? (
+                            <button
+                                onClick={() => setShowRatingModal(true)}
+                                className="w-full sm:w-auto justify-center rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] transition flex items-center gap-2"
+                            >
+                                <span>Update Review</span>
+                                <span className="text-[#22C55E] font-bold">
+                                    ★ {Number(userReview.rating).toFixed(1)}
+                                </span>
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => setShowRatingModal(true)}
+                                className="w-full sm:w-auto justify-center rounded-lg bg-[#1F2923] text-[#F5F7F5] px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium hover:bg-[#2E3A32] transition"
+                            >
+                                ★ Write a Review
+                            </button>
+                        )}
+                    </div>
+
+                    {userReview && (
+                        <button
+                            onClick={() => setReviewToDelete(userReview.id)}
+                            className="p-2 sm:p-2.5 rounded-lg bg-[#1F2923] text-[#8B948F] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition flex items-center justify-center shrink-0"
+                            title="Delete Review"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
                         </button>
                     )}
                 </div>

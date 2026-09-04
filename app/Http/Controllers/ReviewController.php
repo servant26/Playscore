@@ -128,6 +128,53 @@ class ReviewController extends Controller
         return back()->with('success', 'Published to story!');
     }
 
+    public function storiesFeed(): \Illuminate\Http\JsonResponse
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['my_stories' => [], 'following_story_groups' => []]);
+        }
+
+        $formatStory = fn ($story) => $story?->formatForFrontend();
+
+        $myStoriesModels = \App\Models\Story::active()
+            ->where('user_id', $user->id)
+            ->with(['review.game', 'user'])
+            ->oldest()
+            ->get();
+
+        $myStories = $myStoriesModels
+            ->map($formatStory)
+            ->filter()
+            ->values();
+
+        $followingIds = $user->following()->pluck('users.id')->toArray();
+        $followingStoryModels = \App\Models\Story::active()
+            ->whereIn('user_id', $followingIds)
+            ->with(['review.game', 'user'])
+            ->oldest()
+            ->get();
+
+        $followingStoryGroups = $followingStoryModels
+            ->groupBy('user_id')
+            ->map(function ($group) use ($formatStory) {
+                $firstStoryUser = $group->first()->user;
+                $stories = $group->map($formatStory)->filter()->values();
+                return [
+                    'user_id' => $firstStoryUser->id,
+                    'user_name' => $firstStoryUser->name,
+                    'user_avatar' => $firstStoryUser->avatar,
+                    'stories' => $stories,
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'my_stories' => $myStories,
+            'following_story_groups' => $followingStoryGroups,
+        ]);
+    }
+
     public function publishRankStory(Request $request): RedirectResponse
     {
         $validRanks = [
@@ -224,7 +271,23 @@ class ReviewController extends Controller
     {
         abort_unless($review->user_id === auth()->id(), 403);
 
+        $user = auth()->user();
         $review->delete();
+
+        // Cek total review terkini setelah penghapusan
+        $remainingCount = $user->reviews()->count();
+
+        // Cari story tipe rank_up milik user yang syarat rank_count-nya melebihi total review saat ini
+        $invalidRankStories = \App\Models\Story::where('user_id', $user->id)
+            ->where('type', 'rank_up')
+            ->where('rank_count', '>', $remainingCount)
+            ->get();
+
+        foreach ($invalidRankStories as $invalidStory) {
+            $invalidStory->delete();
+        }
+
+        // Hapus highlight kosong jika stories di dalamnya sudah terhapus
         \App\Models\Highlight::whereDoesntHave('stories')->delete();
 
         return back();

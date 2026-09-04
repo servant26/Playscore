@@ -1,7 +1,9 @@
 import { Link, usePage, router } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getAvatarUrl } from '@/Utils/avatar';
 import RankUpModal from '@/Components/RankUpModal';
+import StoryViewerModal from '@/Components/StoryViewerModal';
+import Modal from '@/Components/Modal';
 
 export default function AppLayout({ children }) {
     const { auth, url, flash } = usePage().props;
@@ -15,6 +17,80 @@ export default function AppLayout({ children }) {
     const [unreadCount, setUnreadCount] = useState(0);
     const [loadingNotifs, setLoadingNotifs] = useState(false);
     const [rankUpData, setRankUpData] = useState(null);
+    const [showStoriesDrawer, setShowStoriesDrawer] = useState(false);
+    const [storiesFeed, setStoriesFeed] = useState({ my_stories: [], following_story_groups: [] });
+    const [loadingStoriesFeed, setLoadingStoriesFeed] = useState(false);
+    const [storyViewer, setStoryViewer] = useState({ show: false, stories: [], index: 0 });
+    const [showEmptyStoryModal, setShowEmptyStoryModal] = useState(false);
+    const [viewedStoryIds, setViewedStoryIds] = useState(() => {
+        if (typeof window === 'undefined') return [];
+        try {
+            const saved = localStorage.getItem('playscore_viewed_stories');
+            return saved ? JSON.parse(saved) : [];
+        } catch {
+            return [];
+        }
+    });
+
+    const handleStoryViewed = (storyId) => {
+        setViewedStoryIds((prev) => {
+            if (prev.includes(storyId)) return prev;
+            const updated = [...prev, storyId];
+            try {
+                localStorage.setItem('playscore_viewed_stories', JSON.stringify(updated));
+            } catch {}
+            return updated;
+        });
+    };
+
+    const fetchStoriesFeed = () => {
+        setLoadingStoriesFeed(true);
+        fetch(route('stories.feed'))
+            .then((res) => res.json())
+            .then((data) => {
+                setStoriesFeed({
+                    my_stories: data.my_stories || [],
+                    following_story_groups: data.following_story_groups || [],
+                });
+            })
+            .catch(() => {})
+            .finally(() => setLoadingStoriesFeed(false));
+    };
+
+    const storiesCloseTimeoutRef = useRef(null);
+
+    const openStoriesDrawer = () => {
+        if (storiesCloseTimeoutRef.current) {
+            clearTimeout(storiesCloseTimeoutRef.current);
+            storiesCloseTimeoutRef.current = null;
+        }
+        setShowStoriesDrawer(true);
+        fetchStoriesFeed();
+    };
+
+    const handleStoriesMouseLeave = () => {
+        if (storiesCloseTimeoutRef.current) {
+            clearTimeout(storiesCloseTimeoutRef.current);
+        }
+        storiesCloseTimeoutRef.current = setTimeout(() => {
+            setShowStoriesDrawer(false);
+        }, 250);
+    };
+
+    const handleStoriesMouseEnter = () => {
+        if (storiesCloseTimeoutRef.current) {
+            clearTimeout(storiesCloseTimeoutRef.current);
+            storiesCloseTimeoutRef.current = null;
+        }
+    };
+
+    const toggleStoriesDrawer = () => {
+        const nextState = !showStoriesDrawer;
+        setShowStoriesDrawer(nextState);
+        if (nextState) {
+            fetchStoriesFeed();
+        }
+    };
 
     useEffect(() => {
         const updateHash = () => {
@@ -160,10 +236,10 @@ export default function AppLayout({ children }) {
 
     const navItems = [
         {
-            key: 'mystory',
-            label: 'My Story',
-            href: route('profile.edit'),
-            isActive: currentUrl === '/profile' || currentUrl.startsWith('/profile#') || currentUrl.startsWith('/profile?'),
+            key: 'stories',
+            label: 'Stories',
+            onClick: toggleStoriesDrawer,
+            isActive: showStoriesDrawer,
             icon: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -438,25 +514,51 @@ export default function AppLayout({ children }) {
                 {/* Floating Rounded Pill Sidebar - ONLY for Regular Users (Hidden for Admin) */}
                 {auth?.user?.role !== 'admin' && (
                     <aside className="fixed left-3 sm:left-4 lg:left-5 top-1/2 -translate-y-1/2 z-30 hidden md:flex flex-col items-center bg-[#131916]/95 backdrop-blur-xl border border-[#1F2923] rounded-full py-4 px-2 shadow-2xl space-y-3">
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.key}
-                                href={item.href}
-                                className={`relative group w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 ${
-                                    item.isActive
-                                        ? 'bg-[#22C55E] text-[#0B0F0D] shadow-[0_0_16px_rgba(34,197,94,0.4)]'
-                                        : 'text-[#8B948F] hover:text-[#F5F7F5] hover:bg-[#1F2923]'
-                                }`}
-                                title={item.label}
-                            >
-                                {item.icon}
+                        {navItems.map((item) => {
+                            const btnClass = `relative group w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                item.isActive
+                                    ? 'bg-[#22C55E] text-[#0B0F0D] shadow-[0_0_16px_rgba(34,197,94,0.4)]'
+                                    : 'text-[#8B948F] hover:text-[#F5F7F5] hover:bg-[#1F2923]'
+                            }`;
 
-                                {/* Tooltip on Hover */}
-                                <span className="absolute left-14 bg-[#0F1512] border border-[#1F2923] text-[#F5F7F5] text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
-                                    {item.label}
-                                </span>
-                            </Link>
-                        ))}
+                            if (item.onClick) {
+                                const isStories = item.key === 'stories';
+                                return (
+                                    <button
+                                        key={item.key}
+                                        type="button"
+                                        onClick={item.onClick}
+                                        onMouseEnter={isStories ? openStoriesDrawer : undefined}
+                                        onMouseLeave={isStories ? handleStoriesMouseLeave : undefined}
+                                        className={btnClass}
+                                        title={item.label}
+                                    >
+                                        {item.icon}
+                                        {/* Tooltip on Hover (hidden for stories if drawer is open) */}
+                                        <span className={`absolute left-14 bg-[#0F1512] border border-[#1F2923] text-[#F5F7F5] text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xl opacity-0 pointer-events-none ${
+                                            isStories && showStoriesDrawer ? 'hidden' : 'group-hover:opacity-100'
+                                        } transition-opacity duration-200 whitespace-nowrap z-50`}>
+                                            {item.label}
+                                        </span>
+                                    </button>
+                                );
+                            }
+
+                            return (
+                                <Link
+                                    key={item.key}
+                                    href={item.href}
+                                    className={btnClass}
+                                    title={item.label}
+                                >
+                                    {item.icon}
+                                    {/* Tooltip on Hover */}
+                                    <span className="absolute left-14 bg-[#0F1512] border border-[#1F2923] text-[#F5F7F5] text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
+                                        {item.label}
+                                    </span>
+                                </Link>
+                            );
+                        })}
                     </aside>
                 )}
 
@@ -466,21 +568,18 @@ export default function AppLayout({ children }) {
                 </main>
             </div>
 
-            {/* Mobile Bottom Navigation Bar: Story, My Data (Popup: My List, My Review), Dashboard, Stats, Mutual (ONLY for regular users) */}
+            {/* Mobile Bottom Navigation Bar: Stories, My Data (Popup: My List, My Review), Dashboard, Stats, Mutual (ONLY for regular users) */}
             {auth?.user?.role !== 'admin' && (
                 <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0F1512]/95 backdrop-blur-md border-t border-[#1F2923] py-2 grid grid-cols-5 items-center">
-                    {/* 1. Story */}
-                    <Link
-                        href={route('profile.edit')}
-                        onClick={() => setShowMyDataMenu(false)}
+                    {/* 1. Stories */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setShowMyDataMenu(false);
+                            toggleStoriesDrawer();
+                        }}
                         className={`flex flex-col items-center justify-center gap-1 py-1 w-full transition ${
-                            (currentUrl === '/profile' || currentUrl.startsWith('/profile#') || currentUrl.startsWith('/profile?')) &&
-                            !currentHash.includes('myreview') &&
-                            !currentHash.includes('gamelist') &&
-                            !currentHash.includes('stats') &&
-                            !currentHash.includes('follow') &&
-                            !currentHash.includes('mutual') &&
-                            !currentHash.includes('profile')
+                            showStoriesDrawer
                                 ? 'text-[#22C55E] font-bold'
                                 : 'text-[#8B948F] hover:text-[#F5F7F5]'
                         }`}
@@ -488,8 +587,8 @@ export default function AppLayout({ children }) {
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span className="text-[10px] font-medium whitespace-nowrap">Story</span>
-                    </Link>
+                        <span className="text-[10px] font-medium whitespace-nowrap">Stories</span>
+                    </button>
 
                     {/* 2. My Data (Custom Popup Menu for My List & My Review) */}
                     <div className="relative flex flex-col items-center justify-center">
@@ -600,6 +699,279 @@ export default function AppLayout({ children }) {
                     </Link>
                 </div>
             )}
+
+            {/* Slide-out Stories Drawer (Sliding from left on desktop, from bottom/side on mobile) */}
+            {/* Backdrop (Mobile Only) */}
+            <div
+                className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-opacity duration-300 md:hidden ${
+                    showStoriesDrawer ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                }`}
+                onClick={() => setShowStoriesDrawer(false)}
+            />
+
+            {/* Drawer Content */}
+            <div
+                onMouseEnter={handleStoriesMouseEnter}
+                onMouseLeave={handleStoriesMouseLeave}
+                className={`fixed z-50 top-0 left-0 bottom-0 w-full sm:w-96 md:left-20 lg:left-24 md:top-6 md:bottom-6 md:h-auto md:max-h-[calc(100vh-48px)] md:rounded-3xl bg-[#0F1512] border border-[#1F2923] shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-out transform ${
+                    showStoriesDrawer
+                        ? 'opacity-100 translate-x-0 scale-100 pointer-events-auto shadow-[0_20px_60px_rgba(0,0,0,0.8)]'
+                        : 'opacity-0 -translate-x-8 scale-95 pointer-events-none'
+                }`}
+            >
+                        {/* Drawer Header */}
+                        <div className="px-5 py-4 border-b border-[#1F2923] flex items-center justify-between bg-[#131916]">
+                            <div>
+                                <h3 className="text-base font-bold text-[#F5F7F5]">Stories</h3>
+                                <p className="text-[11px] text-[#8B948F]">Recent 24h updates from friends</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowStoriesDrawer(false)}
+                                className="w-8 h-8 rounded-full hover:bg-[#1F2923] text-[#8B948F] hover:text-[#F5F7F5] flex items-center justify-center transition text-sm cursor-pointer"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Stories Feed Body */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
+                            {/* 1. My Story Section */}
+                            <div>
+                                <div className="text-[11px] font-bold text-[#8B948F] uppercase tracking-wider mb-2.5 px-1">
+                                    My Story
+                                </div>
+                                {(() => {
+                                    const hasMine = storiesFeed.my_stories && storiesFeed.my_stories.length > 0;
+                                    const mineUnviewed = hasMine && storiesFeed.my_stories.some((s) => !viewedStoryIds.includes(s.id));
+
+                                    return (
+                                        <div
+                                            onClick={() => {
+                                                if (hasMine) {
+                                                    setStoryViewer({ show: true, stories: storiesFeed.my_stories, index: 0 });
+                                                } else {
+                                                    setShowEmptyStoryModal(true);
+                                                }
+                                            }}
+                                            className="group cursor-pointer bg-[#131916] border border-[#1F2923] hover:border-white/30 rounded-2xl p-3 flex items-center justify-between transition-all duration-200"
+                                        >
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className={`relative w-12 h-12 rounded-full shrink-0 ${
+                                                    !hasMine
+                                                        ? 'border-2 border-dashed border-[#1F2923]'
+                                                        : mineUnviewed
+                                                        ? 'p-[2px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC]'
+                                                        : 'border-2 border-[#1F2923]'
+                                                }`}>
+                                                    <div className="w-full h-full rounded-full bg-[#0B0F0D] flex items-center justify-center overflow-hidden">
+                                                        {auth.user.avatar ? (
+                                                            <img
+                                                                src={getAvatarUrl(auth.user.avatar)}
+                                                                alt={auth.user.name}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <span className="text-[#F5F7F5] font-bold text-xs">
+                                                                {initials}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {hasMine ? (
+                                                        <span className="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-full bg-[#22C55E] text-[#0B0F0D] text-[9px] font-extrabold border-2 border-[#0F1512]">
+                                                            {storiesFeed.my_stories.length}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#1F2923] text-white text-[10px] font-bold flex items-center justify-center border-2 border-[#0F1512]">
+                                                            +
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <div className="min-w-0">
+                                                    <h4 className="text-sm font-semibold text-[#F5F7F5] group-hover:text-white truncate">
+                                                        Your Story
+                                                    </h4>
+                                                    <p className="text-xs text-[#8B948F] truncate">
+                                                        {hasMine
+                                                            ? `${storiesFeed.my_stories.length} active story update${storiesFeed.my_stories.length > 1 ? 's' : ''}`
+                                                            : 'Post review to share a story'}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <span className="text-xs text-[#8B948F] group-hover:text-[#22C55E] font-medium shrink-0 ml-2">
+                                                {hasMine ? 'View ›' : 'Add +'}
+                                            </span>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+
+                            {/* 2. Friends' Stories */}
+                            <div>
+                                <div className="text-[11px] font-bold text-[#8B948F] uppercase tracking-wider mb-2.5 px-1 flex items-center justify-between">
+                                    <span>Following ({storiesFeed.following_story_groups.length})</span>
+                                    {loadingStoriesFeed && (
+                                        <span className="text-[10px] text-white font-normal animate-pulse">Loading...</span>
+                                    )}
+                                </div>
+
+                                {storiesFeed.following_story_groups.length === 0 ? (
+                                    <div className="bg-[#131916] border border-[#1F2923] rounded-2xl p-6 text-center">
+                                        <p className="text-xs text-[#F5F7F5] font-semibold mb-1">
+                                            No Recent Stories
+                                        </p>
+                                        <p className="text-[11px] text-[#8B948F] leading-relaxed">
+                                            Follow more gamers in the community to see their daily review stories here!
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {storiesFeed.following_story_groups.map((group) => {
+                                            const groupHasUnviewed = group.stories.some((s) => !viewedStoryIds.includes(s.id));
+                                            const userInitials = group.user_name
+                                                .split(' ')
+                                                .map((w) => w[0])
+                                                .join('')
+                                                .slice(0, 2)
+                                                .toUpperCase();
+                                            const latestStory = group.stories[group.stories.length - 1];
+
+                                            // Hitung komposisi stories
+                                            const reviewStories = group.stories.filter((s) => s.type !== 'rank_up' && s.review?.game_title);
+                                            const rankStories = group.stories.filter((s) => s.type === 'rank_up');
+                                            const totalStories = group.stories.length;
+
+                                            let storySummaryText = '';
+                                            let hasMultipleStories = totalStories > 1;
+
+                                            if (totalStories === 1) {
+                                                if (rankStories.length > 0) {
+                                                    storySummaryText = `Promoted to ${rankStories[0].rank_name} 🎉`;
+                                                } else if (reviewStories.length > 0) {
+                                                    storySummaryText = `Reviewed ${reviewStories[0].review.game_title}`;
+                                                } else {
+                                                    storySummaryText = 'Shared a new story';
+                                                }
+                                            } else {
+                                                // Lebih dari 1 story
+                                                if (reviewStories.length > 0 && rankStories.length > 0) {
+                                                    const gameText = reviewStories.length === 1 ? '1 game' : `${reviewStories.length} games`;
+                                                    storySummaryText = `Reviewed ${gameText} and ranked up`;
+                                                } else if (rankStories.length > 0) {
+                                                    storySummaryText = `Promoted to ${rankStories[rankStories.length - 1].rank_name}`;
+                                                } else if (reviewStories.length > 0) {
+                                                    storySummaryText = `Reviewed ${reviewStories.length} games`;
+                                                } else {
+                                                    storySummaryText = `${totalStories} new stories`;
+                                                }
+                                            }
+
+                                            return (
+                                                <div
+                                                    key={group.user_id}
+                                                    onClick={() => {
+                                                        setStoryViewer({ show: true, stories: group.stories, index: 0 });
+                                                    }}
+                                                    className="group cursor-pointer bg-[#131916] border border-[#1F2923] hover:border-white/30 rounded-2xl p-3 flex items-center justify-between transition-all duration-200"
+                                                >
+                                                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                                                        <div className={`relative w-12 h-12 rounded-full shrink-0 ${
+                                                            groupHasUnviewed
+                                                                ? 'p-[2px] bg-gradient-to-tr from-[#22C55E] via-[#16A34A] to-[#86EFAC]'
+                                                                : 'border-2 border-[#1F2923]'
+                                                        }`}>
+                                                            <div className="w-full h-full rounded-full bg-[#0B0F0D] flex items-center justify-center overflow-hidden">
+                                                                {group.user_avatar ? (
+                                                                    <img
+                                                                        src={getAvatarUrl(group.user_avatar)}
+                                                                        alt={group.user_name}
+                                                                        className="w-full h-full object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <span className="text-[#F5F7F5] font-bold text-xs">
+                                                                        {userInitials}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <span className={`absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-extrabold border-2 border-[#0F1512] ${
+                                                                groupHasUnviewed ? 'bg-[#22C55E] text-[#0B0F0D]' : 'bg-[#1F2923] text-[#8B948F]'
+                                                            }`}>
+                                                                {group.stories.length}
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="min-w-0 flex-1 pr-1">
+                                                            <div className="flex items-center justify-between gap-2 mb-0.5">
+                                                                <h4 className="text-sm font-semibold text-[#F5F7F5] group-hover:text-white truncate">
+                                                                    {group.user_name}
+                                                                </h4>
+                                                                <span className={`text-[11px] font-medium shrink-0 ${
+                                                                    groupHasUnviewed ? 'text-[#22C55E]' : 'text-[#8B948F]'
+                                                                }`}>
+                                                                    {latestStory?.created_at || 'View'}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-xs text-[#8B948F] leading-relaxed break-words">
+                                                                {storySummaryText}
+                                                            </p>
+                                                            {hasMultipleStories && (
+                                                                <p className="text-[11px] text-[#5A625D] group-hover:text-[#22C55E] transition-colors mt-0.5">
+                                                                    Click to view more
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+            {/* Global Story Viewer Modal triggered from drawer */}
+            {storyViewer.show && (
+                <StoryViewerModal
+                    show={storyViewer.show}
+                    stories={storyViewer.stories}
+                    initialIndex={storyViewer.index}
+                    onClose={() => setStoryViewer({ show: false, stories: [], index: 0 })}
+                    onStoryViewed={handleStoryViewed}
+                />
+            )}
+
+            {/* Story Guide Modal (Exact original version) */}
+            <Modal show={showEmptyStoryModal} onClose={() => setShowEmptyStoryModal(false)} maxWidth="lg">
+                <div className="bg-[#131916] border border-[#1F2923] p-8 sm:p-10 rounded-2xl shadow-2xl text-center relative">
+                    <button
+                        onClick={() => setShowEmptyStoryModal(false)}
+                        className="absolute top-4 right-4 text-[#8B948F] hover:text-[#F5F7F5] transition text-sm cursor-pointer"
+                    >
+                        ✕
+                    </button>
+
+                    <h3 className="text-[#F5F7F5] font-bold text-xl sm:text-2xl mb-3">
+                        How to Create Your Story
+                    </h3>
+
+                    <p className="text-[#8B948F] text-sm sm:text-base leading-relaxed mb-8 max-w-lg mx-auto">
+                        Stories are generated automatically! To publish a story, you need to <span className="text-[#22C55E] font-semibold">write a game review</span> or <span className="text-[#22C55E] font-semibold">rank up your profile</span> by engaging with the community.
+                    </p>
+
+                    <div className="pt-2 max-w-xs mx-auto">
+                        <button
+                            type="button"
+                            onClick={() => setShowEmptyStoryModal(false)}
+                            className="w-full py-3 px-6 rounded-xl bg-[#22C55E] text-[#0B0F0D] text-sm font-bold hover:bg-[#16A34A] transition shadow-lg tracking-wide cursor-pointer"
+                        >
+                            Got It, Let's Game!
+                        </button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Rank Up Celebration Modal */}
             <RankUpModal

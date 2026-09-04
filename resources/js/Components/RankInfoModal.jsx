@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { RANKS, getRankInfo } from '@/Utils/rankSystem';
 
 export default function RankInfoModal({ show, onClose, reviewCount = 0 }) {
     const { count, index: activeIndex, currentRank, nextRank, isMax, reviewsNeeded } = getRankInfo(reviewCount);
+    const [hoveredCard, setHoveredCard] = useState(null);
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -44,20 +45,29 @@ export default function RankInfoModal({ show, onClose, reviewCount = 0 }) {
                     </button>
                 </div>
 
-                {/* Current Status Box */}
-                <div className="mb-4 p-3.5 rounded-xl bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
+                {/* Current Status Box with subtle shimmer shine */}
+                <div
+                    onMouseEnter={() => setHoveredCard('status-box')}
+                    onMouseLeave={() => setHoveredCard(null)}
+                    className="relative overflow-hidden mb-4 p-3.5 rounded-xl bg-[#0B0F0D] border border-[#1F2923] flex items-center justify-between gap-3"
+                >
+                    {/* Single sleek shimmer beam on hover ONLY when this box is hovered */}
+                    {hoveredCard === 'status-box' && (
+                        <div className="absolute inset-y-0 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/12 to-transparent animate-shimmer-sweep pointer-events-none" />
+                    )}
+                    
+                    <div className="flex items-center gap-3 relative z-10">
                         <span className="text-2xl sm:text-3xl">{currentRank.icon}</span>
                         <div>
-                            <div className="text-[11px] text-[#8B948F]">Your Current Rank</div>
+                            <div className="text-[11px] text-[#22C55E] font-medium">Your Current Rank</div>
                             <div className={`text-sm sm:text-base font-bold ${currentRank.color}`}>
                                 {currentRank.name}
                             </div>
                         </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right relative z-10">
                         <div className="text-[11px] text-[#8B948F]">Total Reviews</div>
-                        <div className="text-sm sm:text-base font-bold text-[#22C55E]">
+                        <div className="text-sm sm:text-base font-bold text-[#F5F7F5]">
                             {count} {count === 1 ? 'Review' : 'Reviews'}
                         </div>
                     </div>
@@ -68,18 +78,25 @@ export default function RankInfoModal({ show, onClose, reviewCount = 0 }) {
                     {RANKS.map((rank, i) => {
                         const isCurrent = i === activeIndex;
                         const isUnlocked = i <= activeIndex;
+                        const isPastRank = i < activeIndex;
 
                         return (
                             <div
                                 key={rank.name}
-                                className={`p-3 sm:p-3.5 rounded-xl border transition flex items-start sm:items-center gap-3 ${
+                                onMouseEnter={() => isPastRank && setHoveredCard(`rank-${i}`)}
+                                onMouseLeave={() => isPastRank && setHoveredCard(null)}
+                                className={`relative overflow-hidden p-3 sm:p-3.5 rounded-xl border transition-all duration-300 flex items-start sm:items-center gap-3 ${
                                     isCurrent
                                         ? 'bg-[#22C55E]/10 border-[#22C55E] shadow-[0_0_15px_rgba(34,197,94,0.2)]'
-                                        : isUnlocked
-                                        ? 'bg-[#0B0F0D] border-[#1F2923] opacity-90'
+                                        : isPastRank
+                                        ? 'bg-[#0B0F0D] border-[#1F2923] hover:border-white/30 hover:shadow-lg hover:shadow-white/5 opacity-90 cursor-default'
                                         : 'bg-[#0B0F0D]/50 border-[#1F2923]/60 opacity-40'
                                 }`}
                             >
+                                {/* Single sleek shimmer sweep ONLY when THIS specific rank is hovered */}
+                                {isPastRank && hoveredCard === `rank-${i}` && (
+                                    <div className="absolute inset-y-0 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/12 to-transparent animate-shimmer-sweep pointer-events-none" />
+                                )}
                                 {/* Badge Icon */}
                                 <div
                                     className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl shrink-0 flex items-center justify-center text-xl sm:text-2xl bg-gradient-to-br ${rank.badgeGradient} border border-white/10 shadow-md mt-0.5 sm:mt-0`}
@@ -93,11 +110,6 @@ export default function RankInfoModal({ show, onClose, reviewCount = 0 }) {
                                         <h4 className={`text-xs sm:text-sm font-bold ${rank.color}`}>
                                             {rank.name}
                                         </h4>
-                                        {isCurrent && (
-                                            <span className="bg-[#22C55E] text-[#0B0F0D] text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
-                                                Current
-                                            </span>
-                                        )}
                                     </div>
                                     <p className="text-[11px] sm:text-xs text-[#8B948F] mt-0.5 leading-normal">
                                         {rank.description}
@@ -109,14 +121,14 @@ export default function RankInfoModal({ show, onClose, reviewCount = 0 }) {
                                     <div className="text-xs font-bold text-[#F5F7F5]">
                                         {rank.min === 0 ? '0+' : `${rank.min}+`} Reviews
                                     </div>
+                                    {isUnlocked && (
+                                        <div className="text-[10px] text-[#F5F7F5] font-semibold mt-0.5">
+                                            ✓ Unlocked
+                                        </div>
+                                    )}
                                     {isCurrent && !isMax && (
                                         <div className="text-[10px] sm:text-[11px] text-[#22C55E] font-medium mt-0.5">
                                             {reviewsNeeded} needed for next
-                                        </div>
-                                    )}
-                                    {isUnlocked && (
-                                        <div className="text-[10px] text-[#22C55E] font-semibold mt-0.5">
-                                            ✓ Unlocked
                                         </div>
                                     )}
                                 </div>

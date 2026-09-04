@@ -190,11 +190,8 @@ export default function HighlightSection({ highlights = [], isOwner = false, myA
                     <button
                         type="button"
                         onClick={() => setShowArchiveModal(true)}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#131916] border border-[#1F2923] hover:border-[#22C55E]/50 text-xs font-semibold text-[#22C55E] hover:text-[#4ADE80] transition shadow-sm"
+                        className="px-4 py-2 rounded-lg bg-[#131916] border border-[#22C55E] hover:bg-[#22C55E] hover:text-[#0B0F0D] text-xs font-semibold text-[#22C55E] transition-all duration-200 shadow-sm"
                     >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 012-2h10a2 2 0 012 2M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                        </svg>
                         <span>Archive {myArchivedStories && myArchivedStories.length > 0 ? `(${myArchivedStories.length})` : ''}</span>
                     </button>
                 )}

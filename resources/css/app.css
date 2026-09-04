@@ -49,3 +49,16 @@ input:-webkit-autofill:focus {
     scrollbar-width: thin;
     scrollbar-color: #1F2923 #0B0F0D;
 }
+
+@keyframes shimmer-sweep {
+    0% {
+        left: -40%;
+    }
+    100% {
+        left: 140%;
+    }
+}
+
+.animate-shimmer-sweep {
+    animation: shimmer-sweep 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}

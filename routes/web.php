@@ -110,6 +110,9 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:5,1')    // 5/menit — posting rank story jarang dilakukan
         ->name('stories.rank');
 
+    Route::get('/stories/feed', [App\Http\Controllers\ReviewController::class, 'storiesFeed'])
+        ->name('stories.feed');
+
     Route::delete('/stories/{story}', [App\Http\Controllers\ReviewController::class, 'destroyStory'])
         ->middleware('throttle:10,1')   // 10/menit — cegah mass delete story
         ->name('stories.destroy');

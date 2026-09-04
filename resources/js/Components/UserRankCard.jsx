@@ -39,7 +39,7 @@ export default function UserRankCard({ reviewCount = 0 }) {
                     <button
                         type="button"
                         onClick={() => setShowModal(true)}
-                        className="px-4 py-2 rounded-lg bg-[#0B0F0D] border border-[#1F2923] text-[#8B948F] hover:border-[#22C55E] hover:text-[#22C55E] text-xs font-semibold transition shrink-0 flex items-center gap-2 self-stretch sm:self-auto justify-center"
+                        className="px-4 py-2 rounded-lg bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F0D] text-xs font-bold transition-all duration-200 shrink-0 flex items-center gap-2 self-stretch sm:self-auto justify-center shadow-sm"
                     >
                         <span>Rank Details</span>
                     </button>
