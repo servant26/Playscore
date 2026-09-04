@@ -236,6 +236,7 @@ export default function ProfileTab({
                                     <img
                                         src={avatarPreview}
                                         alt={data.name}
+                                        referrerPolicy="no-referrer"
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (

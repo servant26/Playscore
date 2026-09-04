@@ -69,7 +69,8 @@ Route::post('/check-email', function (\Illuminate\Http\Request $request) {
         return response()->json(['available' => true]); // Email tidak valid = tidak ada di DB
     }
 
-    $exists = \App\Models\User::where('email', strtolower(trim($email)))->exists();
+    $hash = \App\Models\User::hashEmail($email);
+    $exists = \App\Models\User::where('email_hash', $hash)->exists();
 
     // Gunakan key 'available' (bukan 'exists') — lebih netral dan tidak eksplisit
     // Rate limit sangat ketat: 5 request per menit per IP

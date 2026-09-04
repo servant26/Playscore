@@ -36,7 +36,14 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => [
+                'required', 'string', 'lowercase', 'email', 'max:255',
+                function ($attribute, $value, $fail) {
+                    if (User::where('email_hash', User::hashEmail($value))->exists()) {
+                        $fail(__('validation.unique', ['attribute' => 'email']));
+                    }
+                },
+            ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'interests' => ['nullable', 'array'],
             'interests.*' => ['exists:interests,id'],

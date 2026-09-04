@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'avatar', 'role'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable(['name', 'email', 'email_hash', 'password', 'avatar', 'role', 'google_id', 'google_id_hash'])]
+#[Hidden(['password', 'remember_token', 'email_hash', 'google_id_hash'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -27,9 +27,35 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'email' => 'encrypted',
+            'google_id' => 'encrypted',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public static function hashEmail(?string $email): ?string
+    {
+        if (!$email) return null;
+        return hash_hmac('sha256', strtolower(trim($email)), (string)config('app.key'));
+    }
+
+    public static function hashGoogleId(?string $id): ?string
+    {
+        if (!$id) return null;
+        return hash_hmac('sha256', (string)$id, (string)config('app.key'));
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user) {
+            if ($user->isDirty('email')) {
+                $user->email_hash = static::hashEmail($user->email);
+            }
+            if ($user->isDirty('google_id')) {
+                $user->google_id_hash = static::hashGoogleId($user->google_id);
+            }
+        });
     }
 
     public function isAdmin(): bool

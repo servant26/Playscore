@@ -33,7 +33,7 @@ class PasswordResetLinkController extends Controller
             'email' => 'required|email',
         ]);
 
-        $user = \App\Models\User::where('email', $request->email)->first();
+        $user = \App\Models\User::where('email_hash', \App\Models\User::hashEmail($request->email))->first();
 
         if (!$user) {
             throw ValidationException::withMessages([

@@ -123,7 +123,6 @@ class SearchController extends Controller
                     $q->where('role', '!=', 'admin')->orWhereNull('role');
                 })
                 ->where('name', 'not like', '%test%')
-                ->where('email', 'not like', '%test%')
                 ->where(function ($q) use ($myInterestIds, $myGameListIds) {
                     if (!empty($myInterestIds)) {
                         $q->whereHas('interests', fn($sub) => $sub->whereIn('interests.id', $myInterestIds));
