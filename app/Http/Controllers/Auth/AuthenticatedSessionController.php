@@ -34,7 +34,11 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         // Automatically remove password reset requests if user remembers & logs in
-        \App\Models\PasswordResetRequest::where('email', $request->user()->email)->delete();
+        $authUserId = $request->user()->id;
+        $authUsername = $request->user()->username;
+        \App\Models\PasswordResetRequest::where('user_id', $authUserId)
+            ->orWhere('username', $authUsername)
+            ->delete();
 
         if ($request->user()->isAdmin()) {
             return redirect()->intended(route('admin.dashboard', absolute: false));

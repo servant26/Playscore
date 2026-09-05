@@ -4,7 +4,7 @@ import LoadingDots from '@/Components/LoadingDots';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
+        username: '',
         password: '',
         remember: false,
     });
@@ -30,27 +30,28 @@ export default function Login({ status, canResetPassword }) {
                 </div>
             )}
 
-            <form onSubmit={submit} className="space-y-5">
+            <form onSubmit={submit} className="space-y-5" autoComplete="off">
                 <div>
                     <label
-                        htmlFor="email"
+                        htmlFor="username"
                         className="block text-sm text-[#8B948F] mb-1.5"
                     >
-                        Email
+                        Username
                     </label>
                     <input
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        autoComplete="username"
+                        id="username"
+                        type="text"
+                        name="username"
+                        value={data.username}
+                        autoComplete="off"
+                        data-lpignore="true"
                         autoFocus
-                        onChange={(e) => setData('email', e.target.value)}
+                        onChange={(e) => setData('username', e.target.value)}
                         className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
-                        placeholder="you@example.com"
+                        placeholder="Enter your username"
                     />
-                    {errors.email && (
-                        <p className="mt-1.5 text-sm text-red-400">{errors.email}</p>
+                    {errors.username && (
+                        <p className="mt-1.5 text-sm text-red-400">{errors.username}</p>
                     )}
                 </div>
 
@@ -66,10 +67,11 @@ export default function Login({ status, canResetPassword }) {
                         type="password"
                         name="password"
                         value={data.password}
-                        autoComplete="current-password"
+                        autoComplete="new-password"
+                        data-lpignore="true"
                         onChange={(e) => setData('password', e.target.value)}
                         className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
-                        placeholder="••••••••"
+                        placeholder="Enter your password"
                     />
                     {errors.password && (
                         <p className="mt-1.5 text-sm text-red-400">{errors.password}</p>

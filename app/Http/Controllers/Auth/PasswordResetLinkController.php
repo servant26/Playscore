@@ -30,20 +30,22 @@ class PasswordResetLinkController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'email' => 'required|email',
+            'username' => 'required|string',
         ]);
 
-        $user = \App\Models\User::where('email_hash', \App\Models\User::hashEmail($request->email))->first();
+        $username = strtolower(trim($request->username));
+        $user = \App\Models\User::where('username', $username)->first();
 
         if (!$user) {
             throw ValidationException::withMessages([
-                'email' => ['We could not find a user with that email address.'],
+                'username' => ['We could not find a user with that username.'],
             ]);
         }
 
-        $pendingRequest = \App\Models\PasswordResetRequest::where('email', $user->email)
-            ->where('status', 'pending')
-            ->first();
+        $pendingRequest = \App\Models\PasswordResetRequest::where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+              ->orWhere('username', $user->username);
+        })->where('status', 'pending')->first();
 
         if ($pendingRequest) {
             return back()->with(
@@ -52,14 +54,16 @@ class PasswordResetLinkController extends Controller
             );
         }
 
-        // Clear any old approved requests for this email before creating a new one
-        \App\Models\PasswordResetRequest::where('email', $user->email)
-            ->where('status', 'approved')
-            ->delete();
+        // Clear any old approved requests for this user before creating a new one
+        \App\Models\PasswordResetRequest::where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+              ->orWhere('username', $user->username);
+        })->where('status', 'approved')->delete();
 
         // Create new pending request for Admin
         \App\Models\PasswordResetRequest::create([
             'user_id' => $user->id,
+            'username' => $user->username,
             'email' => $user->email,
             'status' => 'pending',
         ]);

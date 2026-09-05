@@ -24,6 +24,7 @@ class AdminController extends Controller
                     'id' => $req->id,
                     'user_id' => $req->user_id,
                     'user_name' => $req->user ? $req->user->name : 'N/A',
+                    'user_username' => $req->user ? $req->user->username : ($req->username ?: 'N/A'),
                     'user_email' => $req->email,
                     'user_avatar' => $req->user ? $req->user->avatar : null,
                     'status' => $req->status,
@@ -32,7 +33,7 @@ class AdminController extends Controller
                 ];
             });
 
-        $users = User::select(['id', 'name', 'email', 'role', 'avatar', 'created_at'])
+        $users = User::select(['id', 'name', 'username', 'email', 'role', 'avatar', 'created_at'])
             ->where(function ($q) {
                 $q->where('role', '!=', 'admin')->orWhereNull('role');
             })
@@ -43,6 +44,7 @@ class AdminController extends Controller
                 return [
                     'id' => $u->id,
                     'name' => $u->name,
+                    'username' => $u->username,
                     'email' => $u->email,
                     'role' => $u->role,
                     'avatar' => $u->avatar,
@@ -69,7 +71,7 @@ class AdminController extends Controller
 
     public function approveRequest(PasswordResetRequest $passwordResetRequest): RedirectResponse
     {
-        $user = $passwordResetRequest->user ?: User::where('email', $passwordResetRequest->email)->first();
+        $user = $passwordResetRequest->user ?: ($passwordResetRequest->username ? User::where('username', $passwordResetRequest->username)->first() : null);
 
         if ($user) {
             $user->password = '12345678';
@@ -87,7 +89,8 @@ class AdminController extends Controller
             'reset_at' => now(),
         ]);
 
-        return back()->with('success', "Password for {$passwordResetRequest->email} has been successfully reset to 12345678.");
+        $displayName = $user ? $user->username : ($passwordResetRequest->username ?: $passwordResetRequest->email);
+        return back()->with('success', "Password for user {$displayName} has been successfully reset to 12345678.");
     }
 
     public function resetUserPassword(User $user): RedirectResponse
@@ -101,14 +104,15 @@ class AdminController extends Controller
             // Session driver might not be database
         }
 
-        PasswordResetRequest::where('email', $user->email)
+        PasswordResetRequest::where('user_id', $user->id)
+            ->orWhere('username', $user->username)
             ->where('status', 'pending')
             ->update([
                 'status' => 'approved',
                 'reset_at' => now(),
             ]);
 
-        return back()->with('success', "Password for user {$user->name} ({$user->email}) has been successfully reset to 12345678.");
+        return back()->with('success', "Password for user {$user->name} (@{$user->username}) has been successfully reset to 12345678.");
     }
 
     public function deleteUser(User $user): RedirectResponse
@@ -118,14 +122,16 @@ class AdminController extends Controller
         }
 
         $userName = $user->name;
-        $userEmail = $user->email;
+        $userUsername = $user->username;
 
         // Delete user's reset requests if any
-        PasswordResetRequest::where('email', $userEmail)->delete();
+        PasswordResetRequest::where('user_id', $user->id)
+            ->orWhere('username', $userUsername)
+            ->delete();
 
         // Delete user
         $user->delete();
 
-        return back()->with('success', "User {$userName} ({$userEmail}) has been permanently deleted.");
+        return back()->with('success', "User {$userName} (@{$userUsername}) has been permanently deleted.");
     }
 }

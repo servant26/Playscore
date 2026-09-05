@@ -24,7 +24,9 @@ class PasswordController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        \App\Models\PasswordResetRequest::where('email', $request->user()->email)->delete();
+        \App\Models\PasswordResetRequest::where('user_id', $request->user()->id)
+            ->orWhere('username', $request->user()->username)
+            ->delete();
 
         return back();
     }

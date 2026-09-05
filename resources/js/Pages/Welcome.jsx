@@ -93,7 +93,7 @@ export default function Welcome({ auth, canLogin, canRegister, previewGames, tot
         {
             number: '01',
             title: 'Create your account',
-            description: 'Sign up in under a minute with just your username and email address. Select your favorite gaming genres and platforms so Playscore can immediately tailor fresh, accurate recommendations specifically to your unique gaming taste.',
+            description: 'Sign up in under a minute with just your name, username, and password. Select your favorite gaming genres and platforms so Playscore can immediately tailor fresh, accurate recommendations specifically to your unique gaming taste.',
             image: previewGames[0]?.cover_url || 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600&auto=format&fit=crop&q=80',
         },
         {

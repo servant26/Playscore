@@ -36,13 +36,8 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => [
-                'required', 'string', 'lowercase', 'email', 'max:255',
-                function ($attribute, $value, $fail) {
-                    if (User::where('email_hash', User::hashEmail($value))->exists()) {
-                        $fail(__('validation.unique', ['attribute' => 'email']));
-                    }
-                },
+            'username' => [
+                'required', 'string', 'lowercase', 'alpha_dash', 'min:3', 'max:30', 'unique:users,username',
             ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'interests' => ['nullable', 'array'],
@@ -58,7 +53,7 @@ class RegisteredUserController extends Controller
 
         $user = User::create([
             'name' => $request->name,
-            'email' => $request->email,
+            'username' => strtolower(trim($request->username)),
             'password' => Hash::make($request->password),
             'avatar' => $avatarPath,
         ]);

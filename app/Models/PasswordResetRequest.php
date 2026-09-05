@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'email', 'status', 'reset_at'])]
+#[Fillable(['user_id', 'username', 'email', 'status', 'reset_at'])]
 class PasswordResetRequest extends Model
 {
     use HasFactory;

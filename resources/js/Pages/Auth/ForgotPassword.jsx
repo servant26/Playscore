@@ -4,7 +4,7 @@ import LoadingDots from '@/Components/LoadingDots';
 
 export default function ForgotPassword({ status }) {
     const { data, setData, post, processing, errors } = useForm({
-        email: '',
+        username: '',
     });
 
     const submit = (e) => {
@@ -15,7 +15,7 @@ export default function ForgotPassword({ status }) {
     return (
         <AuthLayout
             title="Forgot your password?"
-            subtitle="Enter your email address to submit a password reset request to the Admin."
+            subtitle="Enter your username to submit a password reset request to the Admin."
         >
             <Head title="Forgot Password" />
 
@@ -27,20 +27,20 @@ export default function ForgotPassword({ status }) {
 
             <form onSubmit={submit} className="space-y-5">
                 <div>
-                    <label htmlFor="email" className="block text-sm text-[#8B948F] mb-1.5">
-                        Email
+                    <label htmlFor="username" className="block text-sm text-[#8B948F] mb-1.5">
+                        Username
                     </label>
                     <input
-                        id="email"
-                        type="email"
-                        value={data.email}
+                        id="username"
+                        type="text"
+                        value={data.username}
                         autoFocus
-                        onChange={(e) => setData('email', e.target.value)}
+                        onChange={(e) => setData('username', e.target.value)}
                         className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
-                        placeholder="you@example.com"
+                        placeholder="Enter your registered username"
                     />
-                    {errors.email && (
-                        <p className="mt-1.5 text-sm text-red-400">{errors.email}</p>
+                    {errors.username && (
+                        <p className="mt-1.5 text-sm text-red-400">{errors.username}</p>
                     )}
                 </div>
 

@@ -91,7 +91,8 @@ export default function ProfileTab({
         recentlySuccessful,
     } = useForm({
         name: user.name,
-        email: user.email,
+        username: user.username || '',
+        email: user.email || '',
         avatar: null,
     });
 
@@ -102,6 +103,7 @@ export default function ProfileTab({
             {
                 _method: 'patch',
                 name: data.name,
+                username: data.username,
                 email: data.email,
                 avatar: data.avatar,
             },
@@ -267,10 +269,25 @@ export default function ProfileTab({
                                 type="text"
                                 value={data.name}
                                 onChange={(e) => setData('name', e.target.value)}
-                                className="w-full rounded-lg bg-[#0B0F0D] border border-[#1F2923] text-[#F5F7F5] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
+                                placeholder="Enter your full name"
+                                className="w-full rounded-lg bg-[#0B0F0D] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
                             />
                             {errors.name && (
                                 <p className="mt-1.5 text-sm text-red-400">{errors.name}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm text-[#8B948F] mb-1.5">Username</label>
+                            <input
+                                type="text"
+                                value={data.username}
+                                onChange={(e) => setData('username', e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                                placeholder="Enter your username"
+                                className="w-full rounded-lg bg-[#0B0F0D] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
+                            />
+                            {errors.username && (
+                                <p className="mt-1.5 text-sm text-red-400">{errors.username}</p>
                             )}
                         </div>
 

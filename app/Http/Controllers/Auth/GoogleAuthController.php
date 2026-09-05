@@ -36,16 +36,45 @@ class GoogleAuthController extends Controller
 
             if ($user) {
                 // Jika user sudah ada tapi google_id belum tersambung, sambungkan
+                $updates = [];
                 if (! $user->google_id) {
-                    $user->update([
-                        'google_id' => $googleUser->getId(),
-                        'avatar' => $user->avatar ?: $googleUser->getAvatar(),
-                    ]);
+                    $updates['google_id'] = $googleUser->getId();
+                }
+                if (! $user->avatar && $googleUser->getAvatar()) {
+                    $updates['avatar'] = $googleUser->getAvatar();
+                }
+                if (! $user->username) {
+                    $baseUsername = \Illuminate\Support\Str::slug($user->name ?: 'user', '');
+                    $candidate = $baseUsername ?: 'user';
+                    $c = 1;
+                    while (User::where('username', $candidate)->exists()) {
+                        $candidate = $baseUsername . $c;
+                        $c++;
+                    }
+                    $updates['username'] = $candidate;
+                }
+                if (!empty($updates)) {
+                    $user->update($updates);
                 }
             } else {
+                // Buat username unik dari nama / email Google
+                $rawBase = $googleUser->getNickname() ?: explode('@', $googleUser->getEmail() ?? '')[0] ?: $googleUser->getName();
+                $baseUsername = \Illuminate\Support\Str::slug($rawBase, '');
+                if (empty($baseUsername)) {
+                    $baseUsername = 'user';
+                }
+
+                $username = $baseUsername;
+                $counter = 1;
+                while (User::where('username', $username)->exists()) {
+                    $username = $baseUsername . $counter;
+                    $counter++;
+                }
+
                 // Buat user baru jika belum ada
                 $user = User::create([
-                    'name' => $googleUser->getName(),
+                    'name' => $googleUser->getName() ?: $username,
+                    'username' => $username,
                     'email' => $googleUser->getEmail(),
                     'google_id' => $googleUser->getId(),
                     'avatar' => $googleUser->getAvatar(),
@@ -55,10 +84,10 @@ class GoogleAuthController extends Controller
 
             Auth::login($user, true);
 
-            return redirect()->intended(route('home', absolute: false));
+            return redirect()->intended(route('dashboard', absolute: false));
         } catch (Exception $e) {
             return redirect()->route('login')->withErrors([
-                'email' => 'Gagal login menggunakan Google. Silakan coba lagi.',
+                'username' => 'Gagal login menggunakan Google. Silakan coba lagi.',
             ]);
         }
     }

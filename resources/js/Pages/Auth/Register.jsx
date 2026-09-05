@@ -7,28 +7,28 @@ export default function Register({ interests }) {
     const [step, setStep] = useState(1);
     const [avatarPreview, setAvatarPreview] = useState(null);
     const fileInputRef = useRef(null);
-    const [emailTaken, setEmailTaken] = useState(false);
-    const [checkingEmail, setCheckingEmail] = useState(false);
+    const [usernameTaken, setUsernameTaken] = useState(false);
+    const [checkingUsername, setCheckingUsername] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
-        email: '',
+        username: '',
         password: '',
         password_confirmation: '',
         interests: [],
         avatar: null,
     });
 
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const isEmailValid = data.email === '' || emailPattern.test(data.email);
+    const usernamePattern = /^[a-zA-Z0-9_-]{3,30}$/;
+    const isUsernameValid = data.username === '' || usernamePattern.test(data.username);
     const passwordsMatch =
         data.password_confirmation === '' || data.password === data.password_confirmation;
     const isPasswordLongEnough = data.password === '' || data.password.length >= 8;
 
     const canContinueStep1 =
         data.name.trim() !== '' &&
-        data.email.trim() !== '' &&
-        emailPattern.test(data.email) &&
+        data.username.trim() !== '' &&
+        usernamePattern.test(data.username) &&
         data.password !== '' &&
         data.password.length >= 8 &&
         data.password_confirmation !== '' &&
@@ -57,32 +57,32 @@ export default function Register({ interests }) {
             return;
         }
 
-        setCheckingEmail(true);
-        setEmailTaken(false);
+        setCheckingUsername(true);
+        setUsernameTaken(false);
 
         try {
-            const response = await fetch('/check-email', {
+            const response = await fetch('/check-username', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
                 },
-                body: JSON.stringify({ email: data.email }),
+                body: JSON.stringify({ username: data.username }),
             });
             const result = await response.json();
 
-            // Backend returns { available: true } if email is free, { available: false } if taken
+            // Backend returns { available: true } if username is free, { available: false } if taken
             if (result.available === false) {
-                setEmailTaken(true);
-                setCheckingEmail(false);
+                setUsernameTaken(true);
+                setCheckingUsername(false);
                 return;
             }
 
-            setCheckingEmail(false);
+            setCheckingUsername(false);
             setStep(2);
         } catch (error) {
             // On error (e.g. rate limited), still allow proceeding — server will catch duplicate on submit
-            setCheckingEmail(false);
+            setCheckingUsername(false);
             setStep(2);
         }
     };
@@ -137,7 +137,7 @@ export default function Register({ interests }) {
             </div>
 
             {step === 1 && (
-                <form onSubmit={goToStep2} className="space-y-5">
+                <form onSubmit={goToStep2} className="space-y-5" autoComplete="off">
                     <div>
                         <label htmlFor="name" className="block text-sm text-[#8B948F] mb-1.5">
                             Full name
@@ -145,11 +145,14 @@ export default function Register({ interests }) {
                         <input
                             id="name"
                             type="text"
+                            name="name"
                             value={data.name}
+                            autoComplete="off"
+                            data-lpignore="true"
                             autoFocus
                             onChange={(e) => setData('name', e.target.value)}
                             className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
-                            placeholder="Ali Khatami"
+                            placeholder="Enter your full name"
                         />
                         {errors.name && (
                             <p className="mt-1.5 text-sm text-red-400">{errors.name}</p>
@@ -157,32 +160,35 @@ export default function Register({ interests }) {
                     </div>
 
                     <div>
-                        <label htmlFor="email" className="block text-sm text-[#8B948F] mb-1.5">
-                            Email
+                        <label htmlFor="username" className="block text-sm text-[#8B948F] mb-1.5">
+                            Username
                         </label>
                         <input
-                            id="email"
-                            type="email"
-                            value={data.email}
+                            id="username"
+                            type="text"
+                            name="username"
+                            value={data.username}
+                            autoComplete="off"
+                            data-lpignore="true"
                             onChange={(e) => {
-                                setData('email', e.target.value);
-                                setEmailTaken(false);
+                                setData('username', e.target.value.toLowerCase().replace(/\s+/g, ''));
+                                setUsernameTaken(false);
                             }}
                             className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
-                            placeholder="you@example.com"
+                            placeholder="Choose a username"
                         />
-                        {!isEmailValid && (
+                        {!isUsernameValid && (
                             <p className="mt-1.5 text-sm text-red-400">
-                                Please enter a valid email address.
+                                Username must be 3-30 characters (letters, numbers, underscores, dashes only).
                             </p>
                         )}
-                        {emailTaken && (
+                        {usernameTaken && (
                             <p className="mt-1.5 text-sm text-red-400">
-                                This email is already registered.
+                                This username is already taken.
                             </p>
                         )}
-                        {errors.email && (
-                            <p className="mt-1.5 text-sm text-red-400">{errors.email}</p>
+                        {errors.username && (
+                            <p className="mt-1.5 text-sm text-red-400">{errors.username}</p>
                         )}
                     </div>
 
@@ -193,10 +199,13 @@ export default function Register({ interests }) {
                         <input
                             id="password"
                             type="password"
+                            name="password"
                             value={data.password}
+                            autoComplete="new-password"
+                            data-lpignore="true"
                             onChange={(e) => setData('password', e.target.value)}
                             className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
-                            placeholder="••••••••"
+                            placeholder="Enter your password (min. 8 characters)"
                         />
                         {!isPasswordLongEnough && (
                             <p className="mt-1.5 text-sm text-red-400">
@@ -218,10 +227,13 @@ export default function Register({ interests }) {
                         <input
                             id="password_confirmation"
                             type="password"
+                            name="password_confirmation"
                             value={data.password_confirmation}
+                            autoComplete="new-password"
+                            data-lpignore="true"
                             onChange={(e) => setData('password_confirmation', e.target.value)}
                             className="w-full rounded-lg bg-[#131916] border border-[#1F2923] text-[#F5F7F5] placeholder-[#5A625D] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
-                            placeholder="••••••••"
+                            placeholder="Re-enter your password"
                         />
                         {!passwordsMatch && (
                             <p className="mt-1.5 text-sm text-red-400">
@@ -237,10 +249,10 @@ export default function Register({ interests }) {
 
                     <button
                         type="submit"
-                        disabled={!canContinueStep1 || checkingEmail}
+                        disabled={!canContinueStep1 || checkingUsername}
                         className="w-full rounded-lg bg-[#22C55E] text-[#0B0F0D] font-medium py-2.5 text-sm hover:bg-[#4ADE80] transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#22C55E]"
                     >
-                        {checkingEmail ? 'Checking...' : 'Continue'}
+                        {checkingUsername ? 'Checking...' : 'Continue'}
                     </button>
 
                     <div className="relative my-4">

@@ -62,20 +62,17 @@ Route::get('/games/{game}', [App\Http\Controllers\GameController::class, 'show']
     ->middleware(['auth', 'verified'])
     ->name('games.show');
 
-Route::post('/check-email', function (\Illuminate\Http\Request $request) {
-    // Validasi format email dulu sebelum query ke DB
-    $email = $request->input('email', '');
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        return response()->json(['available' => true]); // Email tidak valid = tidak ada di DB
+Route::post('/check-username', function (\Illuminate\Http\Request $request) {
+    $username = strtolower(trim($request->input('username', '')));
+    if (empty($username) || strlen($username) < 3 || !preg_match('/^[a-zA-Z0-9_-]+$/', $username)) {
+        return response()->json(['available' => true]);
     }
 
-    $hash = \App\Models\User::hashEmail($email);
-    $exists = \App\Models\User::where('email_hash', $hash)->exists();
+    $exists = \App\Models\User::where('username', $username)->exists();
 
-    // Gunakan key 'available' (bukan 'exists') — lebih netral dan tidak eksplisit
-    // Rate limit sangat ketat: 5 request per menit per IP
     return response()->json(['available' => !$exists]);
-})->middleware('throttle:5,1');
+})->middleware('throttle:30,1');
+
 
 
 Route::middleware('auth')->group(function () {

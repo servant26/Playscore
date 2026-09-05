@@ -91,7 +91,8 @@ export default function AdminDashboard({ resetRequests = [], users = [], article
             (r) =>
                 r.status === 'pending' &&
                 (r.user_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    r.user_email.toLowerCase().includes(searchQuery.toLowerCase()))
+                    (r.user_username && r.user_username.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                    (r.user_email && r.user_email.toLowerCase().includes(searchQuery.toLowerCase())))
         );
     }, [resetRequests, searchQuery]);
 
@@ -108,7 +109,8 @@ export default function AdminDashboard({ resetRequests = [], users = [], article
         return users.filter(
             (u) =>
                 u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                u.email.toLowerCase().includes(searchQuery.toLowerCase())
+                (u.username && u.username.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase()))
         );
     }, [users, searchQuery]);
 
@@ -493,13 +495,14 @@ export default function AdminDashboard({ resetRequests = [], users = [], article
                                                                     )}
                                                                     <div>
                                                                         <p className="font-bold text-[#F5F7F5] text-xs sm:text-sm">{req.user_name}</p>
+                                                                        <p className="text-[11px] text-[#22C55E]">@{req.user_username}</p>
                                                                         <p className="text-[10px] text-[#8B948F]">ID: #{req.user_id}</p>
                                                                     </div>
                                                                 </div>
                                                             </td>
 
                                                             <td className="px-6 py-4 font-mono text-xs text-[#F5F7F5]">
-                                                                {req.user_email}
+                                                                {req.user_email || '-'}
                                                             </td>
 
                                                             <td className="px-6 py-4 text-xs text-[#8B948F]">
@@ -524,8 +527,8 @@ export default function AdminDashboard({ resetRequests = [], users = [], article
                                                     ))
                                                 ) : (
                                                     <tr>
-                                                        <td colSpan="5" className="px-6 py-12 text-center text-[#8B948F]">
-                                                            No pending reset requests.
+                                                        <td colSpan={5} className="text-center py-10 text-xs text-[#5A625D]">
+                                                            No pending reset requests found
                                                         </td>
                                                     </tr>
                                                 )}
@@ -568,6 +571,7 @@ export default function AdminDashboard({ resetRequests = [], users = [], article
                                             <thead className="bg-[#0B0F0D] text-[#F5F7F5] uppercase text-xs border-b border-[#1F2923] sticky top-0 z-10">
                                                 <tr>
                                                     <th className="px-6 py-4">User</th>
+                                                    <th className="px-6 py-4">Username</th>
                                                     <th className="px-6 py-4">Email</th>
                                                     <th className="px-6 py-4">Role</th>
                                                     <th className="px-6 py-4 text-right">Action</th>
@@ -594,8 +598,12 @@ export default function AdminDashboard({ resetRequests = [], users = [], article
                                                                 </div>
                                                             </td>
 
+                                                            <td className="px-6 py-4 font-mono text-xs text-[#22C55E]">
+                                                                @{u.username}
+                                                            </td>
+
                                                             <td className="px-6 py-4 font-mono text-xs text-[#F5F7F5]">
-                                                                {u.email}
+                                                                {u.email || '-'}
                                                             </td>
 
                                                             <td className="px-6 py-4">
@@ -811,7 +819,7 @@ export default function AdminDashboard({ resetRequests = [], users = [], article
                 onClose={() => setSelectedRequest(null)}
                 onConfirm={handleApproveRequest}
                 title="Approve Password Reset"
-                message={`Are you sure you want to reset password for ${selectedRequest?.user_name} (${selectedRequest?.user_email}) to "12345678"?`}
+                message={`Are you sure you want to reset password for ${selectedRequest?.user_name} (@${selectedRequest?.user_username || selectedRequest?.user_email}) to "12345678"?`}
                 confirmText="Approve Reset"
             />
 
@@ -821,7 +829,7 @@ export default function AdminDashboard({ resetRequests = [], users = [], article
                 onClose={() => setUserToDelete(null)}
                 onConfirm={handleDeleteUser}
                 title="Delete User Account"
-                message={`Are you sure you want to permanently delete user "${userToDelete?.name}" (${userToDelete?.email})?`}
+                message={`Are you sure you want to permanently delete user "${userToDelete?.name}" (@${userToDelete?.username})?`}
                 confirmText="Delete Account"
             />
 
